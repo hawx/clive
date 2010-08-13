@@ -35,7 +35,7 @@ class Clive
   #   eg. git merge -s resolve
   #       git merge --strategy=resolve
   class Flag < Switch
-    
+  
     # Runs the block that was given with an argument
     #
     # @param [String] arg argument to pass to the block
@@ -44,5 +44,4 @@ class Clive
     end
     
   end
-
 end

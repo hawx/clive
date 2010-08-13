@@ -43,7 +43,7 @@ class Clive
       when :switch
         v.run
       when :flag
-        v.run
+        v.run(i[2]||'not working')
       when :argument
         # nothing
         # Should really get these passed to flags!
@@ -66,7 +66,12 @@ class Clive
     tokens = []
     arg.each do |i|
       if i[0..1] == "--"
-        tokens << [:long, i[2..i.length]]
+        if i.include?('=')
+          a, b = i[2..i.length].split('=')
+          tokens << [:long, a] << [:word, b]
+        else
+          tokens << [:long, i[2..i.length]]
+        end
       elsif i[0] == "-"
         i[1..i.length].split('').each do |j|
           tokens << [:short, j]
@@ -115,12 +120,17 @@ class Clive
         if switch = @switches[v]
           tokens << [:switch, switch]
         elsif flag = @flags[v]
-          tokens << [:flags, flag]
+          tokens << [:flag, flag]
         else
           raise "error, flag/switch '#{v}' does not exist"
         end
       when :word
-        tokens << [:argument, v]
+        case tokens.last[0]
+        when :flag
+          tokens.last[2] = v
+        else
+          tokens << [:argument, v]
+        end
       end
     end
     
@@ -138,14 +148,8 @@ class Clive
 
 end
 
-#c = Clive.new do
-#  switch(:print) {}
-#  command(:add) {
-#    switch(:a) {}
-#    switch(:l) {}
-#    switch(:verbose) {}
-#  }
-#  switch(:g) {}
-#end
+c = Clive.new do
+  flag(:t, :type) {|i| puts i}
+end
 
-#p c.tokens(["add", "-al", "--verbose", "--print", "10"])
+c.parse(["--type=big"])
