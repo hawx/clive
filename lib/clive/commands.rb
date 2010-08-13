@@ -79,7 +79,7 @@ class Clive
         when :switch
           v.run
         when :flag
-          v.run
+          v.run(i[2])
         when :argument
           # nothing
         end
@@ -108,7 +108,12 @@ class Clive
             # ignore, could be part of main call
           end
         when :word
-          # ignore
+          case tokens.last[0]
+          when :flag
+            tokens.last[2] = v
+          else
+            # ignore
+          end
         end
       end
       tokens

@@ -28,7 +28,7 @@ class TestClive < Test::Unit::TestCase
   
   context "When parsing input" do
   
-    should "recognise flags" do
+    should "recognise flags with equals" do
       opts = {}
       c = Clive.new do
         flag(:type) {|i| opts[:type] = i}
@@ -38,14 +38,35 @@ class TestClive < Test::Unit::TestCase
       assert_equal r, opts
     end
     
+    should "recognise flags without equals" do
+      opts = {}
+      c = Clive.new do
+        flag(:type) {|i| opts[:type] = i}
+      end
+      c.parse(["--type", "big"])
+      r = {:type => 'big'}
+      assert_equal r, opts
+    end
+    
+    should "recongise short flags" do
+      opts = {}
+      c = Clive.new do
+        flag(:t) {|i| opts[:type] = i}
+      end
+      c.parse(["-t", "big"])
+      r = {:type => 'big'}
+      assert_equal r, opts
+    end
+    
     should "recognise multiple flags" do
       opts = {}
       c = Clive.new do
         flag(:type) {|i| opts[:type] = i}
         flag(:lang) {|i| opts[:lang] = i}
+        flag(:e) {|i| opts[:e] = i}
       end
-      c.parse(["--type=big", "--lang", "eng"])
-      r = {:type => 'big', :lang => 'eng'}
+      c.parse(["--type=big", "--lang", "eng", "-e", "true"])
+      r = {:type => 'big', :lang => 'eng', :e => 'true'}
       assert_equal r, opts
     end
     
@@ -56,6 +77,16 @@ class TestClive < Test::Unit::TestCase
         switch(:v, :verbose) {opts[:verbose] = true}
       end
       c.parse(["--verbose"])
+      r = {:verbose => true}
+      assert_equal r, opts
+    end
+    
+    should "recognise short switches" do
+      opts = {}
+      c = Clive.new do
+        switch(:v, :verbose) {opts[:verbose] = true}
+      end
+      c.parse(["-v"])
       r = {:verbose => true}
       assert_equal r, opts
     end
@@ -79,6 +110,32 @@ class TestClive < Test::Unit::TestCase
       end
       c.parse(["-vr"])
       r = {:verbose => true, :recursive => true}
+      assert_equal r, opts
+    end
+    
+    
+    should "recognise commands" do
+      opts = {}
+      c = Clive.new do
+        command(:add) {opts[:add] = true}
+      end
+      c.parse(["add"])
+      r = {:add => true}
+      assert_equal r, opts
+    end
+    
+    should "recognise flags and switches within commands" do
+      opts = {}
+      c = Clive.new do
+        command(:add) {
+          opts[:add] = true
+          
+          switch(:v, :verbose) {opts[:verbose] = true}
+          flag(:type) {|i| opts[:type] = i}
+        }
+      end
+      c.parse(["add", "--verbose", "--type=big"])
+      r = {:add => true, :verbose => true, :type => "big"}
       assert_equal r, opts
     end
     

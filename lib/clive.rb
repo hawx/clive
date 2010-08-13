@@ -2,7 +2,6 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'clive/switches'
 require 'clive/flags'
 require 'clive/commands'
-require 'debug'
 
 # Clive is a simple dsl for creating command line interfaces
 #
@@ -32,9 +31,12 @@ class Clive
   end
   
   # Parse the ARGV passed from the command line
+  #
+  # @param [Array] argv the command line input, usually just ARGV
+  # @return [Array] any arguments that were present in the input but not used
   def parse(argv)
     tokens = tokens(argv)
-    
+    r = []
     tokens.each do |i|
       k, v = i[0], i[1]
       case k
@@ -43,13 +45,12 @@ class Clive
       when :switch
         v.run
       when :flag
-        v.run(i[2]||'not working')
+        v.run(i[2])
       when :argument
-        # nothing
-        # Should really get these passed to flags!
+        r << v
       end
     end
-    
+    r
   end
   
   include SwitchHelper
@@ -137,19 +138,4 @@ class Clive
     tokens
   end
 
-  # Anything that is not a switch, flag or command
-  class Argument
-    attr_accessor :value
-    
-    def initialize(value)
-      @value = value
-    end
-  end
-
 end
-
-c = Clive.new do
-  flag(:t, :type) {|i| puts i}
-end
-
-c.parse(["--type=big"])
