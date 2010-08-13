@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+require 'clive'
+
+options = {}
+c = Clive.new do
+
+  switch(:v, :verbose, "Run verbosely") {
+    options[:verbose] = true
+  }
+  
+  flag(:t, :type, "Type to choose") {
+    p "hi"
+  }
+  
+  flag(:long_only, "A flag with only a long") {}
+  
+  command(:add, "Add something") {
+    
+    p "adding stuff"
+    
+    switch(:f, :full, "Use full") {
+      options[:full] = true
+    }  
+    
+    # Use with app-name add -e
+    switch(:e, :empty, "Use empty") {
+      options[:full] = false
+    }
+  
+  }
+
+end
+
+c.parse(ARGV)
+p options
+

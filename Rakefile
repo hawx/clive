@@ -5,7 +5,7 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "clive"
-    gem.summary = %Q{TODO: one-line summary of your gem}
+    gem.summary = %Q{Clive, an easy way to create a command line interface}
     gem.description = %Q{TODO: longer description of your gem}
     gem.email = "m@hawx.me"
     gem.homepage = "http://github.com/hawx/clive"
