@@ -45,6 +45,12 @@ class Clive
         end
         @block = block
       end
+      
+      @banner = "Usage: #{File.basename($0, '.*')} "
+      @banner << (@base ? "[commands]" : @name)
+      @banner << " [options]"
+      
+      self.build_help
     end
     
     # Run the block that was passed to find switches, flags, etc.
@@ -56,6 +62,13 @@ class Clive
     def find
       return nil if @base
       self.instance_eval(&@block)
+    end
+    
+    # This actually creates a switch with "-h" and "--help" that control
+    # the help on this command. If this is the base class it will also 
+    # creates a "help [command]" command.
+    def build_help
+      @switches << Switch.new("h", "help", "Display help") {puts self.help}
     end
     
     # Parse the ARGV passed from the command line, and run
@@ -259,7 +272,7 @@ class Clive
           summary << i.summary(width, prepend) << "\n"
         end
       end
-      
+     
       summary
     end
     

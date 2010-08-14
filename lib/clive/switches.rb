@@ -21,7 +21,10 @@ class Clive
     
     # @return [String] summary for help
     def summary(width=30, prepend=5)
-      a = "-#{@short}, --#{@long}"
+      a = ""
+      a << "-#{@short}" if @short
+      a << ", " if @short && @long
+      a << "--#{@long}" if @long
       b = @desc
       s, p = '', ''
       (0..width-a.length).each {s << ' '}
