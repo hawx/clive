@@ -227,7 +227,9 @@ class Clive
       @flags << Flag.new(short, long, desc, &block)
     end
     
-    # Add a boolean switch to +@booleans+
+    # Creates a boolean switch. This is done by adding two switches of
+    # Boolean type to +@switches+, one is created normally the other has
+    # "no-" appended to the long name and has no short name.
     #
     # @overload boolean(short, long, desc, &block)
     #   Creates a new boolean switch

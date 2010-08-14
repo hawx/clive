@@ -14,7 +14,7 @@ class TestClive < Test::Unit::TestCase
     c = Clive.new do
       switch(:v) {}
     end
-    assert_equal 1, c.switches.length
+    assert_equal 2, c.switches.length # plus help
     assert_instance_of Clive::Switch, c.switches[0]
   end
   
@@ -24,6 +24,14 @@ class TestClive < Test::Unit::TestCase
     end
     assert_equal 1, c.commands.length
     assert_instance_of Clive::Command, c.commands[0]
+  end
+  
+  should "create boolean" do
+    c = Clive.new do
+      boolean(:verbose) {}
+    end
+    assert_equal 3, c.switches.length # plus help
+    assert_instance_of Clive::Boolean, c.switches[0]
   end
   
   context "When parsing input" do
