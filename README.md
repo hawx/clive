@@ -34,6 +34,26 @@ This creates a very simple interface which can have one switch, you can then use
 
 As we've seen above switches are created using #switch. You can provide as little information as you want. `switch(:v) {}` creates a switch that responds only to `-v`, or `switch(:verbose) {}` creates a switch that only responds to `--verbose`.
 
+### Boolean
+
+Boolean switches allow you to accept arguments like `--no-verbose` and `--verbose`, and deal with both situations in the same block.
+
+    c = Clive.new do
+      boolean(:v, :verbose) {|i| p i}
+    end
+    c.parse(ARGV)
+    
+    ####
+    
+    my_file --verbose
+    #=> true
+    my_file -v
+    #=> true
+    my_file --no-verbose
+    #=> false
+
+As you can see the true case can be triggered with the short or long form, the false case can be triggered by appending "no-" to the long form, and it can't be triggered with a short form.
+
 ### Flags
 
 Flags are like switches but also take an argument:
