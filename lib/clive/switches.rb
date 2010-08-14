@@ -19,6 +19,16 @@ class Clive
       @block.call
     end
     
+    # @return [String] summary for help
+    def summary(width=30, prepend=5)
+      a = "-#{@short}, --#{@long}"
+      b = @desc
+      s, p = '', ''
+      (0..width-a.length).each {s << ' '}
+      (0..prepend).each {p << ' '}
+      "#{p}#{a}#{s}#{b}"
+    end
+    
   end
   
 end

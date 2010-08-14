@@ -43,3 +43,12 @@ class Clive
   end
   
 end
+
+c = Clive.new do
+  banner "Usage: lib/clive.rb [options]"
+
+  switch(:v, :verbose, "Run verbosely") {}
+  flag(:a, :add, "Add an item") {}
+end
+c.parse([])
+puts c.base.help

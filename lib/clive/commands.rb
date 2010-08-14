@@ -9,6 +9,7 @@ class Clive
     attr_accessor :switches, :flags, :commands
     attr_accessor :name, :desc, :block, :argv
     attr_accessor :base
+    attr_accessor :banner
     
     # Create a new Command instance
     #
@@ -219,6 +220,49 @@ class Clive
       end
       @flags << Flag.new(short, long, desc, &block)
     end
+    
+    #### HELP COMMANDS ####
+    
+    # Set the banner
+    def banner(val)
+      @banner = val
+    end
+    
+    def summary(width=30, prepend=5)
+      a = @name
+      b = @desc
+      s, p = '', ''
+      (0..width-a.length).each {s << ' '}
+      (0..prepend).each {p << ' '}
+      "#{p}#{a}#{s}#{b}"
+    end
+    
+    # Generate the summary for help, show all flags and switches, but do not
+    # show the flags and switches within each command. Should also prepend the
+    # banner.
+    def help(width=30, prepend=5)
+      summary = "#{@banner}\n" if @banner
+      
+      if @switches.length > 0 || @flags.length > 0
+        summary << "\n Options:\n"
+        @switches.each do |i|
+          summary << i.summary(width, prepend) << "\n"
+        end
+        @flags.each do |i|
+          summary << i.summary(width, prepend) << "\n"
+        end
+      end
+      
+      if @commands.length > 0
+        summary << "\nCommands:\n"
+        @commands.each do |i|
+          summary << i.summary(width, prepend) << "\n"
+        end
+      end
+      
+      summary
+    end
+    
     
   end
 end
