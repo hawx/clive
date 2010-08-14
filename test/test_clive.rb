@@ -154,6 +154,61 @@ class TestClive < Test::Unit::TestCase
       assert_equal r, opts
     end
     
+    
+    should "return unused arguments" do
+      opts = {}
+      c = Clive.new do
+        switch(:v) {opts[:v] = true}
+        flag(:h) {opts[:h] = true}
+        command(:add) {
+          switch(:full) {opts[:full] = true}
+        }
+      end
+      result = c.parse(["-v", "add", "--full", "truearg"])
+      assert_equal ["truearg"], result
+    end
+    
+    should "return multiple unused arguments" do
+      opts = {}
+      c = Clive.new do
+        switch(:v) {opts[:v] = true}
+        flag(:h) {opts[:h] = true}
+        command(:add) {
+          switch(:full) {opts[:full] = true}
+        }
+      end
+      result = c.parse(["-v", "onearg", "twoarg", "/usr/bin/env"])
+      assert_equal ["onearg", "twoarg", "/usr/bin/env"], result
+    end
+    
+  end
+  
+  
+  context "When parsing ridiculous edge tests" do
+  
+    should "parse this crazy guy" do
+      opts = {}
+      c = Clive.new do
+        switch(:v) {opts[:v] = true}
+        flag(:h) {opts[:h] = true}
+        
+        command(:add) {
+          opts[:add] = {}
+          switch(:full) {opts[:add][:full] = true}
+          flag(:breed) {|i| opts[:add][:breed] = i}
+          
+          command(:init) {
+            opts[:add][:init] = {}
+            switch(:base) {opts[:add][:init][:base] = true}
+            flag(:name) {|i| opts[:add][:init][:name] = i}
+          }
+        }
+      end
+      c.parse(["-v", "add", "--full", "init", "--base", "--name=Works"])
+      r = {:v => true, :add => {:full => true, :init => {:base => true, :name => 'Works'}} }
+      assert_equal r, opts
+    end
+  
   end
   
 end
