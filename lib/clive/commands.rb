@@ -1,50 +1,5 @@
 class Clive
   
-  # Helper module to include to gain access to a #command method.
-  # This assumes +@commands+ is available.
-  module CommandHelper
-  
-    # Add a new command to +@commands+
-    #
-    # @overload command(name, desc, &block)
-    #   Creates a new command
-    #   @param [Symbol] name the name of the command, eg. +:add+ for +git add+
-    #   @param [String] desc description of the command
-    # 
-    # @yield A block to run when the command is called, can contain switches
-    #   and flags
-    #
-    def command(*args, &block)
-      name, desc = nil, nil
-      args.each do |i|
-        if i.is_a? String
-          desc = i
-        else
-          name = i
-        end
-      end
-      @commands << Command.new(name, desc, &block)
-    end
-  end
-  
-  class Commands < Array
-    
-    # If passed a Symbol or String will get the command with that name. 
-    # Otherwise does what you expect of an Array (see Array#[])
-    #
-    # @param [Symbol, String, Integer] name or index of item to return
-    # @return [Command] the command which has been found
-    def [](val)
-      val = val.to_s if val.is_a? Symbol
-      if val.is_a? String
-        self.find_all {|i| i.name == val}[0]
-      elsif val.is_a? Integer
-        super
-      end
-    end
-    
-  end
-  
   # A string which describes the command to execute
   #   eg. the add in git add
   # or the main base that holds all other commands, switches
@@ -69,10 +24,10 @@ class Clive
     # @yield A block to run, containing switches and flags
     #
     def initialize(*args, &block)
-      @argv = []
-      @switches = Switches.new
-      @flags = Flags.new
-      @commands = Commands.new
+      @argv     = []
+      @switches = Clive::Array.new
+      @flags    = Clive::Array.new
+      @commands = Clive::Array.new
     
       if args.length == 1 && args[0] == true
         @base = true
@@ -90,10 +45,6 @@ class Clive
         @block = block
       end
     end
-    
-    include SwitchHelper
-    include FlagHelper
-    include CommandHelper
     
     # Run the block that was passed to find switches, flags, etc.
     #
@@ -197,6 +148,77 @@ class Clive
       
       tokens
     end
-
+    
+    #### CREATION HELPERS #### 
+    
+    # Add a new switch to +@switches+
+    #
+    # @overload switch(short, long, desc, &block)
+    #   Creates a new switch
+    #   @param [Symbol] short single character for short switch, eg. +:v+ => +-v+
+    #   @param [Symbol] long longer switch to be used, eg. +:verbose+ => +--verbose+
+    #   @param [String] desc the description for the switch
+    #
+    # @yield A block to run if the switch is triggered
+    #
+    def switch(*args, &block)
+      short, long, desc = nil, nil, nil
+      args.each do |i|
+        if i.is_a? String
+          desc = i
+        elsif i.length == 1
+          short = i.to_s
+        else
+          long = i.to_s
+        end
+      end
+      @switches << Switch.new(short, long, desc, &block)
+    end
+    
+    # Add a new command to +@commands+
+    #
+    # @overload command(name, desc, &block)
+    #   Creates a new command
+    #   @param [Symbol] name the name of the command, eg. +:add+ for +git add+
+    #   @param [String] desc description of the command
+    # 
+    # @yield A block to run when the command is called, can contain switches
+    #   and flags
+    #
+    def command(*args, &block)
+      name, desc = nil, nil
+      args.each do |i|
+        if i.is_a? String
+          desc = i
+        else
+          name = i
+        end
+      end
+      @commands << Command.new(name, desc, &block)
+    end
+    
+    # Add a new flag to +@flags+
+    #
+    # @overload flag(short, long, desc, &block)
+    #   Creates a new flag
+    #   @param [Symbol] short single character for short flag, eg. NEED EXAMPLE
+    #   @param [Symbol] long longer switch to be used, eg. NEED EXAMPLE
+    #   @param [String] desc the description for the flag
+    #
+    # @yield [String] A block to be run if switch is triggered
+    def flag(*args, &block)
+      short, long, desc = nil, nil, nil
+      args.each do |i|
+        if i.is_a? String
+          desc = i
+        elsif i.length == 1
+          short = i.to_s
+        else
+          long = i.to_s
+        end
+      end
+      @flags << Flag.new(short, long, desc, &block)
+    end
+    
   end
 end
