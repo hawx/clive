@@ -38,7 +38,7 @@ class Clive
       val = val.to_s if val.is_a? Symbol
       if val.is_a? String
         self.find_all {|i| i.name == val}[0]
-      else
+      elsif val.is_a? Integer
         super
       end
     end
@@ -47,30 +47,75 @@ class Clive
   
   # A string which describes the command to execute
   #   eg. the add in git add
+  # or the main base that holds all other commands, switches
+  # and flags
   class Command
-    attr_accessor :name, :desc, :block, :argv
-    attr_accessor :switches, :flags, :commands
     
-    def initialize(name, desc, &block)
-      @name = name.to_s
-      @desc = desc
+    attr_accessor :switches, :flags, :commands
+    attr_accessor :name, :desc, :block, :argv
+    attr_accessor :base
+    
+    # Create a new CommandUnit instance
+    #
+    # @overload initialize(base, &block)
+    #   Creates a new base CommandUnit to house everything else
+    #   @param [Boolean] base whether the command is the base
+    #
+    # @overload initialize(name, desc, &block)
+    #   Creates a new CommandUnit as part of the base CommandUnit
+    #   @param [Symbol] name the name of the command
+    #   @param [String] desc the description of the command
+    #
+    # @yield A block to run, containing switches and flags
+    #
+    def initialize(*args, &block)
       @argv = []
-      
       @switches = Switches.new
       @flags = Flags.new
       @commands = Commands.new
-      @block = block  
+    
+      if args.length == 1 && args[0] == true
+        @base = true
+        self.instance_eval(&block)
+      else
+        @base = false
+        args.each do |i|
+          case i
+          when Symbol
+            @name = i.to_s
+          when String
+            @desc = i
+          end
+        end
+        @block = block
+      end
     end
     
     include SwitchHelper
     include FlagHelper
     include CommandHelper
     
-    # Loops through the tokens that the command calls, and calls each 
-    # in turn.
+    # Run the block that was passed to find switches, flags, etc.
     #
-    # @param [Array] tokens tokens that relate to this command
-    def run(tokens)
+    # This should only be called if the command has been called
+    # as the block could contain other actions to perform only 
+    # when called.
+    #
+    def find
+      return nil if @base
+      self.instance_eval(&@block)
+    end
+    
+    # Parse the ARGV passed from the command line, and run
+    #
+    # @param [Array] argv the command line input, usually just ARGV
+    # @return [Array] any arguments that were present in the input but not used
+    #
+    def run(argv)
+      tokens = argv
+      tokens = tokenize(argv) if @base
+      
+      r = []
       tokens.each do |i|
         k, v = i[0], i[1]
         case k
@@ -81,44 +126,123 @@ class Clive
         when :flag
           v.run(i[2])
         when :argument
-          # nothing
+          r << v
         end
       end
+      r
     end
     
-    # Run the block that was given to look for switches, flags, etc.
-    def parse
-      self.instance_eval(&@block)
-    end
-    
-    def tokens(arg)
+    # Turns the command line input into a series of tokens.
+    # It will only raise errors if this is the base command instance.
+    #
+    # @param [Array] the command line input
+    # @return [Array] a series of tokens
+    #
+    # @example
+    #
+    #   c.tokenize(["add", "-al", "--verbose"])
+    #   #=> [[:command, #<Clive::Command>, ...args...], [:switch, "a", 
+    #        #<Clive::Switch>], [:switch, "l", #<Clive::Switch>], [:switch, 
+    #        "verbose", #<Clive::Switch>]]
+    #
+    def tokenize(argv)
       tokens = []
-      @argv = arg
-      arg.each do |i|
+      pre = pre_tokens(argv)
+      command = nil
+      @argv = argv unless @base
+      
+      pre.each do |i|
+        k, v = i[0], i[1]
+        case k
+        when :word
+          if @commands[v]
+            command = @commands[v]
+            pre -= [[:word, v]]
+          end
+        end
+      end
+      
+      if command
+        command.find
+        # tokenify the command
+        tokens << [:command, command, command.tokenize(arg_tokens(pre))]
+        pre = pre_tokens(command.argv)
+      end 
+      
+      pre.each do |i|
         k, v = i[0], i[1]
         case k
         when :short, :long
           if switch = @switches[v]
             tokens << [:switch, switch]
-            @argv -= [[k, v]]
+            pre -= [[k, v]] unless @base
           elsif flag = @flags[v]
             tokens << [:flag, flag]
-            @argv -= [[k, v]]
+            pre -= [[k, v]] unless @base
           else
-            # ignore, could be part of main call
+            raise "error, flag/switch '#{v}' does not exist" if @base
           end
         when :word
-          case tokens.last[0]
-          when :flag
-            tokens.last[2] = v
-          else
-            # ignore
+          if tokens.last
+            case tokens.last[0]
+            when :flag
+              tokens.last[2] = v
+            else
+              tokens << [:argument, v] if @base
+            end
           end
+        end
+      end
+      @argv = arg_tokens(pre)
+      
+      tokens
+    end
+    
+    # Turn into simple tokens that have been split up into logical parts
+    #
+    # @example
+    #
+    #   c.pre_tokens(["add", "-al", "--verbose"])
+    #   #=> [[:word, "add"], [:short, "a"], [:short, "l"], [:long, "verbose"]]
+    def pre_tokens(arg)
+      tokens = []
+      arg.each do |i|
+        if i[0..1] == "--"
+          if i.include?('=')
+            a, b = i[2..i.length].split('=')
+            tokens << [:long, a] << [:word, b]
+          else
+            tokens << [:long, i[2..i.length]]
+          end
+        elsif i[0] == "-"
+          i[1..i.length].split('').each do |j|
+            tokens << [:short, j]
+          end
+        else
+          tokens << [:word, i]
         end
       end
       tokens
     end
     
+    # Convert pre_tokens into argv style array
+    def arg_tokens(tokens)
+      argv = []
+      tokens.each do |i|
+        k, v = i[0], i[1]
+        case k
+        when :long
+          argv << "--#{v}"
+        when :short
+          argv << "-#{v}"
+        when :word
+          argv << v
+        end
+      end
+      
+      argv
+    end
+
   end
 
 end
