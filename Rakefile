@@ -5,8 +5,8 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "clive"
-    gem.summary = %Q{Clive, an easy way to create a command line interface}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.summary = %Q{Imagine if optparse and gli had a son called clive.}
+    gem.description = %Q{Clive is a DSL for creating a command line interface. It is for people who, like me, love OptionParser's syntax and love GLI's commands.}
     gem.email = "m@hawx.me"
     gem.homepage = "http://github.com/hawx/clive"
     gem.authors = ["Joshua Hawxwell"]

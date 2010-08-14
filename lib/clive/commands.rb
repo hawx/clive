@@ -1,27 +1,27 @@
 class Clive
   
   # A string which describes the command to execute
-  #   eg. the add in git add
-  # or the main base that holds all other commands, switches
-  # and flags
+  #   eg. git add
+  #       git pull
+  #
   class Command
     
     attr_accessor :switches, :flags, :commands
     attr_accessor :name, :desc, :block, :argv
     attr_accessor :base
     
-    # Create a new CommandUnit instance
+    # Create a new Command instance
     #
     # @overload initialize(base, &block)
-    #   Creates a new base CommandUnit to house everything else
+    #   Creates a new base Command to house everything else
     #   @param [Boolean] base whether the command is the base
     #
     # @overload initialize(name, desc, &block)
-    #   Creates a new CommandUnit as part of the base CommandUnit
+    #   Creates a new Command as part of the base Command
     #   @param [Symbol] name the name of the command
     #   @param [String] desc the description of the command
     #
-    # @yield A block to run, containing switches and flags
+    # @yield A block to run, containing switches, flags and commands
     #
     def initialize(*args, &block)
       @argv     = []
@@ -86,7 +86,7 @@ class Clive
     # Turns the command line input into a series of tokens.
     # It will only raise errors if this is the base command instance.
     #
-    # @param [Array] the command line input
+    # @param [Array] argv the command line input
     # @return [Array] a series of tokens
     #
     # @example
@@ -201,8 +201,8 @@ class Clive
     #
     # @overload flag(short, long, desc, &block)
     #   Creates a new flag
-    #   @param [Symbol] short single character for short flag, eg. NEED EXAMPLE
-    #   @param [Symbol] long longer switch to be used, eg. NEED EXAMPLE
+    #   @param [Symbol] short single character for short flag, eg. +:t+ => +-t 10+
+    #   @param [Symbol] long longer switch to be used, eg. +:tries+ => +--tries=10+
     #   @param [String] desc the description for the flag
     #
     # @yield [String] A block to be run if switch is triggered

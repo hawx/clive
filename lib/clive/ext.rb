@@ -6,7 +6,7 @@ class Clive
     # checks #long and #short if available or #name. Otherwise does 
     # what you expect of an Array (see Array#[])
     #
-    # @param [Symbol, String, Integer, Range] name or index of item to return
+    # @param [Symbol, String, Integer, Range] val name or index of item to return
     # @return the item that has been found
     def [](val)
       val = val.to_s if val.is_a? Symbol

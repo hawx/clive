@@ -1,8 +1,9 @@
 class Clive
   
-  # A string that takes no argument, beginning with a dash
-  #   eg. the `-a` and `-l` in `ls -a -l` or `ls -al`
-  #       the `--version` in `git --version`
+  # A string that takes no argument, beginning with one or two dashes
+  #   eg. ruby --version
+  #       ruby -v
+  #
   class Switch
     attr_accessor :short, :long, :desc, :block
     
