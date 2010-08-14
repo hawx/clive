@@ -43,13 +43,3 @@ class Clive
   end
   
 end
-
-c = Clive.new do
-  switch(:v, :verbose, "Run verbosely") {}
-  flag(:a, :add, "Add an item") {}
-  
-  command(:init, "Initialize a new project") do
-    switch(:on, "Turn the project on") {}
-  end
-end
-c.parse(ARGV)
