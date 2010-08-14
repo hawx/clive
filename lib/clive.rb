@@ -1,5 +1,6 @@
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
+require 'tokens'
 require 'clive/switches'
 require 'clive/flags'
 require 'clive/commands'

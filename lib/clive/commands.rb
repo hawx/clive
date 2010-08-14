@@ -147,7 +147,7 @@ class Clive
     #
     def tokenize(argv)
       tokens = []
-      pre = pre_tokens(argv)
+      pre = Tokens.to_tokens(argv)
       command = nil
       @argv = argv unless @base
       
@@ -165,8 +165,8 @@ class Clive
       if command
         command.find
         # tokenify the command
-        tokens << [:command, command, command.tokenize(arg_tokens(pre))]
-        pre = pre_tokens(command.argv)
+        tokens << [:command, command, command.tokenize(Tokens.to_array(pre))]
+        pre = Tokens.to_tokens(command.argv)
       end 
       
       pre.each do |i|
@@ -193,56 +193,10 @@ class Clive
           end
         end
       end
-      @argv = arg_tokens(pre)
+      @argv = Tokens.to_array(pre)
       
       tokens
-    end
-    
-    # Turn into simple tokens that have been split up into logical parts
-    #
-    # @example
-    #
-    #   c.pre_tokens(["add", "-al", "--verbose"])
-    #   #=> [[:word, "add"], [:short, "a"], [:short, "l"], [:long, "verbose"]]
-    def pre_tokens(arg)
-      tokens = []
-      arg.each do |i|
-        if i[0..1] == "--"
-          if i.include?('=')
-            a, b = i[2..i.length].split('=')
-            tokens << [:long, a] << [:word, b]
-          else
-            tokens << [:long, i[2..i.length]]
-          end
-        elsif i[0] == "-"
-          i[1..i.length].split('').each do |j|
-            tokens << [:short, j]
-          end
-        else
-          tokens << [:word, i]
-        end
-      end
-      tokens
-    end
-    
-    # Convert pre_tokens into argv style array
-    def arg_tokens(tokens)
-      argv = []
-      tokens.each do |i|
-        k, v = i[0], i[1]
-        case k
-        when :long
-          argv << "--#{v}"
-        when :short
-          argv << "-#{v}"
-        when :word
-          argv << v
-        end
-      end
-      
-      argv
     end
 
   end
-
 end
