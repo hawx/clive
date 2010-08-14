@@ -5,6 +5,7 @@ require 'clive/ext'
 require 'clive/switches'
 require 'clive/flags'
 require 'clive/commands'
+require 'clive/booleans'
 
 # Clive is a simple dsl for creating command line interfaces
 #
@@ -43,3 +44,4 @@ class Clive
   end
   
 end
+

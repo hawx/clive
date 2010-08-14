@@ -156,7 +156,7 @@ class Clive
       tokens
     end
     
-    #### CREATION HELPERS #### 
+  #### CREATION HELPERS #### 
     
     # Add a new switch to +@switches+
     #
@@ -169,7 +169,7 @@ class Clive
     # @yield A block to run if the switch is triggered
     #
     def switch(*args, &block)
-      short, long, desc = nil, nil, nil
+      short, long, desc = nil
       args.each do |i|
         if i.is_a? String
           desc = i
@@ -193,7 +193,7 @@ class Clive
     #   and flags
     #
     def command(*args, &block)
-      name, desc = nil, nil
+      name, desc = nil
       args.each do |i|
         if i.is_a? String
           desc = i
@@ -214,7 +214,7 @@ class Clive
     #
     # @yield [String] A block to be run if switch is triggered
     def flag(*args, &block)
-      short, long, desc = nil, nil, nil
+      short, long, desc = nil
       args.each do |i|
         if i.is_a? String
           desc = i
@@ -227,7 +227,32 @@ class Clive
       @flags << Flag.new(short, long, desc, &block)
     end
     
-    #### HELP STUFF ####
+    # Add a boolean switch to +@booleans+
+    #
+    # @overload boolean(short, long, desc, &block)
+    #   Creates a new boolean switch
+    #   @param [Symbol] short single character for short label
+    #   @param [Symbol] long longer name to be used
+    #   @param [String] desc the description of the boolean
+    #
+    # @yield [Boolean] A block to be run if switch is triggered
+    def boolean(*args, &block)
+      short, long, desc = nil
+      args.each do |i|
+        if i.is_a? String
+          desc = i
+        elsif i.length == 1
+          short = i.to_s
+        else
+          long = i.to_s
+        end
+      end
+      raise "Boolean switch must have long name" unless long
+      @switches << Boolean.new(short, long, desc, true, &block)
+      @switches << Boolean.new(nil, "no-#{long}", desc, false, &block)
+    end
+    
+  #### HELP STUFF ####
     
     # This actually creates a switch with "-h" and "--help" that control
     # the help on this command. If this is the base class it will also 
@@ -259,7 +284,7 @@ class Clive
       if @switches.length > 0 || @flags.length > 0
         summary << "\n Options:\n"
         @switches.each do |i|
-          summary << i.summary(width, prepend) << "\n"
+          summary << i.summary(width, prepend) << "\n" if i.summary
         end
         @flags.each do |i|
           summary << i.summary(width, prepend) << "\n"
