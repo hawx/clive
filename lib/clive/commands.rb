@@ -64,19 +64,12 @@ class Clive
       self.instance_eval(&@block)
     end
     
-    # This actually creates a switch with "-h" and "--help" that control
-    # the help on this command. If this is the base class it will also 
-    # creates a "help [command]" command.
-    def build_help
-      @switches << Switch.new("h", "help", "Display help") {puts self.help}
-    end
-    
     # Parse the ARGV passed from the command line, and run
     #
     # @param [Array] argv the command line input, usually just ARGV
     # @return [Array] any arguments that were present in the input but not used
     #
-    def run(argv)
+    def run(argv=[])
       tokens = argv
       tokens = tokenize(argv) if @base
       
@@ -234,7 +227,14 @@ class Clive
       @flags << Flag.new(short, long, desc, &block)
     end
     
-    #### HELP COMMANDS ####
+    #### HELP STUFF ####
+    
+    # This actually creates a switch with "-h" and "--help" that control
+    # the help on this command. If this is the base class it will also 
+    # creates a "help [command]" command.
+    def build_help
+      @switches << Switch.new("h", "help", "Display help") {puts self.help}
+    end
     
     # Set the banner
     def banner(val)
@@ -254,7 +254,7 @@ class Clive
     # show the flags and switches within each command. Should also prepend the
     # banner.
     def help(width=30, prepend=5)
-      summary = "#{@banner}\n" if @banner
+      summary = "#{@banner}\n"
       
       if @switches.length > 0 || @flags.length > 0
         summary << "\n Options:\n"
