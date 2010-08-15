@@ -260,7 +260,10 @@ class Clive
     # the help on this command. If this is the base class it will also 
     # creates a "help [command]" command.
     def build_help
-      @switches << Switch.new("h", "help", "Display help") {puts self.help}
+      @switches << Switch.new("h", "help", "Display help") do
+        puts self.help
+        exit 0
+      end
     end
     
     # Set the banner
