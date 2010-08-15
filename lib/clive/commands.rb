@@ -82,6 +82,7 @@ class Clive
         when :switch
           v.run
         when :flag
+          raise MissingArgument.new(v.long||v.short) unless i[2]
           v.run(i[2])
         when :argument
           r << v
@@ -138,7 +139,7 @@ class Clive
             tokens << [:flag, flag]
             pre -= [[k, v]] unless @base
           else
-            raise "error, flag/switch '#{v}' does not exist" if @base
+            raise InvalidOption.new(v) if @base
           end
         when :word
           if tokens.last

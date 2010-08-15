@@ -21,6 +21,49 @@ require 'clive/booleans'
 #
 class Clive
 
+  # general problem with input
+  class ParseError < StandardError
+    attr_accessor :args, :reason
+    
+    def initialize(*args)
+      @args = args
+      @reason = "parse error"
+    end
+    
+    def self.filter_backtrace(array)
+      unless $DEBUG
+        array = [$0]
+      end
+      array
+    end
+    
+    def set_backtrace(array)
+      super(self.class.filter_backtrace(array))
+    end
+    
+    def message
+      @reason + ': ' + args.join(' ')
+    end
+    alias_method :to_s, :message
+  
+  end
+  
+  # a flag has a missing argument
+  class MissingArgument < ParseError
+    def initialize(*args)
+      @args = args
+      @reason = "missing argument"
+    end
+  end
+  
+  # a option that wasn't defined has been found
+  class InvalidOption < ParseError
+    def initialize(*args)
+      @args = args
+      @reason = "invalid option"
+    end
+  end
+
   attr_accessor :base
   
   def initialize(&block)
