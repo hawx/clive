@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{clive}
-  s.version = "0.2.1"
+  s.version = "0.2.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Joshua Hawxwell"]
@@ -33,7 +33,8 @@ Gem::Specification.new do |s|
      "lib/clive/tokens.rb",
      "test/bin_test",
      "test/helper.rb",
-     "test/test_clive.rb"
+     "test/test_clive.rb",
+     "test/test_exceptions.rb"
   ]
   s.homepage = %q{http://github.com/hawx/clive}
   s.rdoc_options = ["--charset=UTF-8"]
@@ -42,7 +43,8 @@ Gem::Specification.new do |s|
   s.summary = %q{Imagine if optparse and gli had a son called clive.}
   s.test_files = [
     "test/helper.rb",
-     "test/test_clive.rb"
+     "test/test_clive.rb",
+     "test/test_exceptions.rb"
   ]
 
   if s.respond_to? :specification_version then
