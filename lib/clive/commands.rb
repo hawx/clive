@@ -53,6 +53,11 @@ class Clive
       self.build_help
     end
     
+    # Getter to find booleans
+    def booleans
+      @switches.find_all {|i| i.is_a?(Boolean)}
+    end
+    
     # Run the block that was passed to find switches, flags, etc.
     #
     # This should only be called if the command has been called

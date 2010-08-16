@@ -86,5 +86,9 @@ class Clive
     @base.flags
   end
   
+  def booleans
+    @base.booleans
+  end
+  
 end
 

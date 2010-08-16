@@ -27,8 +27,10 @@ class Clive
       a << "--#{@long}" if @long
       b = @desc
       s, p = '', ''
-      (0..width-a.length).each {s << ' '}
-      (0..prepend).each {p << ' '}
+      # want at least one space between name and desc
+      spaces = width-a.length < 0 ? 1 : width-a.length
+      (0...spaces).each {s << ' '}
+      (0...prepend).each {p << ' '}
       "#{p}#{a}#{s}#{b}"
     end
     
