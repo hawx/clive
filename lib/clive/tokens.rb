@@ -5,75 +5,128 @@ class Clive
   #
   #    [[:word, 'Value'], [:long, 'verbose'], [:short, 'r']]
   #
-  # And converting between these and ordinary arrays.
+  # The tokens are not stored like that but as the string 
+  # representations:
+  #
+  #   ["Value", "--verbose", "-r"]
   #
   class Tokens < Array
-    attr_accessor :tokens, :array
-    
-    def self.to_tokens(tokens)
-      Tokens.new.to_tokens(tokens)
-    end
-    
-    def self.to_array(arr)
-      Tokens.new.to_array(arr)
-    end
-    
-    # Turn into simple tokens that have been split up into logical parts
-    #
-    # @example
-    #   
-    #   a = Tokens.new
-    #   a.to_tokens(["add", "-al", "--verbose"])
-    #   #=> [[:word, "add"], [:short, "a"], [:short, "l"], [:long, "verbose"]]
-    #
-    def to_tokens(arr=@array)
-      @tokens = []
-      arr.each do |i|
-        if i[0..1] == "--"
-          if i.include?('=')
-            a, b = i[2..i.length].split('=')
-            @tokens << [:long, a] << [:word, b]
-          else
-            @tokens << [:long, i[2..i.length]]
-          end
-        
-        elsif i[0] == "-"
-          i[1..i.length].split('').each do |j|
-            tokens << [:short, j]
-          end
-        
-        else
-          @tokens << [:word, i]
-        end
-      end
       
-      @tokens
+    TOKEN_KEYS = [:word, :short, :long]
+    
+    # Create a new Tokens instance. Pass either an array of tokens
+    # or a plain array, they will be converted correctly.
+    #
+    # @param [Array]
+    # @return [Tokens]
+    #
+    def initialize(args=[])
+      if token?(args[0])
+        r = []
+        args.each {|i| r << token_to_string(i)}
+        args = r
+      end
+      super(args)
     end
     
-    # Turn tokens back to a normal array
+    # Turn +@tokens+ into an array, this ensures that shorts are split
+    # as is expected
     #
-    # @example
-    #   
-    #   a = Tokens.new
-    #   a.to_array([[:word, "add"], [:short, "a"], [:short, "l"],
-    #              [:long, "verbose"]])
-    #   #=> ["add", "-al", "--verbose"]
-    #
-    def to_array(tokens=@tokens)
-      @array = []
-      tokens.each do |i|
+    # @return [Array] array representation of tokens held
+    def array
+      return [] unless self.tokens
+      arr = []
+      self.tokens.each do |i|
         k, v = i[0], i[1]
         case k
         when :long
-          @array << "--#{v}"
+          arr << "--#{v}"
         when :short
-          @array << "-#{v}"
+          arr << "-#{v}"
         when :word
-          @array << v
+          arr << v
         end
       end
       
-      @array
+      arr
+    end
+    
+    # Creates an array of tokens based on +self+
+    #
+    # @return [Array] the tokens that are held
+    def tokens
+      t = []
+      self.each do |i|
+        if i[0..1] == "--"
+          if i.include?('=')
+            a, b = i[2..i.length].split('=')
+            t << [:long, a] << [:word, b]
+          else
+            t << [:long, i[2..i.length]]
+          end
+          
+        elsif i[0] == "-"
+          i[1..i.length].split('').each do |j|
+            t << [:short, j]
+          end
+        
+        else
+          t << [:word, i]
+        end
+      end
+      
+      t
+    end
+    
+    def self.to_tokens(arr)
+      Tokens.new(arr).tokens
+    end
+    
+    def self.to_array(tokens)
+      Tokens.new(tokens).array
+    end
+    
+    # Checks to see if it is a token being added and changes it back
+    def <<(val)
+      if token?(val)
+        super(token_to_string(val))
+      else
+        super
+      end
+    end
+    
+    # Test whether an array is a token
+    #
+    # @param [Array]
+    # @return [Boolean]
+    #
+    # @example
+    #  
+    #   t.token?([:word, "something"]) #=> true
+    #   t.token?(["a", "normal", "array"]) #=> false
+    #
+    def token?(arr)
+      return false if arr.nil?
+      TOKEN_KEYS.include?(arr[0])
+    end
+    
+    # Convert a tokens to its string representation
+    def token_to_string(token)
+      k, v = token[0], token[1]
+      case k
+      when :long
+        "--#{v}"
+      when :short
+        "-#{v}"
+      when :word
+        v
+      end
+    end
+    
+    # This is here to force the use of #tokens and #array when 
+    # accessing the contents
+    def inspect
+      "#<Clive::Tokens:0x#{'%x' % (self.object_id << 1)} #{self.tokens}>"
     end
     
   end
