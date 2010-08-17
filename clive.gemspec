@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{clive}
-  s.version = "0.2.2"
+  s.version = "0.2.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Joshua Hawxwell"]
-  s.date = %q{2010-08-15}
+  s.date = %q{2010-08-17}
   s.description = %q{Clive is a DSL for creating a command line interface. It is for people who, like me, love OptionParser's syntax and love GLI's commands.}
   s.email = %q{m@hawx.me}
   s.extra_rdoc_files = [
@@ -33,8 +33,12 @@ Gem::Specification.new do |s|
      "lib/clive/tokens.rb",
      "test/bin_test",
      "test/helper.rb",
+     "test/test_boolean.rb",
      "test/test_clive.rb",
-     "test/test_exceptions.rb"
+     "test/test_exceptions.rb",
+     "test/test_flag.rb",
+     "test/test_switch.rb",
+     "test/test_token.rb"
   ]
   s.homepage = %q{http://github.com/hawx/clive}
   s.rdoc_options = ["--charset=UTF-8"]
@@ -43,8 +47,12 @@ Gem::Specification.new do |s|
   s.summary = %q{Imagine if optparse and gli had a son called clive.}
   s.test_files = [
     "test/helper.rb",
+     "test/test_boolean.rb",
      "test/test_clive.rb",
-     "test/test_exceptions.rb"
+     "test/test_exceptions.rb",
+     "test/test_flag.rb",
+     "test/test_switch.rb",
+     "test/test_token.rb"
   ]
 
   if s.respond_to? :specification_version then
