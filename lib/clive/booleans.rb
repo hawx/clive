@@ -5,6 +5,13 @@ class Clive
   class Boolean < Switch
     attr_accessor :truth
     
+    # Create a new Boolean instance
+    #
+    # @param [String] short the short way of calling the boolean
+    # @param [String] long the long way of calling the boolean
+    # @param [String] desc the description of the boolean
+    # @param [Proc] block the block to call when the boolean is called
+    #
     def initialize(short, long, desc, truth, &block)
       @short = short
       @long = long
@@ -13,6 +20,7 @@ class Clive
       @block = block
     end
     
+    # Run the block with +@truth+
     def run
       @block.call(@truth)
     end

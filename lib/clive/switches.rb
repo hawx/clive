@@ -7,6 +7,13 @@ class Clive
   class Switch
     attr_accessor :short, :long, :desc, :block
     
+    # Create a new Switch instance
+    #
+    # @param [String] short the short way of calling the switch
+    # @param [String] long the long way of calling the switch
+    # @param [String] desc the description of the switch
+    # @param [Proc] block the block to call when the switch is called
+    #
     def initialize(short, long, desc, &block)
       @short = short
       @long = long
