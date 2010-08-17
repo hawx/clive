@@ -59,7 +59,7 @@ As you can see the true case can be triggered with the short or long form, the f
 Flags are like switches but also take an argument:
 
     c = Clive.new do
-      flag(:p, :print, "Print the argument") do |i|
+      flag(:p, :print, "ARG", "Print ARG") do |i|
         p i
       end
     end
@@ -75,6 +75,12 @@ Flags are like switches but also take an argument:
     #=> "short"
 
 The argument is then passed into the block. As you can see you can use short, long, equals, or no equals to call flags. As with switches you can call `flag(:p) {|i| ...}` which responds to `-p ...`, `flag(:print) {|i| ...}` which responds to `--print ...` or `--print=...`.
+Flags can have default values, for that situation put square brackets round the argument name.
+
+    flag(:p, :print, "[ARG]", "Print ARG or "hey" by default) do |i|
+      i ||= "hey"
+      p i
+    end
 
 ### Commands
 

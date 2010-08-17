@@ -87,7 +87,7 @@ class Clive
         when :switch
           v.run
         when :flag
-          raise MissingArgument.new(v.long||v.short) unless i[2]
+          raise MissingArgument.new(v.long||v.short) unless i[2] || v.optional
           v.run(i[2])
         when :argument
           r << v
@@ -220,17 +220,21 @@ class Clive
     #
     # @yield [String] A block to be run if switch is triggered
     def flag(*args, &block)
-      short, long, desc = nil
+      short, long, desc, arg_name = nil
       args.each do |i|
         if i.is_a? String
-          desc = i
+          if i =~ /^[\[\]A-Z0-9]+$/
+            arg_name = i
+          else
+            desc = i
+          end
         elsif i.length == 1
           short = i.to_s
         else
           long = i.to_s
         end
       end
-      @flags << Flag.new(short, long, desc, &block)
+      @flags << Flag.new(short, long, desc, arg_name, &block)
     end
     
     # Creates a boolean switch. This is done by adding two switches of
