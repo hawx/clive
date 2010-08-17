@@ -45,7 +45,7 @@ class Clive
       a << ", " if @short && @long
       a << "--#{@long}" if @long
       a << " #{@arg_name}" if @long unless @optional
-      a << " #{@arg_name}" if @long && @optional
+      a << " [#{@arg_name}]" if @long && @optional
       b = @desc
       s, p = '', ''
       # want at least one space between name and desc

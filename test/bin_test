@@ -9,11 +9,16 @@ c = Clive.new do
     options[:verbose] = true
   }
   
-  flag(:t, :type, "Type to choose") {
-    p "hi"
-  }
+  flag(:t, :type, "TYPE", "Change type to TYPE") do |i|
+    options[:type] = i
+  end
   
   flag(:long_only, "A flag with only a long") {}
+  
+  flag(:p, :print, "[TEXT]", "Print TEXT, defaults to 'hey'") do |i|
+    i ||= 'hey'
+    p i
+  end
   
   command(:add, "Add something") {
     
