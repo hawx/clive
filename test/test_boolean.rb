@@ -16,7 +16,7 @@ class TestBoolean < Test::Unit::TestCase
     
     context "the true switch" do
       should "have a short name" do
-        assert_equal "v", @c.switches["verbose"].short
+        assert_equal "v", @c.booleans["verbose"].short
       end
       
       should "pass true to the block" do
@@ -25,13 +25,13 @@ class TestBoolean < Test::Unit::TestCase
       end
       
       should "create summary" do
-        assert_equal "-v, --[no-]verbose Run verbosely", @c.switches["verbose"].summary(0, 0)
+        assert_equal "-v, --[no-]verbose Run verbosely", @c.booleans["verbose"].summary(0, 0)
       end
     end
     
     context "the false switch" do
       should "not have short name" do
-        assert_equal nil, @c.switches["no-verbose"].short
+        assert_equal nil, @c.booleans["no-verbose"].short
       end
       
       should "pass false to the block" do
@@ -40,7 +40,7 @@ class TestBoolean < Test::Unit::TestCase
       end
       
       should "not create summary" do
-        assert_equal nil, @c.switches["no-verbose"].summary
+        assert_equal nil, @c.booleans["no-verbose"].summary
       end
     end
   

@@ -6,7 +6,7 @@ class Clive
   #
   class Command
     
-    attr_accessor :switches, :flags, :commands
+    attr_accessor :options, :commands
     attr_accessor :name, :desc, :block, :argv
     attr_accessor :base
     attr_accessor :header, :footer
@@ -26,9 +26,8 @@ class Clive
     #
     def initialize(*args, &block)
       @argv     = []
-      @switches = Clive::Array.new
-      @flags    = Clive::Array.new
       @commands = Clive::Array.new
+      @options  = Clive::Array.new
     
       if args.length == 1 && args[0] == true
         @base = true
@@ -56,7 +55,15 @@ class Clive
     
     # Getter to find booleans
     def booleans
-      @switches.find_all {|i| i.is_a?(Boolean)}
+      Clive::Array.new(@options.find_all {|i| i.class == Boolean})
+    end
+    
+    def switches
+      Clive::Array.new(@options.find_all {|i| i.class == Switch})
+    end
+    
+    def flags
+      Clive::Array.new(@options.find_all {|i| i.class == Flag})
     end
     
     # Run the block that was passed to find switches, flags, etc.
@@ -138,10 +145,10 @@ class Clive
         k, v = i[0], i[1]
         case k
         when :short, :long
-          if switch = @switches[v]
+          if switch = switches[v] || switch = booleans[v]
             tokens << [:switch, switch]
             pre -= [[k, v]] unless @base
-          elsif flag = @flags[v]
+          elsif flag = flags[v]
             tokens << [:flag, flag]
             pre -= [[k, v]] unless @base
           else
@@ -186,7 +193,7 @@ class Clive
           long = i.to_s
         end
       end
-      @switches << Switch.new(short, long, desc, &block)
+      @options << Switch.new(short, long, desc, &block)
     end
     
     # Add a new command to +@commands+
@@ -235,7 +242,7 @@ class Clive
           long = i.to_s
         end
       end
-      @flags << Flag.new(short, long, desc, arg_name, &block)
+      @options << Flag.new(short, long, desc, arg_name, &block)
     end
     
     # Creates a boolean switch. This is done by adding two switches of
@@ -261,8 +268,8 @@ class Clive
         end
       end
       raise "Boolean switch must have long name" unless long
-      @switches << Boolean.new(short, long, desc, true, &block)
-      @switches << Boolean.new(nil, "no-#{long}", desc, false, &block)
+      @options << Boolean.new(short, long, desc, true, &block)
+      @options << Boolean.new(nil, "no-#{long}", desc, false, &block)
     end
     
   #### HELP STUFF ####
@@ -271,7 +278,7 @@ class Clive
     # the help on this command. If this is the base class it will also 
     # creates a "help [command]" command.
     def build_help
-      @switches << Switch.new("h", "help", "Display help") do
+      @options << Switch.new("h", "help", "Display help") do
         puts self.help
         exit 0
       end
@@ -302,13 +309,10 @@ class Clive
     def help(width=30, prepend=5)
       summary = "#{@header}\n"
       
-      if @switches.length > 0 || @flags.length > 0
+      if @options.length > 0
         summary << "\n Options:\n"
-        @switches.each do |i|
+        @options.each do |i|
           summary << i.summary(width, prepend) << "\n" if i.summary
-        end
-        @flags.each do |i|
-          summary << i.summary(width, prepend) << "\n"
         end
       end
       

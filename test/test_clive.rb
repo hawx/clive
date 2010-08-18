@@ -30,8 +30,8 @@ class TestClive < Test::Unit::TestCase
     c = Clive.new do
       boolean(:verbose) {}
     end
-    assert_equal 3, c.switches.length # plus help
-    assert_instance_of Clive::Boolean, c.switches[0]
+    assert_equal 2, c.booleans.length
+    assert_instance_of Clive::Boolean, c.booleans[0]
   end
   
   context "When parsing input" do
