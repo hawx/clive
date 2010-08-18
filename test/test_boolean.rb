@@ -6,7 +6,7 @@ class TestBoolean < Test::Unit::TestCase
   
     setup do
       @c = Clive.new do
-        boolean(:v, :verbose, "Run verbosely") {|i| $stdout.puts(i)}
+        boolean(:v, :verbose, "Run verbosely") {|i| puts(i)}
       end
     end
   
@@ -45,4 +45,5 @@ class TestBoolean < Test::Unit::TestCase
     end
   
   end
+  
 end
