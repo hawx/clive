@@ -22,7 +22,8 @@ c = Clive.new do
   
   command(:add, "Add something") {
     
-    p "adding stuff"
+    header "Usage: bin_test add [options]\n" +
+           "Use add to add things to add, which in turn can be added."
     
     switch(:f, :full, "Use full") {
       options[:full] = true
@@ -32,6 +33,8 @@ c = Clive.new do
     switch(:e, :empty, "Use empty") {
       options[:full] = false
     }
+    
+    footer "If the header was a little confusing, don't worry the footer thought so too."
   
   }
 

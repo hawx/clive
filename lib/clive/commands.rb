@@ -9,7 +9,7 @@ class Clive
     attr_accessor :switches, :flags, :commands
     attr_accessor :name, :desc, :block, :argv
     attr_accessor :base
-    attr_accessor :banner
+    attr_accessor :header, :footer
     
     # Create a new Command instance
     #
@@ -46,9 +46,10 @@ class Clive
         @block = block
       end
       
-      @banner = "Usage: #{File.basename($0, '.*')} "
-      @banner << (@base ? "[commands]" : @name)
-      @banner << " [options]"
+      @header = "Usage: #{File.basename($0, '.*')} "
+      @header << (@base ? "[commands]" : @name)
+      @header << " [options]"
+      @footer = nil
       
       self.build_help
     end
@@ -276,9 +277,14 @@ class Clive
       end
     end
     
-    # Set the banner
-    def banner(val)
-      @banner = val
+    # Set the header
+    def header(val)
+      @header = val
+    end
+    
+    # Set the footer
+    def footer(val)
+      @footer = val
     end
     
     def summary(width=30, prepend=5)
@@ -294,7 +300,7 @@ class Clive
     # show the flags and switches within each command. Should also prepend the
     # banner.
     def help(width=30, prepend=5)
-      summary = "#{@banner}\n"
+      summary = "#{@header}\n"
       
       if @switches.length > 0 || @flags.length > 0
         summary << "\n Options:\n"
@@ -312,6 +318,8 @@ class Clive
           summary << i.summary(width, prepend) << "\n"
         end
       end
+      
+      summary << "\n#{@footer}\n" if @footer
      
       summary
     end
