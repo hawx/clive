@@ -33,11 +33,10 @@ class Clive
       a << ", " if @short && @long
       a << "--#{@long}" if @long
       b = @desc
-      s, p = '', ''
       # want at least one space between name and desc
       spaces = width-a.length < 0 ? 1 : width-a.length
-      (0...spaces).each {s << ' '}
-      (0...prepend).each {p << ' '}
+      s = Clive::spaces(spaces)
+      p = Clive::spaces(prepend)
       "#{p}#{a}#{s}#{b}"
     end
     

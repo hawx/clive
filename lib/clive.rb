@@ -90,5 +90,13 @@ class Clive
     @base.booleans
   end
   
+  
+  # Create a string of +n+ spaces
+  def self.spaces(n)
+    s = ''
+    (0...n).each {s << ' '}
+    s
+  end
+  
 end
 

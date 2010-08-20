@@ -297,9 +297,8 @@ class Clive
     def summary(width=30, prepend=5)
       a = @name
       b = @desc
-      s, p = '', ''
-      (0..width-a.length).each {s << ' '}
-      (0..prepend).each {p << ' '}
+      s = Clive::spaces(width-a.length)
+      p = Clive::spaces(prepend)
       "#{p}#{a}#{s}#{b}"
     end
     
@@ -317,7 +316,7 @@ class Clive
       end
       
       if @commands.length > 0
-        summary << "\nCommands:\n"
+        summary << "\n Commands:\n"
         @commands.each do |i|
           summary << i.summary(width, prepend) << "\n"
         end
