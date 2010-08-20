@@ -2,7 +2,7 @@ class Clive
   
   # A switch which can be triggered with either --no-verbose or --verbose
   # for example.
-  class Boolean < Switch
+  class Boolean < Option
     attr_accessor :truth
     
     # Create a new Boolean instance
@@ -13,8 +13,7 @@ class Clive
     # @param [Proc] block the block to call when the boolean is called
     #
     def initialize(short, long, desc, truth, &block)
-      @short = short
-      @long = long
+      @names = [short, long]
       @desc = desc
       @truth = truth
       @block = block
@@ -28,10 +27,11 @@ class Clive
     # @return [String] summary for help or nil if +@truth = false+
     def summary(width=30, prepend=5)
       return nil unless @truth
+      
       a = ""
-      a << "-#{@short}" if @short
-      a << ", " if @short && @long
-      a << "--[no-]#{@long}" if @long
+      a << "-#{short}" if short
+      a << ", " if short && long
+      a << "--[no-]#{long}" if long
       b = @desc
       s, p = '', ''
       # want at least one space between name and desc

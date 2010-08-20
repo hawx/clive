@@ -4,9 +4,8 @@ class Clive
   #   eg. ruby --version
   #       ruby -v
   #
-  class Switch
-    attr_accessor :short, :long, :desc, :block
-    
+  class Switch < Option
+      
     # Create a new Switch instance
     #
     # @param [String] short the short way of calling the switch
@@ -15,10 +14,16 @@ class Clive
     # @param [Proc] block the block to call when the switch is called
     #
     def initialize(short, long, desc, &block)
-      @short = short
-      @long = long
+      @names = [short, long]
       @desc = desc
       @block = block
+    end
+    
+    def short
+      @names[0]
+    end
+    def long
+      @names[1]
     end
     
     # Runs the block that was given
@@ -26,20 +31,5 @@ class Clive
       @block.call
     end
     
-    # @return [String] summary for help
-    def summary(width=30, prepend=5)
-      a = ""
-      a << "-#{@short}" if @short
-      a << ", " if @short && @long
-      a << "--#{@long}" if @long
-      b = @desc
-      # want at least one space between name and desc
-      spaces = width-a.length < 0 ? 1 : width-a.length
-      s = Clive::spaces(spaces)
-      p = Clive::spaces(prepend)
-      "#{p}#{a}#{s}#{b}"
-    end
-    
   end
-  
 end

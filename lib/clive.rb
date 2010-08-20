@@ -2,6 +2,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'clive/tokens'
 require 'clive/ext'
+require 'clive/option'
 require 'clive/switches'
 require 'clive/flags'
 require 'clive/commands'
@@ -88,14 +89,6 @@ class Clive
   
   def booleans
     @base.booleans
-  end
-  
-  
-  # Create a string of +n+ spaces
-  def self.spaces(n)
-    s = ''
-    (0...n).each {s << ' '}
-    s
   end
   
 end

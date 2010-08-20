@@ -4,7 +4,7 @@ class Clive
   #   eg. git add
   #       git pull
   #
-  class Command
+  class Command < Option
     
     attr_accessor :options, :commands
     attr_accessor :name, :desc, :block, :argv
@@ -297,8 +297,8 @@ class Clive
     def summary(width=30, prepend=5)
       a = @name
       b = @desc
-      s = Clive::spaces(width-a.length)
-      p = Clive::spaces(prepend)
+      s = spaces(width-a.length)
+      p = spaces(prepend)
       "#{p}#{a}#{s}#{b}"
     end
     

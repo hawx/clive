@@ -4,8 +4,7 @@ class Clive
   #   eg. wget --tries=10
   #       wget -t 10
   #
-  class Flag
-    attr_accessor :short, :long, :desc, :block
+  class Flag < Option
     attr_accessor :arg_name, :optional
     
     # Create a new Flag instance
@@ -17,18 +16,24 @@ class Clive
     # @param [Proc] block the block to call when the flag is called
     #
     def initialize(short, long, desc, arg_name, &block)
-      @short = short
-      @long = long
+      @names = [short, long]
       @desc = desc
       
       if arg_name && arg_name[0] == "["
         @arg_name = arg_name[1..arg_name.length-2]
         @optional = true
       else
-        @arg_name = arg_name
+        @arg_name = arg_name || "ARG"
         @optional = false
       end
       @block = block
+    end
+    
+    def short
+      @names[0]
+    end
+    def long
+      @names[1]
     end
     
     # Runs the block that was given with an argument
@@ -40,19 +45,18 @@ class Clive
     
     # @return [String] summary for help
     def summary(width=30, prepend=5)
-      a = ""
-      a << "-#{@short}" if @short
-      a << ", " if @short && @long
-      a << "--#{@long}" if @long
-      a << " #{@arg_name}" if @long unless @optional
-      a << " [#{@arg_name}]" if @long && @optional
-      b = @desc
-      s, p = '', ''
-      # want at least one space between name and desc
-      spaces = width-a.length < 0 ? 1 : width-a.length
-      (0...spaces).each {s << ' '}
-      (0...prepend).each {p << ' '}
-      "#{p}#{a}#{s}#{b}"
+      n = names_to_strings.join(', ')
+      if @optional
+        n << " [#{@arg_name}]"
+      else
+        n << " #{@arg_name}"
+      end
+      
+      spaces = width-n.length
+      spaces = 1 if spaces < 1
+      s = spaces(spaces)
+      p = spaces(prepend)
+      "#{p}#{n}#{s}#{@desc}"
     end
     
   end
