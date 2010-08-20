@@ -19,6 +19,13 @@ class Clive
       @block = block
     end
     
+    def short
+      @names[0]
+    end
+    def long
+      @names[1]
+    end
+    
     # Run the block with +@truth+
     def run
       @block.call(@truth)

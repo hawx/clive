@@ -11,15 +11,7 @@ class Clive
     def [](val)
       val = val.to_s if val.is_a? Symbol
       if val.is_a? String
-        if self[0].respond_to?(:name)
-          self.find_all {|i| i.name == val}[0]
-        elsif self[0].respond_to?(:long) 
-          if val.length == 1
-            self.find_all {|i| i.short == val}[0]
-          else
-            self.find_all {|i| i.long == val}[0]
-          end
-        end
+        self.find_all {|i| i.names.include?(val)}[0]
       else
         super
       end

@@ -7,8 +7,7 @@ class Clive
   class Command < Option
     
     attr_accessor :options, :commands
-    attr_accessor :name, :desc, :block, :argv
-    attr_accessor :base
+    attr_accessor :argv, :base
     attr_accessor :header, :footer
     
     # Create a new Command instance
@@ -26,6 +25,8 @@ class Clive
     #
     def initialize(*args, &block)
       @argv     = []
+      @names    = []
+      @base     = false
       @commands = Clive::Array.new
       @options  = Clive::Array.new
     
@@ -33,11 +34,10 @@ class Clive
         @base = true
         self.instance_eval(&block)
       else
-        @base = false
         args.each do |i|
           case i
           when Symbol
-            @name = i.to_s
+            @names << i.to_s
           when String
             @desc = i
           end
@@ -46,22 +46,24 @@ class Clive
       end
       
       @header = "Usage: #{File.basename($0, '.*')} "
-      @header << (@base ? "[commands]" : @name)
+      @header << (@base ? "[commands]" : @names.join(', '))
       @header << " [options]"
       @footer = nil
       
       self.build_help
     end
     
-    # Getter to find booleans
+    # @return [Clive::Array] all booleans in this command
     def booleans
       Clive::Array.new(@options.find_all {|i| i.class == Boolean})
     end
     
+    # @return [Clive::Array] all switches in this command
     def switches
       Clive::Array.new(@options.find_all {|i| i.class == Switch})
     end
     
+    # @return [Clive::Array] all flags in this command
     def flags
       Clive::Array.new(@options.find_all {|i| i.class == Flag})
     end
@@ -79,7 +81,7 @@ class Clive
     
     # Parse the ARGV passed from the command line, and run
     #
-    # @param [Array] argv the command line input, usually just ARGV
+    # @param [Array] argv the command line input, usually just +ARGV+
     # @return [Array] any arguments that were present in the input but not used
     #
     def run(argv=[])
@@ -171,6 +173,20 @@ class Clive
     end
     
   #### CREATION HELPERS #### 
+  
+    # Add a new command to +@commands+
+    #
+    # @overload command(name, ..., desc, &block)
+    #   Creates a new command
+    #   @param [Symbol] name the name(s) of the command, eg. +:add+ for +git add+
+    #   @param [String] desc description of the command
+    # 
+    # @yield A block to run when the command is called, can contain switches
+    #   and flags
+    #
+    def command(*args, &block)
+      @commands << Command.new(*args, &block)
+    end
     
     # Add a new switch to +@switches+
     #
@@ -195,29 +211,7 @@ class Clive
       end
       @options << Switch.new(short, long, desc, &block)
     end
-    
-    # Add a new command to +@commands+
-    #
-    # @overload command(name, desc, &block)
-    #   Creates a new command
-    #   @param [Symbol] name the name of the command, eg. +:add+ for +git add+
-    #   @param [String] desc description of the command
-    # 
-    # @yield A block to run when the command is called, can contain switches
-    #   and flags
-    #
-    def command(*args, &block)
-      name, desc = nil
-      args.each do |i|
-        if i.is_a? String
-          desc = i
-        else
-          name = i
-        end
-      end
-      @commands << Command.new(name, desc, &block)
-    end
-    
+
     # Add a new flag to +@flags+
     #
     # @overload flag(short, long, desc, &block)
@@ -274,9 +268,8 @@ class Clive
     
   #### HELP STUFF ####
     
-    # This actually creates a switch with "-h" and "--help" that control
-    # the help on this command. If this is the base class it will also 
-    # creates a "help [command]" command.
+    # This actually creates a switch with "-h" and "--help" that controls
+    # the help on this command.
     def build_help
       @options << Switch.new("h", "help", "Display help") do
         puts self.help
@@ -295,7 +288,7 @@ class Clive
     end
     
     def summary(width=30, prepend=5)
-      a = @name
+      a = @names.join(', ')
       b = @desc
       s = spaces(width-a.length)
       p = spaces(prepend)
