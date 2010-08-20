@@ -19,12 +19,12 @@ class Clive
       @block = block
     end
     
-    def short
-      @names[0]
-    end
-    def long
-      @names[1]
-    end
+    #def short
+    #  @names[0]
+    #end
+    #def long
+    #  @names[1]
+    #end
     
     # Run the block with +@truth+
     def run
@@ -35,17 +35,12 @@ class Clive
     def summary(width=30, prepend=5)
       return nil unless @truth
       
-      a = ""
-      a << "-#{short}" if short
-      a << ", " if short && long
-      a << "--[no-]#{long}" if long
-      b = @desc
-      s, p = '', ''
-      # want at least one space between name and desc
-      spaces = width-a.length < 0 ? 1 : width-a.length
-      (0...spaces).each {s << ' '}
-      (0...prepend).each {p << ' '}
-      "#{p}#{a}#{s}#{b}"
+      n = names_to_strings(true).join(', ')
+      spaces = width-n.length
+      spaces = 1 if spaces < 1
+      s = spaces(spaces)
+      p = spaces(prepend)
+      "#{p}#{n}#{s}#{@desc}"
     end
   
   end

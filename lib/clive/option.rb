@@ -24,20 +24,26 @@ class Clive
     
     # Convert the names to strings, depending on length
     #
+    # @param [Boolean] bool whether to add [no-] to long
+    #
     # @example
     #
     #   @names = ['v', 'verbose']
     #   names_to_strings
     #   #=> ['-v', '--verbose']
     #
-    def names_to_strings
+    def names_to_strings(bool=false)
       r = []
       @names.each do |i|
         next if i.nil?
         if i.length == 1 # short
           r << "-#{i}"
         else # long
-          r << "--#{i}"
+          if bool
+            r << "--[no-]#{i}"
+          else
+            r << "--#{i}"
+          end
         end
       end
       r

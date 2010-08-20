@@ -19,13 +19,6 @@ class Clive
       @block = block
     end
     
-    def short
-      @names[0]
-    end
-    def long
-      @names[1]
-    end
-    
     # Runs the block that was given
     def run
       @block.call

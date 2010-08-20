@@ -16,7 +16,7 @@ class TestBoolean < Test::Unit::TestCase
     
     context "the true switch" do
       should "have a short name" do
-        assert_equal "v", @c.booleans["verbose"].short
+        assert_contains @c.booleans["verbose"].names, "v"
       end
       
       should "pass true to the block" do
@@ -31,7 +31,7 @@ class TestBoolean < Test::Unit::TestCase
     
     context "the false switch" do
       should "not have short name" do
-        assert_equal nil, @c.booleans["no-verbose"].short
+        assert_does_not_contain @c.booleans["no-verbose"].names, "v"
       end
       
       should "pass false to the block" do
