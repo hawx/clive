@@ -5,10 +5,10 @@ require 'clive/tokens'
 require 'clive/ext'
 
 require 'clive/option'
+require 'clive/command'
 require 'clive/switch'
 require 'clive/flag'
-require 'clive/command'
-require 'clive/boolean'
+require 'clive/bool'
 
 # Clive is a simple dsl for creating command line interfaces
 #
@@ -46,8 +46,8 @@ class Clive
     @base.flags
   end
   
-  def booleans
-    @base.booleans
+  def bools
+    @base.bools
   end
   
 end

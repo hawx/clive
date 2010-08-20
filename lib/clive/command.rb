@@ -53,9 +53,9 @@ class Clive
       self.build_help
     end
     
-    # @return [Clive::Array] all booleans in this command
-    def booleans
-      Clive::Array.new(@options.find_all {|i| i.class == Boolean})
+    # @return [Clive::Array] all bools in this command
+    def bools
+      Clive::Array.new(@options.find_all {|i| i.class == Bool})
     end
     
     # @return [Clive::Array] all switches in this command
@@ -147,7 +147,7 @@ class Clive
         k, v = i[0], i[1]
         case k
         when :short, :long
-          if switch = switches[v] || switch = booleans[v]
+          if switch = switches[v] || switch = bools[v]
             tokens << [:switch, switch]
             pre -= [[k, v]] unless @base
           elsif flag = flags[v]
@@ -201,14 +201,15 @@ class Clive
     end
     
     # Creates a boolean switch. This is done by adding two switches of
-    # Boolean type to +@switches+, one is created normally the other has
+    # Bool type to +@switches+, one is created normally the other has
     # "no-" appended to the long name and has no short name.
     #
-    # @see Boolean#initialize
-    def boolean(*args, &block)
-      @options << Boolean.new(*args, true, &block)
-      @options << Boolean.new(*args, false, &block)
+    # @see Bool#initialize
+    def bool(*args, &block)
+      @options << Bool.new(*args, true, &block)
+      @options << Bool.new(*args, false, &block)
     end
+    alias_method :boolean, :bool
     
   #### HELP STUFF ####
     

@@ -2,10 +2,10 @@ class Clive
   
   # A switch which can be triggered with either --no-verbose or --verbose
   # for example.
-  class Boolean < Option
+  class Bool < Option
     attr_accessor :truth
     
-    # Creates a new Boolean switch instance. A boolean switch has a truth, 
+    # Creates a new Bool switch instance. A boolean switch has a truth, 
     # this determines what is passed to the block. They should be created 
     # in pairs so one can be +--something+ the other +--no-something+.
     #
