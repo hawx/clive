@@ -6,34 +6,42 @@ class Clive
   #
   class Flag < Option
     attr_accessor :arg_name, :optional
-    
-    # Create a new Flag instance
+        
+    # Creates a new Flag instance.
     #
-    # @param [String] short the short way of calling the flag
-    # @param [String] long the long way of calling the flag
-    # @param [String] desc the description of the flag
-    # @param [String] arg_name the name of the argument given to the flag
-    # @param [Proc] block the block to call when the flag is called
+    # +short+ _or_ +long+ can be omitted but not both.
     #
-    def initialize(short, long, desc, arg_name, &block)
-      @names = [short, long]
-      @desc = desc
+    # @overload flag(short, long, desc, &block)
+    #   Creates a new flag
+    #   @param [Symbol] short single character for short flag, eg. +:t+ => +-t 10+
+    #   @param [Symbol] long longer switch to be used, eg. +:tries+ => +--tries=10+
+    #   @param [String] desc the description for the flag
+    #
+    # @yield [String] A block to be run if switch is triggered
+    #
+    def initialize(*args, &block)
+      @names    = []
+      @optional = false
+      @arg_name = "ARG"
       
-      if arg_name && arg_name[0] == "["
-        @arg_name = arg_name[1..arg_name.length-2]
-        @optional = true
-      else
-        @arg_name = arg_name || "ARG"
-        @optional = false
+      args.each do |i|
+        if i.is_a? String
+          if i =~ /^[\[\]A-Z0-9]+$/
+            @arg_name = i
+          else
+            @desc = i
+          end
+        else
+          @names << i.to_s
+        end
       end
+      
+      if @arg_name[0] == "["
+        @arg_name = @arg_name[1..@arg_name.length-2]
+        @optional = true
+      end
+
       @block = block
-    end
-    
-    def short
-      @names[0]
-    end
-    def long
-      @names[1]
     end
     
     # Runs the block that was given with an argument

@@ -81,8 +81,8 @@ class Clive
     
     # Parse the ARGV passed from the command line, and run
     #
-    # @param [Array] argv the command line input, usually just +ARGV+
-    # @return [Array] any arguments that were present in the input but not used
+    # @param [::Array] argv the command line input, usually just +ARGV+
+    # @return [::Array] any arguments that were present in the input but not used
     #
     def run(argv=[])
       tokens = argv
@@ -97,7 +97,7 @@ class Clive
         when :switch
           v.run
         when :flag
-          raise MissingArgument.new(v.long||v.short) unless i[2] || v.optional
+          raise MissingArgument.new(v.sort_name) unless i[2] || v.optional
           v.run(i[2])
         when :argument
           r << v
@@ -109,8 +109,8 @@ class Clive
     # Turns the command line input into a series of tokens.
     # It will only raise errors if this is the base command instance.
     #
-    # @param [Array] argv the command line input
-    # @return [Array] a series of tokens
+    # @param [::Array] argv the command line input
+    # @return [::Array] a series of tokens
     #
     # @example
     #
@@ -189,81 +189,25 @@ class Clive
     end
     
     # Add a new switch to +@switches+
-    #
-    # @overload switch(short, long, desc, &block)
-    #   Creates a new switch
-    #   @param [Symbol] short single character for short switch, eg. +:v+ => +-v+
-    #   @param [Symbol] long longer switch to be used, eg. +:verbose+ => +--verbose+
-    #   @param [String] desc the description for the switch
-    #
-    # @yield A block to run if the switch is triggered
-    #
+    # @see Switch#initialize
     def switch(*args, &block)
-      short, long, desc = nil
-      args.each do |i|
-        if i.is_a? String
-          desc = i
-        elsif i.length == 1
-          short = i.to_s
-        else
-          long = i.to_s
-        end
-      end
-      @options << Switch.new(short, long, desc, &block)
+      @options << Switch.new(*args, &block)
     end
 
-    # Add a new flag to +@flags+
-    #
-    # @overload flag(short, long, desc, &block)
-    #   Creates a new flag
-    #   @param [Symbol] short single character for short flag, eg. +:t+ => +-t 10+
-    #   @param [Symbol] long longer switch to be used, eg. +:tries+ => +--tries=10+
-    #   @param [String] desc the description for the flag
-    #
-    # @yield [String] A block to be run if switch is triggered
+    # Adds a new flag to +@flags+
+    # @see Flag#initialize
     def flag(*args, &block)
-      short, long, desc, arg_name = nil
-      args.each do |i|
-        if i.is_a? String
-          if i =~ /^[\[\]A-Z0-9]+$/
-            arg_name = i
-          else
-            desc = i
-          end
-        elsif i.length == 1
-          short = i.to_s
-        else
-          long = i.to_s
-        end
-      end
-      @options << Flag.new(short, long, desc, arg_name, &block)
+      @options << Flag.new(*args, &block)
     end
     
     # Creates a boolean switch. This is done by adding two switches of
     # Boolean type to +@switches+, one is created normally the other has
     # "no-" appended to the long name and has no short name.
     #
-    # @overload boolean(short, long, desc, &block)
-    #   Creates a new boolean switch
-    #   @param [Symbol] short single character for short label
-    #   @param [Symbol] long longer name to be used
-    #   @param [String] desc the description of the boolean
-    #
-    # @yield [Boolean] A block to be run if switch is triggered
+    # @see Boolean#initialize
     def boolean(*args, &block)
-      short, long, desc = nil
-      args.each do |i|
-        if i.is_a? String
-          desc = i
-        elsif i.length == 1
-          short = i.to_s
-        else
-          long = i.to_s
-        end
-      end
-      raise "Boolean switch must have long name" unless long
-      @options << Boolean.new(short, long, desc, true, &block)
-      @options << Boolean.new(nil, "no-#{long}", desc, false, &block)
+      @options << Boolean.new(*args, true, &block)
+      @options << Boolean.new(*args, false, &block)
     end
     
   #### HELP STUFF ####
@@ -271,7 +215,7 @@ class Clive
     # This actually creates a switch with "-h" and "--help" that controls
     # the help on this command.
     def build_help
-      @options << Switch.new("h", "help", "Display help") do
+      @options << Switch.new(:h, :help, "Display help") do
         puts self.help
         exit 0
       end
@@ -288,7 +232,7 @@ class Clive
     end
     
     def summary(width=30, prepend=5)
-      a = @names.join(', ')
+      a = @names.sort.join(', ')
       b = @desc
       s = spaces(width-a.length)
       p = spaces(prepend)
@@ -297,20 +241,20 @@ class Clive
     
     # Generate the summary for help, show all flags and switches, but do not
     # show the flags and switches within each command. Should also prepend the
-    # banner.
+    # header and append the footer if set.
     def help(width=30, prepend=5)
       summary = "#{@header}\n"
       
       if @options.length > 0
         summary << "\n Options:\n"
-        @options.each do |i|
+        @options.sort.each do |i|
           summary << i.summary(width, prepend) << "\n" if i.summary
         end
       end
       
       if @commands.length > 0
         summary << "\n Commands:\n"
-        @commands.each do |i|
+        @commands.sort.each do |i|
           summary << i.summary(width, prepend) << "\n"
         end
       end

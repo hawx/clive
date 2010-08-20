@@ -20,6 +20,8 @@ c = Clive.new do
     p i
   end
   
+  flag(:z, :apple, "More applez") {}
+  
   command(:add, "Add something") {
     
     header "Usage: bin_test add [options]\n" +
@@ -36,6 +38,12 @@ c = Clive.new do
     
     footer "If the header was a little confusing, don't worry the footer thought so too."
   
+  }
+  
+  command(:remove, :delete, "Get rid of something") {
+    switch(:f, :force, "Force") {
+      p "deleting! now"
+    }   
   }
 
 end

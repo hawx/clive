@@ -17,7 +17,7 @@ class Clive
     # Create a new Tokens instance. Pass either an array of tokens
     # or a plain array, they will be converted correctly.
     #
-    # @param [Array]
+    # @param [::Array]
     # @return [Tokens]
     #
     def initialize(args=[])
@@ -32,7 +32,7 @@ class Clive
     # Turn +@tokens+ into an array, this ensures that shorts are split
     # as is expected
     #
-    # @return [Array] array representation of tokens held
+    # @return [::Array] array representation of tokens held
     def array
       return [] unless self.tokens
       arr = []
@@ -53,7 +53,7 @@ class Clive
     
     # Creates an array of tokens based on +self+
     #
-    # @return [Array] the tokens that are held
+    # @return [::Array] the tokens that are held
     def tokens
       t = []
       self.each do |i|
@@ -97,7 +97,7 @@ class Clive
     
     # Test whether an array is a token
     #
-    # @param [Array]
+    # @param [::Array]
     # @return [Boolean]
     #
     # @example

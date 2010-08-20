@@ -55,6 +55,23 @@ class Clive
       (0...n).each {s << ' '}
       s
     end
+    
+    # Tries to get the short name, if not choose lowest alphabetically
+    #
+    # @return [String] name to sort by
+    def sort_name
+      r = @names.sort[0]
+      @names.each do |i|
+        if i.length == 1
+          r = i
+        end
+      end
+      r
+    end
+    
+    def <=>(other)
+      self.sort_name <=> other.sort_name
+    end
   
   end
 end

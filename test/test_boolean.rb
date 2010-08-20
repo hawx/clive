@@ -14,6 +14,12 @@ class TestBoolean < Test::Unit::TestCase
       assert_equal 2, @c.booleans.length
     end
     
+    should "raise error when no long name given" do
+      assert_raise Clive::Boolean::NoLongName do
+        Clive::Boolean.new(:v, "Run verbosely") {}
+      end
+    end
+    
     context "the true switch" do
       should "have a short name" do
         assert_contains @c.booleans["verbose"].names, "v"

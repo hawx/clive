@@ -22,13 +22,12 @@ require 'clive/booleans'
 #
 class Clive
 
-  # general problem with input
-  class ParseError < StandardError
-    attr_accessor :args, :reason
+  # general problem
+  class CliveError < StandardError
+    attr_accessor :args
     
     def initialize(*args)
       @args = args
-      @reason = "parse error"
     end
     
     def self.filter_backtrace(array)
@@ -43,26 +42,25 @@ class Clive
     end
     
     def message
-      @reason + ': ' + args.join(' ')
+      self.reason + ': ' + args.join(' ')
     end
     alias_method :to_s, :message
   
   end
   
+  # general problem with input
+  class ParseError < CliveError
+    def reason; "parse error"; end
+  end
+  
   # a flag has a missing argument
   class MissingArgument < ParseError
-    def initialize(*args)
-      @args = args
-      @reason = "missing argument"
-    end
+    def reason; "missing argument"; end
   end
   
   # a option that wasn't defined has been found
   class InvalidOption < ParseError
-    def initialize(*args)
-      @args = args
-      @reason = "invalid option"
-    end
+    def reason; "invalid option"; end
   end
 
   attr_accessor :base

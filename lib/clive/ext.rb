@@ -2,9 +2,8 @@ class Clive
 
   class Array < ::Array
     
-    # If passed a Symbol or String will get the item with that name,
-    # checks #long and #short if available or #name. Otherwise does 
-    # what you expect of an Array (see Array#[])
+    # If passed a Symbol or String will get the item with that name.
+    # Otherwise does what you expect of an Array (see ::Array#[])
     #
     # @param [Symbol, String, Integer, Range] val name or index of item to return
     # @return the item that has been found

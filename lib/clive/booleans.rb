@@ -5,26 +5,47 @@ class Clive
   class Boolean < Option
     attr_accessor :truth
     
-    # Create a new Boolean instance
+    class NoLongName < CliveError
+      def reason; "missing long name"; end
+    end
+    
+    # Creates a new Boolean switch instance. A boolean switch has a truth, 
+    # this determines what is passed to the block. They should be created 
+    # in pairs so one can be +--something+ the other +--no-something+.
     #
-    # @param [String] short the short way of calling the boolean
-    # @param [String] long the long way of calling the boolean
-    # @param [String] desc the description of the boolean
-    # @param [Proc] block the block to call when the boolean is called
+    # +short+ and/or +desc+ can be omitted when creating a Boolean, all
+    # other arguments must be present.
     #
-    def initialize(short, long, desc, truth, &block)
-      @names = [short, long]
-      @desc = desc
+    # @overload initialize(short, long, desc, truth, &block)
+    #   Creates a new boolean switch
+    #   @param [Symbol] short single character to use
+    #   @param [Symbol] long word/longer name for boolean switch
+    #   @param [String] desc description of use/purpose
+    #
+    # @yield [Boolean] A block to be run when the switch is triggered
+    #
+    def initialize(*args, truth, &block)
+      @names = []
+      args.each do |i|
+        case i
+        when Symbol
+          if truth
+            @names << i.to_s
+          else
+            @names << "no-#{i.to_s}" if i.length > 1
+          end
+        when String
+          @desc = i
+        end
+      end
+      
+      unless @names.find_all {|i| i.length > 1}.length > 0
+        raise NoLongName, @names[0]
+      end
+      
       @truth = truth
       @block = block
     end
-    
-    #def short
-    #  @names[0]
-    #end
-    #def long
-    #  @names[1]
-    #end
     
     # Run the block with +@truth+
     def run
