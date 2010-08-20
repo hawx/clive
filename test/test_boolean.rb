@@ -15,7 +15,7 @@ class TestBoolean < Test::Unit::TestCase
     end
     
     should "raise error when no long name given" do
-      assert_raise Clive::Boolean::NoLongName do
+      assert_raise Clive::MissingLongName do
         Clive::Boolean.new(:v, "Run verbosely") {}
       end
     end

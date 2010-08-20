@@ -41,4 +41,8 @@ class Clive
     def reason; "invalid option"; end
   end
   
+  class MissingLongName < CliveError
+    def reason; "missing long name"; end
+  end
+  
 end

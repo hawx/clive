@@ -5,10 +5,6 @@ class Clive
   class Boolean < Option
     attr_accessor :truth
     
-    class NoLongName < CliveError
-      def reason; "missing long name"; end
-    end
-    
     # Creates a new Boolean switch instance. A boolean switch has a truth, 
     # this determines what is passed to the block. They should be created 
     # in pairs so one can be +--something+ the other +--no-something+.
@@ -40,7 +36,7 @@ class Clive
       end
       
       unless @names.find_all {|i| i.length > 1}.length > 0
-        raise NoLongName, @names[0]
+        raise MissingLongName, @names[0]
       end
       
       @truth = truth
