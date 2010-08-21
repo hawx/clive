@@ -39,7 +39,7 @@ As we've seen above switches are created using #switch. You can provide as littl
 Boolean switches allow you to accept arguments like `--no-verbose` and `--verbose`, and deal with both situations in the same block.
 
     c = Clive.new do
-      boolean(:v, :verbose) {|i| p i}
+      bool(:v, :verbose) {|i| p i}
     end
     c.parse(ARGV)
     
@@ -126,9 +126,9 @@ Anything that isn't a command, switch or flag is taken as an argument. These are
     
     opts = {}
     c = Clive.new do
-      switch(:v, :verbose, "Run verbosely") {opts[:verbose] = true}
+      bool(:v, :verbose, "Run verbosely") {|i| opts[:verbose] = i}
       
-      command(:add, "Add a new project")) do
+      command(:add, "Add a new project") do
         opts[:add] = {}
         
         switch(:force, "Force overwrite") {opts[:add][:force] = true}
@@ -139,7 +139,7 @@ Anything that isn't a command, switch or flag is taken as an argument. These are
         
         command(:init, "Initialize the project after creating") do
           switch(:m, :minimum, "Use minimum settings") {opts[:add][:min] = true}
-          flag(:width) {|i| opts[:add][:width] = i.to_i}
+          flag(:w, :width) {|i| opts[:add][:width] = i.to_i}
         end
       
       end

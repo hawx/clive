@@ -216,7 +216,45 @@ class TestClive < Test::Unit::TestCase
       r = {:v => true, :add => {:full => true, :init => {:base => true, :name => 'Works'}} }
       assert_equal r, opts
     end
+    
+    should "parse the one in the readme" do
+      opts = {}
+      c = Clive.new do
+        bool(:v, :verbose, "Run verbosely") {|i| opts[:verbose] = i}
+        
+        command(:add, "Add a new project") do
+          opts[:add] = {}
+          
+          switch(:force, "Force overwrite") {opts[:add][:force] = true}
+          flag(:framework, "Add framework") do |i| 
+            opts[:add][:framework] ||= []
+            opts[:add][:framework] << i
+          end
+          
+          command(:init, "Initialize the project after creating") do
+            switch(:m, :minimum, "Use minimum settings") {opts[:add][:min] = true}
+            flag(:w, :width) {|i| opts[:add][:width] = i.to_i}
+          end
+        
+        end
+        
+        switch(:version, "Show version") do
+          puts "1.0.0"
+          exit
+        end
+      end
+      argv = %w(-v add --framework=blueprint init -m -w 200 ~/Desktop/new_thing ~/Desktop/another_thing)
+      args = c.parse(argv)
+      
+      <<-EOS
+      Clive::Tokens.to_tokens(argv) #=>
+      [[:short, "v"], [:word, "add"], [:long, "framework"], [:word, "blueprint"], [:word, "init"], [:short, "m"], [:short, "w"], [:word, "200"], [:word, "~/Desktop/new_thing"], [:word, "~/Desktop/another_thing"]]
+      EOS
+      
+      opts_r = {:add => {:min => true, :width => 200, :framework => ["blueprint"]}, :verbose => true}
+      assert_equal opts_r, opts
+      assert_equal ["~/Desktop/new_thing", "~/Desktop/another_thing"], args
+    end
   
   end
-  
 end

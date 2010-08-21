@@ -75,8 +75,9 @@ class Clive
     # when called.
     #
     def find
-      return nil if @base
+      return nil if @base || @block.nil?
       self.instance_eval(&@block)
+      @block = nil
     end
     
     # Parse the ARGV passed from the command line, and run
@@ -93,7 +94,7 @@ class Clive
         k, v = i[0], i[1]
         case k
         when :command
-          v.run(i[2])
+          r << v.run(i[2])
         when :switch
           v.run
         when :flag
@@ -103,7 +104,7 @@ class Clive
           r << v
         end
       end
-      r
+      r.flatten
     end
     
     # Turns the command line input into a series of tokens.
@@ -120,58 +121,66 @@ class Clive
     #        "verbose", #<Clive::Switch>]]
     #
     def tokenize(argv)
-      tokens = []
-      pre = Tokens.to_tokens(argv)
-      command = nil
-      @argv = argv unless @base
+      self.find
+      r = []
+      tokens = Tokens.new(argv)
       
-      pre.each do |i|
+      pre_command = Tokens.new
+      command = nil
+      tokens.tokens.each do |i|
         k, v = i[0], i[1]
-        case k
-        when :word
-          if @commands[v]
-            command = @commands[v]
-            pre -= [[:word, v]]
-          end
+        # check if a command
+        if k == :word && commands[v]
+          command = v
+          break
+        else
+          pre_command << i
         end
       end
       
-      if command
-        command.find
-        # tokenify the command
-        tokens << [:command, command, command.tokenize(Tokens.to_array(pre))]
-        pre = Tokens.to_tokens(command.argv)
-      end 
+      post_command = Tokens.new(tokens.array - pre_command - [command])
+      pre_command_tokens = execute(pre_command)
+      r = pre_command_tokens
       
-      pre.each do |i|
+      if command
+        t = commands[command].tokenize(post_command)
+        r << [:command, commands[command], t]
+      end
+
+      r
+    end
+    
+    def execute(tokens)
+      r = []
+      tokens.tokens.each do |i|
         k, v = i[0], i[1]
-        case k
-        when :short, :long
-          if switch = switches[v] || switch = bools[v]
-            tokens << [:switch, switch]
-            pre -= [[k, v]] unless @base
-          elsif flag = flags[v]
-            tokens << [:flag, flag]
-            pre -= [[k, v]] unless @base
+        if switch = switches[v] || switch = bools[v]
+          r << [:switch, switch]
+        elsif flag = flags[v]
+          r << [:flag, flag]
+        else
+          if k == :word
+            if r.last
+              case r.last[0]
+              when :flag
+                if r.last[2]
+                  r << [:argument, v]
+                else
+                  r.last[2] = v
+                end
+              else
+                r << [:argument, v]
+              end
+            end
           else
             raise InvalidOption.new(v) if @base
           end
-        when :word
-          if tokens.last
-            case tokens.last[0]
-            when :flag
-              tokens.last[2] = v
-            else
-              tokens << [:argument, v] if @base
-            end
-          end
         end
       end
-      @argv = Tokens.to_array(pre)
-      
-      tokens
+      r
     end
-    
+      
+      
   #### CREATION HELPERS #### 
   
     # Add a new command to +@commands+
