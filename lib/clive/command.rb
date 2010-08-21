@@ -139,7 +139,7 @@ class Clive
       end
       
       post_command = Tokens.new(tokens.array - pre_command - [command])
-      pre_command_tokens = execute(pre_command)
+      pre_command_tokens = parse(pre_command)
       r = pre_command_tokens
       
       if command
@@ -150,7 +150,16 @@ class Clive
       r
     end
     
-    def execute(tokens)
+    # This runs through the tokens from Tokens#to_tokens (or similar)
+    # and creates a new array with the type of object and the object
+    # itself, possibly with an argument in the case of Flag.
+    #
+    # @param [Tokens] tokens the tokens to run through
+    # @return [::Array] of the form 
+    #   [[:flag, #<Clive::Flag...>, "word"], [:switch, #<Clive::Switch....
+    # @raise [InvalidOption] raised if option given can't be found
+    #
+    def parse(tokens)
       r = []
       tokens.tokens.each do |i|
         k, v = i[0], i[1]
@@ -173,7 +182,7 @@ class Clive
               end
             end
           else
-            raise InvalidOption.new(v) if @base
+            raise InvalidOption.new(v)
           end
         end
       end
