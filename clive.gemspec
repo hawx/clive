@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{clive}
-  s.version = "0.2.3"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Joshua Hawxwell"]
-  s.date = %q{2010-08-17}
+  s.date = %q{2010-08-21}
   s.description = %q{Clive is a DSL for creating a command line interface. It is for people who, like me, love OptionParser's syntax and love GLI's commands.}
   s.email = %q{m@hawx.me}
   s.extra_rdoc_files = [
@@ -25,16 +25,19 @@ Gem::Specification.new do |s|
      "VERSION",
      "clive.gemspec",
      "lib/clive.rb",
-     "lib/clive/booleans.rb",
-     "lib/clive/commands.rb",
+     "lib/clive/bool.rb",
+     "lib/clive/command.rb",
+     "lib/clive/exceptions.rb",
      "lib/clive/ext.rb",
-     "lib/clive/flags.rb",
-     "lib/clive/switches.rb",
+     "lib/clive/flag.rb",
+     "lib/clive/option.rb",
+     "lib/clive/switch.rb",
      "lib/clive/tokens.rb",
      "test/bin_test",
      "test/helper.rb",
      "test/test_boolean.rb",
      "test/test_clive.rb",
+     "test/test_command.rb",
      "test/test_exceptions.rb",
      "test/test_flag.rb",
      "test/test_switch.rb",
@@ -49,6 +52,7 @@ Gem::Specification.new do |s|
     "test/helper.rb",
      "test/test_boolean.rb",
      "test/test_clive.rb",
+     "test/test_command.rb",
      "test/test_exceptions.rb",
      "test/test_flag.rb",
      "test/test_switch.rb",
