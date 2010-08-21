@@ -48,6 +48,6 @@ c = Clive.new do
 
 end
 
-c.parse(ARGV)
+p c.parse(ARGV)
 p options
 

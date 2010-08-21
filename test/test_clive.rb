@@ -147,6 +147,21 @@ class TestClive < Test::Unit::TestCase
       assert_equal r, opts
     end
     
+    should "recognise an argument" do
+      c = Clive.new do
+        bool(:v, :verbose, "Run verbosely") {}
+      end
+      args = c.parse ["argument"]
+      assert_equal ["argument"], args
+    end
+    
+    should "recognise multiple arguments" do
+      c = Clive.new do
+        bool(:v, :verbose, "Run verbosely") {}
+      end
+      args = c.parse ["argument", "and", "another"]
+      assert_equal ["argument", "and", "another"], args
+    end
     
     should "parse a mixture properly" do
       opts = {}

@@ -169,17 +169,11 @@ class Clive
           r << [:flag, flag]
         else
           if k == :word
-            if r.last
-              case r.last[0]
-              when :flag
-                if r.last[2]
-                  r << [:argument, v]
-                else
-                  r.last[2] = v
-                end
-              else
-                r << [:argument, v]
-              end
+            # add to last flag?
+            if r.last && r.last[0] == :flag && r.last[2].nil?
+              r.last[2] = v
+            else
+              r << [:argument, v]
             end
           else
             raise InvalidOption.new(v)
