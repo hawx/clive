@@ -246,11 +246,6 @@ class TestClive < Test::Unit::TestCase
       argv = %w(-v add --framework=blueprint init -m -w 200 ~/Desktop/new_thing ~/Desktop/another_thing)
       args = c.parse(argv)
       
-      <<-EOS
-      Clive::Tokens.to_tokens(argv) #=>
-      [[:short, "v"], [:word, "add"], [:long, "framework"], [:word, "blueprint"], [:word, "init"], [:short, "m"], [:short, "w"], [:word, "200"], [:word, "~/Desktop/new_thing"], [:word, "~/Desktop/another_thing"]]
-      EOS
-      
       opts_r = {:add => {:min => true, :width => 200, :framework => ["blueprint"]}, :verbose => true}
       assert_equal opts_r, opts
       assert_equal ["~/Desktop/new_thing", "~/Desktop/another_thing"], args
