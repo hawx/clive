@@ -261,6 +261,7 @@ class Clive
       if @options.length > 0
         summary << "\n Options:\n"
         @options.sort.each do |i|
+          next if i.names.include?("help")
           summary << i.summary(width, prepend) << "\n" if i.summary
         end
       end
