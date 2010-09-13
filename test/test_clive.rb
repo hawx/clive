@@ -155,6 +155,12 @@ class TestClive < Test::Unit::TestCase
       assert_equal ["argument"], args
     end
     
+    should "recognise a quoted argument" do
+      c = Clive.new {}
+      args = c.parse ['"a quoted argument"']
+      assert_equal ["a quoted argument"], args
+    end
+    
     should "recognise multiple arguments" do
       c = Clive.new do
         bool(:v, :verbose, "Run verbosely") {}
