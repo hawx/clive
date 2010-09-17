@@ -99,8 +99,8 @@ class Clive
           v.run
         when :flag
           args = i[2..-1]
-          opt_args = v.args.find_all {|i| i[:optional] == true }.size
-          nec_args = v.args.size - opt_args
+          opt_args = v.arg_num(true)
+          nec_args = v.arg_num(false)
           # check for missing args
           if args.size < nec_args
             raise MissingArgument.new(v.sort_name)

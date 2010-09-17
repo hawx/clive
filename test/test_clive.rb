@@ -157,7 +157,7 @@ class TestClive < Test::Unit::TestCase
     
     should "recognise a quoted argument" do
       c = Clive.new {}
-      args = c.parse ['"a quoted argument"']
+      args = c.parse ['a quoted argument']
       assert_equal ["a quoted argument"], args
     end
     

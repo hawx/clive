@@ -88,7 +88,9 @@ class TestFlag < Test::Unit::TestCase
     end
     
     should "raise error when correct argument not found" do
-      #flunk
+      assert_raise Clive::InvalidArgument do
+        @c.parse(["--type", "apple"])
+      end
     end
     
     should "make list arguments" do

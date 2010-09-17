@@ -77,7 +77,22 @@ class Clive
     #
     # @param [Array] args arguments to pass to the block
     def run(args)
+      unless @args[0].is_a? Hash # list
+        unless @args.include? args
+          raise InvalidArgument.new(args)
+        end
+      end
       @block.call(*args)
+    end
+    
+    # @param [Boolean] optional whether to include optional arguments
+    # @return [Integer] number of arguments this takes
+    def arg_num(optional)
+      if @args[0].is_a? Hash
+        @args.find_all {|i| i[:optional] == optional }.size
+      else
+        1
+      end
     end
     
     # @return [String] summary for help

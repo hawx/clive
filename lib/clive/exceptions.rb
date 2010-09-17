@@ -36,6 +36,11 @@ class Clive
     def reason; "missing argument"; end
   end
   
+  # a flag has a wrong argument
+  class InvalidArgument < ParseError
+    def reason; "invalid argument"; end
+  end
+  
   # a option that wasn't defined has been found
   class InvalidOption < ParseError
     def reason; "invalid option"; end
