@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>lib/clive/command.rb</title>
+    <link rel="stylesheet" href="styles.css" type="text/css" />
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="plugins.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+  </head>
+  <body>
+  
+    <header>
+      <h1><a href="index.html">Coverage</a></h1>
+      <h2>lib/clive/command.rb</h2>
+    </header>
+    
+    <div class="table-wrapper">
+      <table class="summary" border="none">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Total Lines</th>
+            <th>Lines of Code</th>
+            <th>Total Coverage</th>
+            <th>Code Coverage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name">lib/clive/command.rb</td>
+            <td>290</td>
+            <td>120</td>
+            <td>34.14%</td>
+            <td>82.50%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+    <div class="table-wrapper">
+      <table class="source" border="none">
+          <tr class="ran">
+          <td class="no">0</td>
+          <td><pre><code>class Clive</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">1</td>
+          <td><pre><code>  </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">2</td>
+          <td><pre><code>  # A string which describes the command to execute</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">3</td>
+          <td><pre><code>  #   eg. git add</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">4</td>
+          <td><pre><code>  #       git pull</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">5</td>
+          <td><pre><code>  #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">6</td>
+          <td><pre><code>  class Command < Option</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">7</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">8</td>
+          <td><pre><code>    attr_accessor :options, :commands</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">9</td>
+          <td><pre><code>    attr_accessor :argv, :base</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">10</td>
+          <td><pre><code>    attr_accessor :header, :footer</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">11</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">12</td>
+          <td><pre><code>    # Create a new Command instance</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">13</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">14</td>
+          <td><pre><code>    # @overload initialize(base, &block)</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">15</td>
+          <td><pre><code>    #   Creates a new base Command to house everything else</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">16</td>
+          <td><pre><code>    #   @param [Boolean] base whether the command is the base</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">17</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">18</td>
+          <td><pre><code>    # @overload initialize(name, desc, &block)</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">19</td>
+          <td><pre><code>    #   Creates a new Command as part of the base Command</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">20</td>
+          <td><pre><code>    #   @param [Symbol] name the name of the command</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">21</td>
+          <td><pre><code>    #   @param [String] desc the description of the command</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">22</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">23</td>
+          <td><pre><code>    # @yield A block to run, containing switches, flags and commands</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">24</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">25</td>
+          <td><pre><code>    def initialize(*args, &block)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">26</td>
+          <td><pre><code>      @argv     = []</code></pre></td>
+          <td><span class="count">69</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">27</td>
+          <td><pre><code>      @names    = []</code></pre></td>
+          <td><span class="count">69</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">28</td>
+          <td><pre><code>      @base     = false</code></pre></td>
+          <td><span class="count">69</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">29</td>
+          <td><pre><code>      @commands = Clive::Array.new</code></pre></td>
+          <td><span class="count">69</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">30</td>
+          <td><pre><code>      @options  = Clive::Array.new</code></pre></td>
+          <td><span class="count">69</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">31</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">32</td>
+          <td><pre><code>      if args.length == 1 && args[0] == true</code></pre></td>
+          <td><span class="count">69</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">33</td>
+          <td><pre><code>        @base = true</code></pre></td>
+          <td><span class="count">52</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">34</td>
+          <td><pre><code>        self.instance_eval(&block)</code></pre></td>
+          <td><span class="count">52</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">35</td>
+          <td><pre><code>      else</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">36</td>
+          <td><pre><code>        args.each do |i|</code></pre></td>
+          <td><span class="count">17</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">37</td>
+          <td><pre><code>          case i</code></pre></td>
+          <td><span class="count">32</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">38</td>
+          <td><pre><code>          when Symbol</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">39</td>
+          <td><pre><code>            @names << i.to_s</code></pre></td>
+          <td><span class="count">23</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">40</td>
+          <td><pre><code>          when String</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">41</td>
+          <td><pre><code>            @desc = i</code></pre></td>
+          <td><span class="count">9</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">42</td>
+          <td><pre><code>          end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">43</td>
+          <td><pre><code>        end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">44</td>
+          <td><pre><code>        @block = block</code></pre></td>
+          <td><span class="count">17</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">45</td>
+          <td><pre><code>      end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">46</td>
+          <td><pre><code>      </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">47</td>
+          <td><pre><code>      @header = "Usage: #{File.basename($0, '.*')} "</code></pre></td>
+          <td><span class="count">69</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">48</td>
+          <td><pre><code>      @header << (@base ? "[commands]" : @names.join(', '))</code></pre></td>
+          <td><span class="count">69</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">49</td>
+          <td><pre><code>      @header << " [options]"</code></pre></td>
+          <td><span class="count">69</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">50</td>
+          <td><pre><code>      @footer = nil</code></pre></td>
+          <td><span class="count">69</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">51</td>
+          <td><pre><code>      </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">52</td>
+          <td><pre><code>      self.build_help</code></pre></td>
+          <td><span class="count">69</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">53</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">54</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">55</td>
+          <td><pre><code>    # @return [Clive::Array] all bools in this command</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">56</td>
+          <td><pre><code>    def bools</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">57</td>
+          <td><pre><code>      Clive::Array.new(@options.find_all {|i| i.class == Bool})</code></pre></td>
+          <td><span class="count">52</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">58</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">59</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">60</td>
+          <td><pre><code>    # @return [Clive::Array] all switches in this command</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">61</td>
+          <td><pre><code>    def switches</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">62</td>
+          <td><pre><code>      Clive::Array.new(@options.find_all {|i| i.class == Switch})</code></pre></td>
+          <td><span class="count">64</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">63</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">64</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">65</td>
+          <td><pre><code>    # @return [Clive::Array] all flags in this command</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">66</td>
+          <td><pre><code>    def flags</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">67</td>
+          <td><pre><code>      Clive::Array.new(@options.find_all {|i| i.class == Flag})</code></pre></td>
+          <td><span class="count">51</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">68</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">69</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">70</td>
+          <td><pre><code>    # Run the block that was passed to find switches, flags, etc.</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">71</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">72</td>
+          <td><pre><code>    # This should only be called if the command has been called</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">73</td>
+          <td><pre><code>    # as the block could contain other actions to perform only </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">74</td>
+          <td><pre><code>    # when called.</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">75</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">76</td>
+          <td><pre><code>    def find</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">77</td>
+          <td><pre><code>      return nil if @base || @block.nil?</code></pre></td>
+          <td><span class="count">43</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">78</td>
+          <td><pre><code>      self.instance_eval(&@block)</code></pre></td>
+          <td><span class="count">12</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">79</td>
+          <td><pre><code>      @block = nil</code></pre></td>
+          <td><span class="count">12</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">80</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">81</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">82</td>
+          <td><pre><code>    # Parse the ARGV passed from the command line, and run</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">83</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">84</td>
+          <td><pre><code>    # @param [::Array] argv the command line input, usually just +ARGV+</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">85</td>
+          <td><pre><code>    # @return [::Array] any arguments that were present in the input but not used</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">86</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">87</td>
+          <td><pre><code>    def run(argv=[])</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">88</td>
+          <td><pre><code>      tokens = argv</code></pre></td>
+          <td><span class="count">43</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">89</td>
+          <td><pre><code>      tokens = tokenize(argv) if @base</code></pre></td>
+          <td><span class="count">43</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">90</td>
+          <td><pre><code>      </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">91</td>
+          <td><pre><code>      r = []</code></pre></td>
+          <td><span class="count">42</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">92</td>
+          <td><pre><code>      tokens.each do |i|</code></pre></td>
+          <td><span class="count">42</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">93</td>
+          <td><pre><code>        k, v = i[0], i[1]</code></pre></td>
+          <td><span class="count">58</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">94</td>
+          <td><pre><code>        case k</code></pre></td>
+          <td><span class="count">58</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">95</td>
+          <td><pre><code>        when :command</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">96</td>
+          <td><pre><code>          r << v.run(i[2])</code></pre></td>
+          <td><span class="count">12</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">97</td>
+          <td><pre><code>        when :switch</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">98</td>
+          <td><pre><code>          v.run</code></pre></td>
+          <td><span class="count">19</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">99</td>
+          <td><pre><code>        when :flag</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">100</td>
+          <td><pre><code>          args = i[2..-1]</code></pre></td>
+          <td><span class="count">15</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">101</td>
+          <td><pre><code>          opt_args = v.args.find_all {|i| i[:optional] == true }.size</code></pre></td>
+          <td><span class="count">15</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">102</td>
+          <td><pre><code>          nec_args = v.args.size - opt_args</code></pre></td>
+          <td><span class="count">15</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">103</td>
+          <td><pre><code>          # check for missing args</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">104</td>
+          <td><pre><code>          if args.size < nec_args</code></pre></td>
+          <td><span class="count">15</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">105</td>
+          <td><pre><code>            raise MissingArgument.new(v.sort_name)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">106</td>
+          <td><pre><code>          end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">107</td>
+          <td><pre><code>          </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">108</td>
+          <td><pre><code>          v.run(args)</code></pre></td>
+          <td><span class="count">14</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">109</td>
+          <td><pre><code>        when :argument</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">110</td>
+          <td><pre><code>          r << v</code></pre></td>
+          <td><span class="count">12</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">111</td>
+          <td><pre><code>        end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">112</td>
+          <td><pre><code>      end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">113</td>
+          <td><pre><code>      r.flatten</code></pre></td>
+          <td><span class="count">41</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">114</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">115</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">116</td>
+          <td><pre><code>    # Turns the command line input into a series of tokens.</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">117</td>
+          <td><pre><code>    # It will only raise errors if this is the base command instance.</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">118</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">119</td>
+          <td><pre><code>    # @param [::Array] argv the command line input</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">120</td>
+          <td><pre><code>    # @return [::Array] a series of tokens</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">121</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">122</td>
+          <td><pre><code>    # @example</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">123</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">124</td>
+          <td><pre><code>    #   c.tokenize(["add", "-al", "--verbose"])</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">125</td>
+          <td><pre><code>    #   #=> [[:command, #<Clive::Command>, ...args...], [:switch, "a", </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">126</td>
+          <td><pre><code>    #        #<Clive::Switch>], [:switch, "l", #<Clive::Switch>], [:switch, </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">127</td>
+          <td><pre><code>    #        "verbose", #<Clive::Switch>]]</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">128</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">129</td>
+          <td><pre><code>    def tokenize(argv)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">130</td>
+          <td><pre><code>      self.find</code></pre></td>
+          <td><span class="count">43</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">131</td>
+          <td><pre><code>      r = []</code></pre></td>
+          <td><span class="count">43</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">132</td>
+          <td><pre><code>      tokens = Tokens.new(argv)</code></pre></td>
+          <td><span class="count">43</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">133</td>
+          <td><pre><code>      </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">134</td>
+          <td><pre><code>      pre_command = Tokens.new</code></pre></td>
+          <td><span class="count">43</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">135</td>
+          <td><pre><code>      command = nil</code></pre></td>
+          <td><span class="count">43</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">136</td>
+          <td><pre><code>      tokens.tokens.each do |i|</code></pre></td>
+          <td><span class="count">43</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">137</td>
+          <td><pre><code>        k, v = i[0], i[1]</code></pre></td>
+          <td><span class="count">73</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">138</td>
+          <td><pre><code>        # check if a command</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">139</td>
+          <td><pre><code>        if k == :word && commands[v]</code></pre></td>
+          <td><span class="count">73</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">140</td>
+          <td><pre><code>          command = v</code></pre></td>
+          <td><span class="count">12</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">141</td>
+          <td><pre><code>          break</code></pre></td>
+          <td><span class="count">12</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">142</td>
+          <td><pre><code>        else</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">143</td>
+          <td><pre><code>          pre_command << i</code></pre></td>
+          <td><span class="count">61</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">144</td>
+          <td><pre><code>        end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">145</td>
+          <td><pre><code>      end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">146</td>
+          <td><pre><code>      </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">147</td>
+          <td><pre><code>      post_command = Tokens.new(tokens.array - pre_command - [command])</code></pre></td>
+          <td><span class="count">43</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">148</td>
+          <td><pre><code>      pre_command_tokens = parse(pre_command)</code></pre></td>
+          <td><span class="count">43</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">149</td>
+          <td><pre><code>      r = pre_command_tokens</code></pre></td>
+          <td><span class="count">42</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">150</td>
+          <td><pre><code>      </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">151</td>
+          <td><pre><code>      if command</code></pre></td>
+          <td><span class="count">42</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">152</td>
+          <td><pre><code>        t = commands[command].tokenize(post_command)</code></pre></td>
+          <td><span class="count">12</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">153</td>
+          <td><pre><code>        r << [:command, commands[command], t]</code></pre></td>
+          <td><span class="count">12</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">154</td>
+          <td><pre><code>      end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">155</td>
+          <td><pre><code></code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">156</td>
+          <td><pre><code>      r</code></pre></td>
+          <td><span class="count">42</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">157</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">158</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">159</td>
+          <td><pre><code>    # This runs through the tokens from Tokens#to_tokens (or similar)</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">160</td>
+          <td><pre><code>    # and creates a new array with the type of object and the object</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">161</td>
+          <td><pre><code>    # itself, possibly with an argument in the case of Flag.</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">162</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">163</td>
+          <td><pre><code>    # @param [Tokens] tokens the tokens to run through</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">164</td>
+          <td><pre><code>    # @return [::Array] of the form </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">165</td>
+          <td><pre><code>    #   [[:flag, #<Clive::Flag...>, "word"], [:switch, #<Clive::Switch....</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">166</td>
+          <td><pre><code>    # @raise [InvalidOption] raised if option given can't be found</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">167</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">168</td>
+          <td><pre><code>    def parse(tokens)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">169</td>
+          <td><pre><code>      r = []</code></pre></td>
+          <td><span class="count">43</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">170</td>
+          <td><pre><code>      tokens.tokens.each do |i|</code></pre></td>
+          <td><span class="count">43</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">171</td>
+          <td><pre><code>        k, v = i[0], i[1]</code></pre></td>
+          <td><span class="count">61</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">172</td>
+          <td><pre><code>        if switch = switches[v] || switch = bools[v]</code></pre></td>
+          <td><span class="count">61</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">173</td>
+          <td><pre><code>          r << [:switch, switch]</code></pre></td>
+          <td><span class="count">19</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">174</td>
+          <td><pre><code>        elsif flag = flags[v]</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">175</td>
+          <td><pre><code>          r << [:flag, flag]</code></pre></td>
+          <td><span class="count">15</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">176</td>
+          <td><pre><code>        else</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">177</td>
+          <td><pre><code>          if k == :word</code></pre></td>
+          <td><span class="count">27</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">178</td>
+          <td><pre><code>            # add to last flag?</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">179</td>
+          <td><pre><code>            if r.last && r.last[0] == :flag && r.last.size - 2 < r.last[1].args.size</code></pre></td>
+          <td><span class="count">26</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">180</td>
+          <td><pre><code>              r.last.push(v)</code></pre></td>
+          <td><span class="count">14</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">181</td>
+          <td><pre><code>            else</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">182</td>
+          <td><pre><code>              r << [:argument, v]</code></pre></td>
+          <td><span class="count">12</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">183</td>
+          <td><pre><code>            end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">184</td>
+          <td><pre><code>          else</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">185</td>
+          <td><pre><code>            raise InvalidOption.new(v)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">186</td>
+          <td><pre><code>          end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">187</td>
+          <td><pre><code>        end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">188</td>
+          <td><pre><code>      end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">189</td>
+          <td><pre><code>      r</code></pre></td>
+          <td><span class="count">42</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">190</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">191</td>
+          <td><pre><code>      </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">192</td>
+          <td><pre><code>      </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">193</td>
+          <td><pre><code>  #### CREATION HELPERS #### </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">194</td>
+          <td><pre><code>  </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">195</td>
+          <td><pre><code>    # Add a new command to +@commands+</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">196</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">197</td>
+          <td><pre><code>    # @overload command(name, ..., desc, &block)</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">198</td>
+          <td><pre><code>    #   Creates a new command</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">199</td>
+          <td><pre><code>    #   @param [Symbol] name the name(s) of the command, eg. +:add+ for +git add+</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">200</td>
+          <td><pre><code>    #   @param [String] desc description of the command</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">201</td>
+          <td><pre><code>    # </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">202</td>
+          <td><pre><code>    # @yield A block to run when the command is called, can contain switches</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">203</td>
+          <td><pre><code>    #   and flags</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">204</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">205</td>
+          <td><pre><code>    def command(*args, &block)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">206</td>
+          <td><pre><code>      @commands << Command.new(*args, &block)</code></pre></td>
+          <td><span class="count">17</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">207</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">208</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">209</td>
+          <td><pre><code>    # Add a new switch to +@switches+</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">210</td>
+          <td><pre><code>    # @see Switch#initialize</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">211</td>
+          <td><pre><code>    def switch(*args, &block)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">212</td>
+          <td><pre><code>      @options << Switch.new(*args, &block)</code></pre></td>
+          <td><span class="count">21</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">213</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">214</td>
+          <td><pre><code></code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">215</td>
+          <td><pre><code>    # Adds a new flag to +@flags+</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">216</td>
+          <td><pre><code>    # @see Flag#initialize</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">217</td>
+          <td><pre><code>    def flag(*args, &block)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">218</td>
+          <td><pre><code>      @options << Flag.new(*args, &block)</code></pre></td>
+          <td><span class="count">29</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">219</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">220</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">221</td>
+          <td><pre><code>    # Creates a boolean switch. This is done by adding two switches of</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">222</td>
+          <td><pre><code>    # Bool type to +@switches+, one is created normally the other has</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">223</td>
+          <td><pre><code>    # "no-" appended to the long name and has no short name.</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">224</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">225</td>
+          <td><pre><code>    # @see Bool#initialize</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">226</td>
+          <td><pre><code>    def bool(*args, &block)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">227</td>
+          <td><pre><code>      @options << Bool.new(*args, true, &block)</code></pre></td>
+          <td><span class="count">12</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">228</td>
+          <td><pre><code>      @options << Bool.new(*args, false, &block)</code></pre></td>
+          <td><span class="count">12</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">229</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">230</td>
+          <td><pre><code>    alias_method :boolean, :bool</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">231</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">232</td>
+          <td><pre><code>  #### HELP STUFF ####</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">233</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">234</td>
+          <td><pre><code>    # This actually creates a switch with "-h" and "--help" that controls</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">235</td>
+          <td><pre><code>    # the help on this command.</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">236</td>
+          <td><pre><code>    def build_help</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">237</td>
+          <td><pre><code>      @options << Switch.new(:h, :help, "Display help") do</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">238</td>
+          <td><pre><code>        puts self.help</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">239</td>
+          <td><pre><code>        exit 0</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">240</td>
+          <td><pre><code>      end</code></pre></td>
+          <td><span class="count">69</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">241</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">242</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">243</td>
+          <td><pre><code>    # Set the header</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">244</td>
+          <td><pre><code>    def header(val)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">245</td>
+          <td><pre><code>      @header = val</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">246</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">247</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">248</td>
+          <td><pre><code>    # Set the footer</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">249</td>
+          <td><pre><code>    def footer(val)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">250</td>
+          <td><pre><code>      @footer = val</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">251</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">252</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">253</td>
+          <td><pre><code>    def summary(width=30, prepend=5)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">254</td>
+          <td><pre><code>      a = @names.sort.join(', ')</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">255</td>
+          <td><pre><code>      b = @desc</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">256</td>
+          <td><pre><code>      s = spaces(width-a.length)</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">257</td>
+          <td><pre><code>      p = spaces(prepend)</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">258</td>
+          <td><pre><code>      "#{p}#{a}#{s}#{b}"</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">259</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">260</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">261</td>
+          <td><pre><code>    # Generate the summary for help, show all flags and switches, but do not</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">262</td>
+          <td><pre><code>    # show the flags and switches within each command. Should also prepend the</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">263</td>
+          <td><pre><code>    # header and append the footer if set.</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">264</td>
+          <td><pre><code>    def help(width=30, prepend=5)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">265</td>
+          <td><pre><code>      summary = "#{@header}\n"</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">266</td>
+          <td><pre><code>      </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">267</td>
+          <td><pre><code>      if @options.length > 0</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">268</td>
+          <td><pre><code>        summary << "\n Options:\n"</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">269</td>
+          <td><pre><code>        @options.sort.each do |i|</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">270</td>
+          <td><pre><code>          next if i.names.include?("help")</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">271</td>
+          <td><pre><code>          summary << i.summary(width, prepend) << "\n" if i.summary</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">272</td>
+          <td><pre><code>        end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">273</td>
+          <td><pre><code>      end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">274</td>
+          <td><pre><code>      </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">275</td>
+          <td><pre><code>      if @commands.length > 0</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">276</td>
+          <td><pre><code>        summary << "\n Commands:\n"</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">277</td>
+          <td><pre><code>        @commands.sort.each do |i|</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">278</td>
+          <td><pre><code>          summary << i.summary(width, prepend) << "\n"</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">279</td>
+          <td><pre><code>        end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">280</td>
+          <td><pre><code>      end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">281</td>
+          <td><pre><code>      </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">282</td>
+          <td><pre><code>      summary << "\n#{@footer}\n" if @footer</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">283</td>
+          <td><pre><code>     </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">284</td>
+          <td><pre><code>      summary</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">285</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">286</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">287</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">288</td>
+          <td><pre><code>  end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">289</td>
+          <td><pre><code>end</code></pre></td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+    
+    <footer>
+      <span>Generated on 2010-09-17 10:00:35 +0100 with </span><a href="http://github.com/hawx/duvet">duvet 0.1.0
+</a>
+    </footer>
+    
+  </body>
+</html>

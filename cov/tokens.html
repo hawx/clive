@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>lib/clive/tokens.rb</title>
+    <link rel="stylesheet" href="styles.css" type="text/css" />
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="plugins.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+  </head>
+  <body>
+  
+    <header>
+      <h1><a href="index.html">Coverage</a></h1>
+      <h2>lib/clive/tokens.rb</h2>
+    </header>
+    
+    <div class="table-wrapper">
+      <table class="summary" border="none">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Total Lines</th>
+            <th>Lines of Code</th>
+            <th>Total Coverage</th>
+            <th>Code Coverage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name">lib/clive/tokens.rb</td>
+            <td>133</td>
+            <td>50</td>
+            <td>36.84%</td>
+            <td>98.00%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+    <div class="table-wrapper">
+      <table class="source" border="none">
+          <tr class="ran">
+          <td class="no">0</td>
+          <td><pre><code>class Clive</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">1</td>
+          <td><pre><code></code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">2</td>
+          <td><pre><code>  # A subclass of Array to allow the creation of arrays that look</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">3</td>
+          <td><pre><code>  # like:</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">4</td>
+          <td><pre><code>  #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">5</td>
+          <td><pre><code>  #    [[:word, 'Value'], [:long, 'verbose'], [:short, 'r']]</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">6</td>
+          <td><pre><code>  #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">7</td>
+          <td><pre><code>  # The tokens are not stored like that but as the string </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">8</td>
+          <td><pre><code>  # representations:</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">9</td>
+          <td><pre><code>  #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">10</td>
+          <td><pre><code>  #   ["Value", "--verbose", "-r"]</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">11</td>
+          <td><pre><code>  #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">12</td>
+          <td><pre><code>  class Tokens < Array</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">13</td>
+          <td><pre><code>      </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">14</td>
+          <td><pre><code>    TOKEN_KEYS = [:word, :short, :long]</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">15</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">16</td>
+          <td><pre><code>    # Create a new Tokens instance. Pass either an array of tokens</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">17</td>
+          <td><pre><code>    # or a plain array, they will be converted correctly.</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">18</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">19</td>
+          <td><pre><code>    # @param [::Array]</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">20</td>
+          <td><pre><code>    # @return [Tokens]</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">21</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">22</td>
+          <td><pre><code>    def initialize(args=[])</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">23</td>
+          <td><pre><code>      if token?(args[0])</code></pre></td>
+          <td><span class="count">137</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">24</td>
+          <td><pre><code>        r = []</code></pre></td>
+          <td><span class="count">2</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">25</td>
+          <td><pre><code>        args.each {|i| r << token_to_string(i)}</code></pre></td>
+          <td><span class="count">2</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">26</td>
+          <td><pre><code>        args = r</code></pre></td>
+          <td><span class="count">2</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">27</td>
+          <td><pre><code>      end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">28</td>
+          <td><pre><code>      super(args)</code></pre></td>
+          <td><span class="count">137</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">29</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">30</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">31</td>
+          <td><pre><code>    # Turn +@tokens+ into an array, this ensures that shorts are split</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">32</td>
+          <td><pre><code>    # as is expected</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">33</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">34</td>
+          <td><pre><code>    # @return [::Array] array representation of tokens held</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">35</td>
+          <td><pre><code>    def array</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">36</td>
+          <td><pre><code>      return [] unless self.tokens</code></pre></td>
+          <td><span class="count">47</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">37</td>
+          <td><pre><code>      arr = []</code></pre></td>
+          <td><span class="count">47</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">38</td>
+          <td><pre><code>      self.tokens.each do |i|</code></pre></td>
+          <td><span class="count">47</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">39</td>
+          <td><pre><code>        k, v = i[0], i[1]</code></pre></td>
+          <td><span class="count">116</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">40</td>
+          <td><pre><code>        case k</code></pre></td>
+          <td><span class="count">116</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">41</td>
+          <td><pre><code>        when :long</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">42</td>
+          <td><pre><code>          arr << "--#{v}"</code></pre></td>
+          <td><span class="count">36</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">43</td>
+          <td><pre><code>        when :short</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">44</td>
+          <td><pre><code>          arr << "-#{v}"</code></pre></td>
+          <td><span class="count">25</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">45</td>
+          <td><pre><code>        when :word</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">46</td>
+          <td><pre><code>          arr << v</code></pre></td>
+          <td><span class="count">55</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">47</td>
+          <td><pre><code>        end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">48</td>
+          <td><pre><code>      end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">49</td>
+          <td><pre><code>      </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">50</td>
+          <td><pre><code>      arr</code></pre></td>
+          <td><span class="count">47</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">51</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">52</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">53</td>
+          <td><pre><code>    # Creates an array of tokens based on +self+</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">54</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">55</td>
+          <td><pre><code>    # @return [::Array] the tokens that are held</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">56</td>
+          <td><pre><code>    def tokens</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">57</td>
+          <td><pre><code>      t = []</code></pre></td>
+          <td><span class="count">184</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">58</td>
+          <td><pre><code>      self.each do |i|</code></pre></td>
+          <td><span class="count">184</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">59</td>
+          <td><pre><code>        if i[0..1] == "--"</code></pre></td>
+          <td><span class="count">386</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">60</td>
+          <td><pre><code>          if i.include?('=')</code></pre></td>
+          <td><span class="count">130</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">61</td>
+          <td><pre><code>            a, b = i[2..i.length].split('=')</code></pre></td>
+          <td><span class="count">15</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">62</td>
+          <td><pre><code>            t << [:long, a] << [:word, b]</code></pre></td>
+          <td><span class="count">15</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">63</td>
+          <td><pre><code>          else</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">64</td>
+          <td><pre><code>            t << [:long, i[2..i.length]]</code></pre></td>
+          <td><span class="count">115</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">65</td>
+          <td><pre><code>          end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">66</td>
+          <td><pre><code>          </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">67</td>
+          <td><pre><code>        elsif i[0] == "-"</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">68</td>
+          <td><pre><code>          i[1..i.length].split('').each do |j|</code></pre></td>
+          <td><span class="count">80</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">69</td>
+          <td><pre><code>            t << [:short, j]</code></pre></td>
+          <td><span class="count">88</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">70</td>
+          <td><pre><code>          end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">71</td>
+          <td><pre><code>        </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">72</td>
+          <td><pre><code>        else</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">73</td>
+          <td><pre><code>          t << [:word, i]</code></pre></td>
+          <td><span class="count">176</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">74</td>
+          <td><pre><code>        end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">75</td>
+          <td><pre><code>      end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">76</td>
+          <td><pre><code>      </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">77</td>
+          <td><pre><code>      t</code></pre></td>
+          <td><span class="count">184</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">78</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">79</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">80</td>
+          <td><pre><code>    def self.to_tokens(arr)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">81</td>
+          <td><pre><code>      Tokens.new(arr).tokens</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">82</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">83</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">84</td>
+          <td><pre><code>    def self.to_array(tokens)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">85</td>
+          <td><pre><code>      Tokens.new(tokens).array</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">86</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">87</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">88</td>
+          <td><pre><code>    # Checks to see if it is a token being added and changes it back</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">89</td>
+          <td><pre><code>    def <<(val)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">90</td>
+          <td><pre><code>      if token?(val)</code></pre></td>
+          <td><span class="count">68</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">91</td>
+          <td><pre><code>        super(token_to_string(val))</code></pre></td>
+          <td><span class="count">65</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">92</td>
+          <td><pre><code>      else</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">93</td>
+          <td><pre><code>        super</code></pre></td>
+          <td><span class="count">3</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">94</td>
+          <td><pre><code>      end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">95</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">96</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">97</td>
+          <td><pre><code>    # Test whether an array is a token</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">98</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">99</td>
+          <td><pre><code>    # @param [::Array]</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">100</td>
+          <td><pre><code>    # @return [Boolean]</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">101</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">102</td>
+          <td><pre><code>    # @example</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">103</td>
+          <td><pre><code>    #  </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">104</td>
+          <td><pre><code>    #   t.token?([:word, "something"]) #=> true</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">105</td>
+          <td><pre><code>    #   t.token?(["a", "normal", "array"]) #=> false</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">106</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">107</td>
+          <td><pre><code>    def token?(arr)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">108</td>
+          <td><pre><code>      return false if arr.nil?</code></pre></td>
+          <td><span class="count">207</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">109</td>
+          <td><pre><code>      TOKEN_KEYS.include?(arr[0])</code></pre></td>
+          <td><span class="count">119</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">110</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">111</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">112</td>
+          <td><pre><code>    # Convert a tokens to its string representation</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">113</td>
+          <td><pre><code>    def token_to_string(token)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">114</td>
+          <td><pre><code>      k, v = token[0], token[1]</code></pre></td>
+          <td><span class="count">76</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">115</td>
+          <td><pre><code>      case k</code></pre></td>
+          <td><span class="count">76</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">116</td>
+          <td><pre><code>      when :long</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">117</td>
+          <td><pre><code>        "--#{v}"</code></pre></td>
+          <td><span class="count">26</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">118</td>
+          <td><pre><code>      when :short</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">119</td>
+          <td><pre><code>        "-#{v}"</code></pre></td>
+          <td><span class="count">20</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">120</td>
+          <td><pre><code>      when :word</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">121</td>
+          <td><pre><code>        v</code></pre></td>
+          <td><span class="count">30</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">122</td>
+          <td><pre><code>      end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">123</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">124</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">125</td>
+          <td><pre><code>    # This is here to force the use of #tokens and #array when </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">126</td>
+          <td><pre><code>    # accessing the contents</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">127</td>
+          <td><pre><code>    def inspect</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="unran">
+          <td class="no">128</td>
+          <td><pre><code>      "#<Clive::Tokens:0x#{'%x' % (self.object_id << 1)} #{self.tokens}>"</code></pre></td>
+          <td><span class="count">0</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">129</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">130</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">131</td>
+          <td><pre><code>  end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">132</td>
+          <td><pre><code>end</code></pre></td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+    
+    <footer>
+      <span>Generated on 2010-09-17 10:00:35 +0100 with </span><a href="http://github.com/hawx/duvet">duvet 0.1.0
+</a>
+    </footer>
+    
+  </body>
+</html>

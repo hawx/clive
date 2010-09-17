@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>lib/clive/ext.rb</title>
+    <link rel="stylesheet" href="styles.css" type="text/css" />
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="plugins.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+  </head>
+  <body>
+  
+    <header>
+      <h1><a href="index.html">Coverage</a></h1>
+      <h2>lib/clive/ext.rb</h2>
+    </header>
+    
+    <div class="table-wrapper">
+      <table class="summary" border="none">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Total Lines</th>
+            <th>Lines of Code</th>
+            <th>Total Coverage</th>
+            <th>Code Coverage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name">lib/clive/ext.rb</td>
+            <td>20</td>
+            <td>7</td>
+            <td>35.00%</td>
+            <td>100.00%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+    <div class="table-wrapper">
+      <table class="source" border="none">
+          <tr class="ran">
+          <td class="no">0</td>
+          <td><pre><code>class Clive</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">1</td>
+          <td><pre><code></code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">2</td>
+          <td><pre><code>  class Array < ::Array</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">3</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">4</td>
+          <td><pre><code>    # If passed a Symbol or String will get the item with that name.</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">5</td>
+          <td><pre><code>    # Otherwise does what you expect of an Array (see ::Array#[])</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">6</td>
+          <td><pre><code>    #</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">7</td>
+          <td><pre><code>    # @param [Symbol, String, Integer, Range] val name or index of item to return</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">8</td>
+          <td><pre><code>    # @return the item that has been found</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">9</td>
+          <td><pre><code>    def [](val)</code></pre></td>
+          <td><span class="count">1</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">10</td>
+          <td><pre><code>      val = val.to_s if val.is_a? Symbol</code></pre></td>
+          <td><span class="count">226</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">11</td>
+          <td><pre><code>      if val.is_a? String</code></pre></td>
+          <td><span class="count">226</span></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">12</td>
+          <td><pre><code>        self.find_all {|i| i.names.include?(val)}[0]</code></pre></td>
+          <td><span class="count">222</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">13</td>
+          <td><pre><code>      else</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="ran">
+          <td class="no">14</td>
+          <td><pre><code>        super</code></pre></td>
+          <td><span class="count">4</span></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">15</td>
+          <td><pre><code>      end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">16</td>
+          <td><pre><code>    end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">17</td>
+          <td><pre><code>    </code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">18</td>
+          <td><pre><code>  end</code></pre></td>
+          <td></td>
+        </tr>
+          <tr class="excluded">
+          <td class="no">19</td>
+          <td><pre><code>end</code></pre></td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+    
+    <footer>
+      <span>Generated on 2010-09-17 10:00:35 +0100 with </span><a href="http://github.com/hawx/duvet">duvet 0.1.0
+</a>
+    </footer>
+    
+  </body>
+</html>

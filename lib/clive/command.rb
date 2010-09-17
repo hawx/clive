@@ -98,8 +98,15 @@ class Clive
         when :switch
           v.run
         when :flag
-          raise MissingArgument.new(v.sort_name) unless i[2] || v.optional
-          v.run(i[2])
+          args = i[2..-1]
+          opt_args = v.args.find_all {|i| i[:optional] == true }.size
+          nec_args = v.args.size - opt_args
+          # check for missing args
+          if args.size < nec_args
+            raise MissingArgument.new(v.sort_name)
+          end
+          
+          v.run(args)
         when :argument
           r << v
         end
@@ -170,8 +177,8 @@ class Clive
         else
           if k == :word
             # add to last flag?
-            if r.last && r.last[0] == :flag && r.last[2].nil?
-              r.last[2] = v
+            if r.last && r.last[0] == :flag && r.last.size - 2 < r.last[1].args.size
+              r.last.push(v)
             else
               r << [:argument, v]
             end
