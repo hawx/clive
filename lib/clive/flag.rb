@@ -1,27 +1,29 @@
 class Clive
   
-  # A switch that takes an argument, with or without an equals
+  # A switch that takes one or more arguments.
   #   eg. wget --tries=10
   #       wget -t 10
   #
   class Flag < Option
     attr_accessor :args
         
-    # Creates a new Flag instance.
+    # Creates a new Flag instance. A flag is a switch that can take one or more
+    # arguments.
     #
-    # +short+ _or_ +long+ can be omitted but not both.
+    # +short+ *or* +long+ can be omitted but not both.
+    # +args+ can also be omitted (is "ARG" by default)
     #
-    # @overload flag(short, long, desc, &block)
-    #   Creates a new flag
+    # @overload flag(short, long, args, desc, &block)
     #   @param [Symbol] short single character for short flag, eg. +:t+ => +-t 10+
     #   @param [Symbol] long longer switch to be used, eg. +:tries+ => +--tries=10+
-    #   @param [String, Array] either a string showing the arguments to be given, eg.
+    #   @param [String, Array] args
+    #     either a string showing the arguments to be given, eg.
     #    
     #       "FROM"    # single arg, or
     #       "FROM TO" # two args, or
     #       "[VIA]"   # optional arg surrounded by square brackets
     #
-    #     or give an array of acceptable inputs, eg.
+    #     or an array of acceptable inputs, eg.
     #
     #       ["large", "medium", "small"] # will only accept these args
     #
@@ -76,9 +78,13 @@ class Clive
     # Runs the block that was given with an argument
     #
     # @param [Array] args arguments to pass to the block
+    # @raise [InvalidArgument] only if +args+ is an array of acceptable inputs
+    #   and a match is not found.
     def run(args)
-      unless @args[0].is_a? Hash # list
-        unless @args.include? args
+      if @args[0].is_a? Hash
+        args = Clive::Array.new(@args.collect {|i| !i[:optional]}).optimise_fill(args)
+      else # list
+        unless @args.include? args[0]
           raise InvalidArgument.new(args)
         end
       end
