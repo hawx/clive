@@ -11,13 +11,17 @@ class Clive
   #   ["Value", "--verbose", "-r"]
   #
   class Tokens < Array
-      
+    
     TOKEN_KEYS = [:word, :short, :long]
     
     # Create a new Tokens instance. Pass either an array of tokens
     # or a plain array, they will be converted correctly.
     #
-    # @param [::Array]
+    # @param [Array] args 
+    #   pass either
+    #     ["command", "--flag"]
+    #     # or
+    #     [[:word, "command"], [:long, "flag"]]
     # @return [Tokens]
     #
     def initialize(args=[])
@@ -51,7 +55,10 @@ class Clive
       arr
     end
     
-    # Creates an array of tokens based on +self+
+    # Creates an array of tokens based on +self+.
+    # Strings beginning with a -, eg. -n become [:short, "n"].
+    # Strings beginning with --, eg. --verbose become [:long, "verbose"].
+    # Strings which begin with neither become [:word, "value"].
     #
     # @return [::Array] the tokens that are held
     def tokens
@@ -78,10 +85,12 @@ class Clive
       t
     end
     
+    # @see #tokens
     def self.to_tokens(arr)
       Tokens.new(arr).tokens
     end
     
+    # @see #array
     def self.to_array(tokens)
       Tokens.new(tokens).array
     end

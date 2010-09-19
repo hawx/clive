@@ -1,13 +1,14 @@
 class Clive
   
-  # A switch which can be triggered with either --no-verbose or --verbose
-  # for example.
+  # A switch which can be triggered with either --no-[name] and --[name].
+  # The 'truthness' of this is then passed to the block.
   class Bool < Option
     attr_accessor :truth
     
     # Creates a new Bool switch instance. A boolean switch has a truth, 
     # this determines what is passed to the block. They should be created 
     # in pairs so one can be +--something+ the other +--no-something+.
+    # NOTE: this does not happen within this class!
     #
     # +short+ and/or +desc+ can be omitted when creating a Boolean, all
     # other arguments must be present.
@@ -19,6 +20,7 @@ class Clive
     #   @param [String] desc description of use/purpose
     #
     # @yield [Boolean] A block to be run when the switch is triggered
+    # @raise [MissingLongName] raises when a long name is not given
     #
     def initialize(*args, truth, &block)
       @names = []
@@ -35,6 +37,7 @@ class Clive
         end
       end
       
+      # booleans require a long name to add --no- to
       unless @names.find_all {|i| i.length > 1}.length > 0
         raise MissingLongName, @names[0]
       end
@@ -48,6 +51,8 @@ class Clive
       @block.call(@truth)
     end
     
+    # @param [Integer] width the total ideal width of help
+    # @param [Integer] prepend the number of spaces to add before each line
     # @return [String] summary for help or nil if +@truth = false+
     def summary(width=30, prepend=5)
       return nil unless @truth

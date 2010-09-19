@@ -1,16 +1,17 @@
 class Clive
   
+  # @abstract Subclass and override {#initialize} and {#run} to create a new Option class.
   class Option
     attr_accessor :names, :desc, :block
     
-    def initialize(desc, *names, &block)
-      @names = names
-      @desc = desc
-      @block = block
+    def initialize(*args, &block)
+      # assign name and description
+      # @block = block
     end
     
     def run
-      @block.call
+      # call the block!
+      # @block.call
     end
     
     def summary(width=30, prepend=5)
@@ -22,7 +23,8 @@ class Clive
       "#{p}#{n}#{s}#{@desc}"
     end
     
-    # Convert the names to strings, depending on length
+    # Convert the names to strings, if name is single character appends
+    # +-+, else appends +--+.
     #
     # @param [Boolean] bool whether to add [no-] to long
     #
@@ -69,6 +71,7 @@ class Clive
       r
     end
     
+    # Compare options based on Option#sort_name
     def <=>(other)
       self.sort_name <=> other.sort_name
     end

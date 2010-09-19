@@ -1,6 +1,6 @@
 class Clive
   
-  # general problem
+  # General problem
   class CliveError < StandardError
     attr_accessor :args
     
@@ -26,26 +26,27 @@ class Clive
   
   end
   
-  # general problem with input
+  # General problem with input
   class ParseError < CliveError
     def reason; "parse error"; end
   end
   
-  # a flag has a missing argument
+  # A flag has a missing argument
   class MissingArgument < ParseError
     def reason; "missing argument"; end
   end
   
-  # a flag has a wrong argument
+  # A flag has a wrong argument
   class InvalidArgument < ParseError
     def reason; "invalid argument"; end
   end
   
-  # a option that wasn't defined has been found
+  # An option that wasn't defined has been found
   class InvalidOption < ParseError
     def reason; "invalid option"; end
   end
   
+  # Long name is missing for bool
   class MissingLongName < CliveError
     def reason; "missing long name"; end
   end

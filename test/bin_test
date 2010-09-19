@@ -48,6 +48,7 @@ c = Clive.new do
 
 end
 
+p ARGV
 p c.parse(ARGV)
 p options
 
