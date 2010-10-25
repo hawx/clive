@@ -29,6 +29,8 @@ class Clive
       @base     = false
       @commands = Clive::Array.new
       @options  = Clive::Array.new
+      
+      @option_missing = Proc.new {|e| raise NoOptionError.new(e)}
     
       if args.length == 1 && args[0] == true
         @base = true
@@ -183,15 +185,20 @@ class Clive
               r << [:argument, v]
             end
           else
-            raise InvalidOption.new(v)
+            @option_missing.call(v)
           end
         end
       end
       r
     end
+    
+  # @group Missing Helpers
+  
+    def option_missing(&block)
+      @option_missing = block
+    end      
       
-      
-  #### CREATION HELPERS #### 
+  # @group Creators
   
     # Add a new command to +@commands+
     #
@@ -230,7 +237,7 @@ class Clive
     end
     alias_method :boolean, :bool
     
-  #### HELP STUFF ####
+  # @group Help
     
     # This actually creates a switch with "-h" and "--help" that controls
     # the help on this command.

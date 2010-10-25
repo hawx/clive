@@ -31,6 +31,11 @@ class Clive
     def reason; "parse error"; end
   end
   
+  # Long name is missing for bool
+  class MissingLongName < CliveError
+    def reason; "missing long name"; end
+  end
+  
   # A flag has a missing argument
   class MissingArgument < ParseError
     def reason; "missing argument"; end
@@ -42,13 +47,8 @@ class Clive
   end
   
   # An option that wasn't defined has been found
-  class InvalidOption < ParseError
+  class NoOptionError < ParseError
     def reason; "invalid option"; end
-  end
-  
-  # Long name is missing for bool
-  class MissingLongName < CliveError
-    def reason; "missing long name"; end
   end
   
 end
