@@ -120,6 +120,21 @@ Anything that isn't a command, switch or flag is taken as an argument. These are
     my_file --size big /usr/bin
     #=> ["/usr/bin"]
 
+
+### Error Handling
+
+You are able to intercept errors when an option does not exist in a similar way to `method_missing`.
+
+    c = Clive.new do
+      option_missing do |name|
+        puts "#{name} was used but not defined"
+      end
+    end
+    c.parse("--hey")
+    #=> hey was used but not defined
+
+I was hoping to provide a similar way of intercepting commands as well but these could also be arguments which means it could result in unexpected results. For this reason I will not be implementing `command_missing`.
+
 ### Putting It All Together
 
     require 'clive'
