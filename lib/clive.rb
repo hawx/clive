@@ -21,6 +21,28 @@ require 'clive/bool'
 #     }
 #   end
 #   c.parse(ARGV)
+#   # app -v
+#   #=> {:verbose => true}
+#
+# @example Class Style with Inheritence
+#
+#   opts = {}
+#   class BasicCommands < Clive
+#     switch :basic do
+#       p "basic"
+#     end
+#   end
+#
+#   class SubCommands < BasicCommands
+#     switch :sub do
+#       p "sub"
+#     end
+#   end
+#
+#   SubCommands.parse(ARGV)
+#   # app --basic --sub
+#   #=> "basic"
+#   #=> "sub"
 #
 # @example Non-simple Example
 #
@@ -50,6 +72,8 @@ require 'clive/bool'
 #     end
 #   end
 #   ARGV = c.parse(ARGV)
+#   # app add framework=blueprint --force --verbose
+#   #=> {:add => {:framework => ['blueprint'], :force => true}, :verbose => true}
 #
 class Clive
   
@@ -95,4 +119,43 @@ class Clive
     @base.bools
   end
   
+# @group Clive Class Methods
+
+  @@base = Clive::Command.new(true)
+
+  def self.flag(*args, &block)
+    @@base.flag(*args, &block)
+  end
+  
+  def self.switch(*args, &block)
+    @@base.switch(*args, &block)
+  end
+  
+  def self.command(*args, &block)
+    @@base.command(*args, &block)
+  end
+  
+  def self.bool(*args, &block)
+    @@base.bool(*args, &block)
+  end
+  
+  def self.parse(argv)
+    @@base.run(argv)
+  end
+  
 end
+
+
+class Commands < Clive
+  switch :test do
+    p "hi"
+  end
+end
+
+class Sub < Commands
+  switch :sub do
+    p "sub"
+  end
+end
+
+Sub.parse(["--test", "--sub"])

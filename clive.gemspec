@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{clive}
-  s.version = "0.4.0"
+  s.version = "0.4.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Joshua Hawxwell"]
-  s.date = %q{2010-09-19}
+  s.date = %q{2010-10-25}
   s.description = %q{Clive is a DSL for creating a command line interface. It is for people who, like me, love OptionParser's syntax and love GLI's commands.}
   s.email = %q{m@hawx.me}
   s.extra_rdoc_files = [

@@ -34,7 +34,7 @@ class Clive
     
       if args.length == 1 && args[0] == true
         @base = true
-        self.instance_eval(&block)
+        self.instance_eval(&block) if block_given?
       else
         args.each do |i|
           case i
