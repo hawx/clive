@@ -144,18 +144,3 @@ class Clive
   end
   
 end
-
-
-class Commands < Clive
-  switch :test do
-    p "hi"
-  end
-end
-
-class Sub < Commands
-  switch :sub do
-    p "sub"
-  end
-end
-
-Sub.parse(["--test", "--sub"])
