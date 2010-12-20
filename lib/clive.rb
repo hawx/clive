@@ -1,14 +1,5 @@
-$LOAD_PATH.unshift(File.dirname(__FILE__))
-
-require 'clive/exceptions'
-require 'clive/tokens'
-require 'clive/ext'
-
-require 'clive/option'
-require 'clive/command'
-require 'clive/switch'
-require 'clive/flag'
-require 'clive/bool'
+require 'clive/parser'
+require 'clive/output'
 
 # Clive is a simple dsl for creating command line interfaces
 #

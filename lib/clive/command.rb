@@ -235,7 +235,6 @@ class Clive
       @options << Bool.new(*args, true, &block)
       @options << Bool.new(*args, false, &block)
     end
-    alias_method :boolean, :bool
     
   # @group Help
     
