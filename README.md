@@ -1,6 +1,7 @@
 # clive
 
-Clive is a DSL for creating a command line interface. It is for people who, like me, love [OptionParser's](http://ruby-doc.org/stdlib/libdoc/optparse/rdoc/classes/OptionParser.html) syntax and love [GLI's](http://github.com/davetron5000/gli) commands.
+Clive is a DSL for creating a command line interface. It is for people who, like me, 
+love [OptionParser's](http://ruby-doc.org/stdlib/libdoc/optparse/rdoc/classes/OptionParser.html) syntax and love [GLI's](http://github.com/davetron5000/gli) commands.
 
 ## Install
 
@@ -22,7 +23,8 @@ A simple example to start:
     c.parse(ARGV)
     p opts
 
-This creates a very simple interface which can have one switch, you can then use the long or short form to call the block.
+This creates a very simple interface which can have one switch, you can then use the 
+long or short form to call the block.
 
     my_file -v
     #=> {:verbose => true}
@@ -32,11 +34,14 @@ This creates a very simple interface which can have one switch, you can then use
 
 ### Switches
 
-As we've seen above switches are created using #switch. You can provide as little information as you want. `switch(:v) {}` creates a switch that responds only to `-v`, or `switch(:verbose) {}` creates a switch that only responds to `--verbose`.
+As we've seen above switches are created using #switch. You can provide as little 
+information as you want. `switch(:v) {}` creates a switch that responds only to 
+`-v`, or `switch(:verbose) {}` creates a switch that only responds to `--verbose`.
 
 ### Boolean
 
-Boolean switches allow you to accept arguments like `--no-verbose` and `--verbose`, and deal with both situations in the same block.
+Boolean switches allow you to accept arguments like `--no-verbose` and `--verbose`, 
+and deal with both situations in the same block.
 
     c = Clive.new do
       bool(:v, :verbose) {|i| p i}
@@ -52,7 +57,9 @@ Boolean switches allow you to accept arguments like `--no-verbose` and `--verbos
     my_file --no-verbose
     #=> false
 
-As you can see the true case can be triggered with the short or long form, the false case can be triggered by appending "no-" to the long form, and it can't be triggered with a short form.
+As you can see the true case can be triggered with the short or long form, the false 
+case can be triggered by appending "no-" to the long form, and it can't be triggered 
+with a short form.
 
 ### Flags
 
@@ -74,8 +81,11 @@ Flags are like switches but also take an argument:
     my_file -p short
     #=> "short"
 
-The argument is then passed into the block. As you can see you can use short, long, equals, or no equals to call flags. As with switches you can call `flag(:p) {|i| ...}` which responds to `-p ...`, `flag(:print) {|i| ...}` which responds to `--print ...` or `--print=...`.
-Flags can have default values, for that situation put square brackets round the argument name.
+The argument is then passed into the block. As you can see you can use short, long, 
+equals, or no equals to call flags. As with switches you can call `flag(:p) {|i| ...}` 
+which responds to `-p ...`, `flag(:print) {|i| ...}` which responds to `--print ...` 
+or `--print=...`. Flags can have default values, for that situation put square brackets 
+round the argument name.
 
     flag(:p, :print, "[ARG]", "Print ARG or "hey" by default) do |i|
       i ||= "hey"
@@ -101,12 +111,15 @@ Commands work like in git, here's an example:
     my_file add -r Clive
     #=> {:add => {:lib => "Clive"}}
 
-Commands make it easy to group flags, switches and even other commands. The block for the command is executed on finding the command, this allows you to put other code within the block specific for the command, as shown above.
+Commands make it easy to group flags, switches and even other commands. The block for 
+the command is executed on finding the command, this allows you to put other code within 
+the block specific for the command, as shown above.
 
 
 ### Arguments
 
-Anything that isn't a command, switch or flag is taken as an argument. These are returned by #parse as an array. 
+Anything that isn't a command, switch or flag is taken as an argument. These are returned 
+by #parse as an array. 
     
     opts = {}
     c = Clive.new do
@@ -123,7 +136,8 @@ Anything that isn't a command, switch or flag is taken as an argument. These are
 
 ### Error Handling
 
-You are able to intercept errors when an option does not exist in a similar way to `method_missing`.
+You are able to intercept errors when an option does not exist in a similar way to 
+`method_missing`.
 
     c = Clive.new do
       option_missing do |name|
@@ -133,7 +147,9 @@ You are able to intercept errors when an option does not exist in a similar way 
     c.parse("--hey")
     #=> hey was used but not defined
 
-I was hoping to provide a similar way of intercepting commands as well but these could also be arguments which means it could result in unexpected results. For this reason I will not be implementing `command_missing`.
+I was hoping to provide a similar way of intercepting commands as well but these could 
+also be arguments which means it could result in unexpected results. For this reason I 
+will not be implementing `command_missing`.
 
 ### Putting It All Together
 
@@ -175,6 +191,42 @@ I was hoping to provide a similar way of intercepting commands as well but these
     my_file -v add --framework=blueprint init -m -w 200 ~/Desktop/new_thing ~/Desktop/another_thing
     #=> {:verbose => true, :add => {:framework => ["blueprint"], :min => true, :width => 200}}
     #=> ["~/Desktop/new_thing", "~/Desktop/another_thing"]
+
+ 
+## Clive::Output
+
+This is a new bit that allows you to colorize output from the command line, by patching a 
+few methods onto String.
+
+    require 'clive/output'
+    # or require 'clive'
+    
+    puts "I'm blue".blue  # will print blue text
+    puts "I'm red".red    # will print red text
+    puts "I'm green and bold".green.bold   # will print green and bold text
+    puts "Crazy".blue.l_yellow_bg.underline
+    # etc
+
+Methods available are:
+ - bold
+ - underline
+ - blink
+ - reverse
+ 
+ - white
+ - green
+ - red
+ - magenta
+ - yellow
+ - blue
+ - cyan
+ - black (light version called grey not l_black)
+ 
+ - + light versions of colours using l_colour)
+ - + background setters using colour_bg
+ - + light background using l_colour_bg
+
+    
 
 ## Note on Patches/Pull Requests
  
