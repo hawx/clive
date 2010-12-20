@@ -35,20 +35,54 @@ class String
     "#{code}#{self}\e[0m"
   end
   
-  {
-    "bold"      => "1",
-    "underline" => "4",
-    "blink"     => "5",
-    "white"     => "37",
-    "green"     => "32",
-    "red"       => "31",
-    "magenta"   => "35",
-    "yellow"    => "33",
-    "blue"      => "34",
-    "grey"      => "90"
-  }.each do |name, code|
-    define_method(name) do
+  COLOURS = {
+    "black"   => 0,
+    "red"     => 1,
+    "green"   => 2,
+    "yellow"  => 3,
+    "blue"    => 4,
+    "magenta" => 5,
+    "cyan"    => 6,
+    "white"   => 7
+  }
+  
+  ATTRIBUTES = {
+    "bold"      => 1,
+    "underline" => 4,
+    "blink"     => 5,
+    "reverse"   => 7
+  }
+  
+  ATTRIBUTES.each do |name, code|
+    define_method name do
       colour("\e[#{code}m")
+    end
+  end
+  
+  COLOURS.each do |name, code|
+    define_method name do
+      colour("\e[3#{code}m")
+    end
+    
+    define_method "#{name}_bg" do
+      colour("\e[4#{code}m")
+    end
+    
+    # Light white doesn't exist
+    unless name == "white"
+      # Change name to grey instead of l_black
+      _name = "l_#{name}"
+      if name == "black"
+        _name = "grey"
+      end
+      
+      define_method "#{_name}" do
+        colour("\e[9#{code}m")
+      end
+      
+      define_method "#{_name}_bg" do
+        colour("\e[10#{code}m")
+      end
     end
   end
 
