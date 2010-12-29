@@ -1,4 +1,4 @@
-class Clive
+module Clive
   
   # A switch which can be triggered with either --no-[name] and --[name].
   # The 'truthness' of this is then passed to the block.

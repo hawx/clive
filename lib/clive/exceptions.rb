@@ -1,4 +1,4 @@
-class Clive
+module Clive
   
   # General problem
   class CliveError < StandardError

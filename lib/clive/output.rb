@@ -6,7 +6,7 @@
 #
 #
 
-class Clive
+module Clive
   module Output
   
   end

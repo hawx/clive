@@ -1,4 +1,4 @@
-class Clive
+module Clive
 
   class Array < ::Array
     

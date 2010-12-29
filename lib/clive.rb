@@ -66,7 +66,7 @@ require 'clive/output'
 #   # app add framework=blueprint --force --verbose
 #   #=> {:add => {:framework => ['blueprint'], :force => true}, :verbose => true}
 #
-class Clive
+module Clive
   
   # This is the base command, the only way it differs from a normal command
   # is that it has no name and it's block is executed immediately on creation.

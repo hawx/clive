@@ -1,4 +1,4 @@
-class Clive
+module Clive
   
   # A string that takes no argument, beginning with one or two dashes
   #   eg. ruby --version

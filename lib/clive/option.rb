@@ -1,4 +1,4 @@
-class Clive
+module Clive
   
   # @abstract Subclass and override {#initialize} and {#run} to create a new Option class.
   class Option

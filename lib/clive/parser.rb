@@ -8,7 +8,10 @@ require 'clive/switch'
 require 'clive/flag'
 require 'clive/bool'
 
-class Clive
+require 'clive/output'
+require 'clive/formatter'
+
+module Clive
 
   # A module wrapping the command line parsing of clive. In the future this
   # will be the only way of using clive.

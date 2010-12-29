@@ -1,4 +1,4 @@
-class Clive
+module Clive
   
   # A switch that takes one or more arguments.
   #   eg. wget --tries=10

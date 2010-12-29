@@ -1,4 +1,4 @@
-class Clive
+module Clive
 
   # A subclass of Array to allow the creation of arrays that look
   # like:

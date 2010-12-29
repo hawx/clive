@@ -1,3 +1,3 @@
-class Clive
+module Clive
   VERSION = '0.6.2'
 end
