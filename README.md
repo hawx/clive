@@ -12,190 +12,193 @@ Install with:
 
 ## How To
 
-A simple example to start:
-
+Simply include `Clive::Parser` to start using.
+A simple example:
+    
+    # test.rb
     require 'clive'
     
-    opts = {}
-    c = Clive.new do
-      switch(:v, :verbose, "Run verbosely") {opts[:verbose] = true}
+    class CLI
+      include Clive::Parser
+      option_hash :config
+      
+      desc 'Run verbosely'
+      switch :v, :verbose do
+        config[:verbose] = true
+      end
+      
     end
-    c.parse(ARGV)
-    p opts
+    CLI.parse(ARGV)
+    p CLI.config
 
 This creates a very simple interface which can have one switch, you can then use the 
 long or short form to call the block.
 
-    my_file -v
+    test.rb -v
     #=> {:verbose => true}
-    my_file --verbose
+    test.rb --verbose
     #=> {:verbose => true}
     
 
 ### Switches
 
-As we've seen above switches are created using #switch. You can provide as little 
-information as you want. `switch(:v) {}` creates a switch that responds only to 
-`-v`, or `switch(:verbose) {}` creates a switch that only responds to `--verbose`.
+The most basic options. When they are called by either name the block is run. To create
+a switch use `#switch`.
 
-### Boolean
-
-Boolean switches allow you to accept arguments like `--no-verbose` and `--verbose`, 
-and deal with both situations in the same block.
-
-    c = Clive.new do
-      bool(:v, :verbose) {|i| p i}
+    switch :s do
+      # code
     end
-    c.parse(ARGV)
+    # Called with '-s'
     
-    ####
+    switch :long do
+      # code
+    end
+    # Called with '--long'
     
-    my_file --verbose
-    #=> true
-    my_file -v
-    #=> true
-    my_file --no-verbose
-    #=> false
+    switch :b, :both do
+      # code
+    end
+    # Called with '-b' or '--both'
 
-As you can see the true case can be triggered with the short or long form, the false 
-case can be triggered by appending "no-" to the long form, and it can't be triggered 
-with a short form.
+
+### Booleans
+
+Boolean switches allow you to easily create a pair of switches, eg. `--force` and 
+`--no-force`. The block given is passed either true or false depending on which was 
+used.
+
+    bool :f, :force do |truth|
+      p truth
+    end
+    # '-f' returns true
+    # '--force' returns true
+    # '--no-force' returns false
+
+You must provide a long name, a short name is optional.
+
 
 ### Flags
 
-Flags are like switches but also take an argument:
+Flags are like switches but take one or more arguments, these are then passed to the 
+block.
 
-    c = Clive.new do
-      flag(:p, :print, "ARG", "Print ARG") do |i|
-        p i
+    # Creates a flag with a mandatory argument
+    flag :with, :args => "ARG" do |arg|
+      puts arg
+    end
+    
+    # Creates a flag with an optional argument, by using []
+    flag :with, :args => "[ARG]" do |arg|
+      puts arg
+    end
+    
+    # Creates a flag with multiple arguments
+    flag :with, :args => "FIRST [OPTIONAL]" do |i, j|
+      puts i, j
+    end
+
+You can also provide a list of options to select from.
+    
+    flag :choose, :args => %w(small med large) do |choice|
+      puts choice
+    end
+    
+    flag :number, :args => 1..5 do |num|
+      puts num
+    end
+    
+
+### Commands 
+
+Commands allow you to group a collection of options (or more commands) under a keyword.
+The block provided is run when one of the names for the command is encountered, but the
+blocks of the options in it are only ran when they are found.
+
+    command :init, :create do
+      bool :force do |truth|
+        puts "Force"
       end
     end
-    c.parse(ARGV)
+    # 'init --force'
     
-    ####
-    
-    my_file --print=hello
-    #=> "hello"
-    my_file --print equalsless
-    #=> "equalsless"
-    my_file -p short
-    #=> "short"
-
-The argument is then passed into the block. As you can see you can use short, long, 
-equals, or no equals to call flags. As with switches you can call `flag(:p) {|i| ...}` 
-which responds to `-p ...`, `flag(:print) {|i| ...}` which responds to `--print ...` 
-or `--print=...`. Flags can have default values, for that situation put square brackets 
-round the argument name.
-
-    flag(:p, :print, "[ARG]", "Print ARG or "hey" by default) do |i|
-      i ||= "hey"
-      p i
-    end
-
-### Commands
-
-Commands work like in git, here's an example:
-    
-    opts = {}
-    c = Clive.new do
-      command(:add) do
-        opts[:add] = {}
-        flag(:r, :require, "Require a library") {|i| opts[:add][:lib] = i}
-      end
-    end
-    c.parse(ARGV)
-    p opts
-    
-    ####
-    
-    my_file add -r Clive
-    #=> {:add => {:lib => "Clive"}}
-
-Commands make it easy to group flags, switches and even other commands. The block for 
-the command is executed on finding the command, this allows you to put other code within 
-the block specific for the command, as shown above.
-
 
 ### Arguments
 
-Anything that isn't a command, switch or flag is taken as an argument. These are returned 
-by #parse as an array. 
-    
-    opts = {}
-    c = Clive.new do
-      flag(:size) {|i| opts[:size] = i}
+Anything that is not captured as a command, option or argument of a flag, is returned by
+#parse in an array.
+
+    class Args
+      include Clive::Parser
+      
+      switch(:hey) { puts "Hey" }
     end
-    args = c.parse(ARGV)
+    args = Args.parse(ARGV)
     p args
     
-    ####
-    
-    my_file --size big /usr/bin
-    #=> ["/usr/bin"]
+    # `file --hey argument "A string"`
+    #=> ['argument', 'A string']
 
 
-### Error Handling
+### Option Handling
 
 You are able to intercept errors when an option does not exist in a similar way to 
 `method_missing`.
 
-    c = Clive.new do
+    class Missing
       option_missing do |name|
         puts "#{name} was used but not defined"
       end
     end
-    c.parse("--hey")
+    Missing.parse %w(--hey)
     #=> hey was used but not defined
 
-I was hoping to provide a similar way of intercepting commands as well but these could 
-also be arguments which means it could result in unexpected results. For this reason I 
-will not be implementing `command_missing`.
 
-### Putting It All Together
+### Help Formatting
 
-    require 'clive'
-    
-    opts = {}
-    c = Clive.new do
-      bool(:v, :verbose, "Run verbosely") {|i| opts[:verbose] = i}
-      
-      command(:add, "Add a new project") do
-        opts[:add] = {}
-        
-        switch(:force, "Force overwrite") {opts[:add][:force] = true}
-        flag(:framework, "Add framework") do |i| 
-          opts[:add][:framework] ||= []
-          opts[:add][:framework] << i
-        end
-        
-        command(:init, "Initialize the project after creating") do
-          switch(:m, :minimum, "Use minimum settings") {opts[:add][:min] = true}
-          flag(:w, :width) {|i| opts[:add][:width] = i.to_i}
-        end
-      
-      end
-      
-      switch(:version, "Show version") do
-        puts "1.0.0"
-        exit
+There are two built in help formats the default, with colour, and a pure white one. To 
+change the formatter call `#help_formatter` with :default, or :white.
+
+Optionally you can create your own formatter, like so:
+
+    class CLI
+      help_formatter do |h|
+        h.switch "{prepend}{names.join(', ')} {spaces}# {desc}"
+        h.bool   "{prepend}{names.join(', ')} {spaces}# {desc}"
+        h.flag   "{prepend}{names.join(', ')} {args.join(' ')} {spaces}# {desc}" <<
+                   "{options.join('(', ', ', ')')}"
+        h.command "{prepend}{names.join(', ')} {spaces}# {desc}"
       end
     end
-    args = c.parse(ARGV)
-    p opts
-    p args
+
+Which would look like:
+
+    Usage: my_app [command] [options]
     
-    ####
-    
-    my_file --version
-    #=> 1.0.0
-    my_file -v add --framework=blueprint init -m -w 200 ~/Desktop/new_thing ~/Desktop/another_thing
-    #=> {:verbose => true, :add => {:framework => ["blueprint"], :min => true, :width => 200}}
-    #=> ["~/Desktop/new_thing", "~/Desktop/another_thing"]
+      Commands:
+        test            # A command
+        
+      Options:
+        -h, --help      # Display help
+        --[no-]force    # Force build
+
+You have access to the variables:
+
+* prepend - a string of spaces as specified when `#help_formatter` is called
+* names - an array of names for the option
+* spaces - a string of spaces to align the descriptions properly
+* desc - a string of the description for the option
+
+And for flags you have access to:
+
+* args - an array of arguments for the flag
+* options - an array of options to choose from
+
+Inside the { and } you can put any ruby, so feel free to use joins on the array.
 
  
 ## Clive::Output
 
-This is a new bit that allows you to colorize output from the command line, by patching a 
+This is a new bit that allows you to colourise output from the command line, by patching a 
 few methods onto String.
 
     require 'clive/output'
