@@ -68,23 +68,19 @@ class String
       colour("\e[4#{code}m")
     end
     
-    # Light white doesn't exist
-    unless name == "white"
-      # Change name to grey instead of l_black
-      _name = "l_#{name}"
-      if name == "black"
-        _name = "grey"
-      end
-      
-      define_method "#{_name}" do
-        colour("\e[9#{code}m")
-      end
-      
-      define_method "#{_name}_bg" do
-        colour("\e[10#{code}m")
-      end
+    # Change name to grey instead of l_black
+    l_name = "l_#{name}"
+    if name == "black"
+      l_name = "grey"
     end
+    
+    define_method "#{l_name}" do
+      colour("\e[9#{code}m")
+    end
+    
+    define_method "#{l_name}_bg" do
+      colour("\e[10#{code}m")
+    end
+
   end
-
 end
-

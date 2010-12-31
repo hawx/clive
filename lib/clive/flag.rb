@@ -31,47 +31,43 @@ module Clive
     #
     # @yield [String] A block to be run if switch is triggered
     #
-    def initialize(*args, &block)
-      @names = []
-      @args  = []
+    def initialize(*args, desc, &block)
+      @names = Clive::Array.new
+      @args  = Clive::Array.new
+      @desc  = desc
       
       # Need to be able to make each arg_name optional or not
       # and allow for type in future
       args.each do |i|
-        if i.is_a? String
-          if i =~ /\A(([A-Z0-9\[\]]+)\s?)+\Z/
-            i.split(' ').each do |arg|
-              type = String
+        case i
+        when Hash
+          case i[:args]
+          when String
+            i[:args].split(' ').each do |arg|
+              optional = false
               if arg[0] == "["
-                @args << {
-                  :name => arg[1..arg.length-2], 
-                  :optional => true,
-                  :type => type
-                }
-              else
-                @args << {
-                  :name => arg, 
-                  :optional => false, 
-                  :type => type
-                }
+                optional = true
+                arg = arg[1..-2]
               end
+              @args << {:name => arg, :optional => optional}
             end
-          else
-            @desc = i
+          
+          when ::Array
+            @args = i[:args]
+          
+          when Range
+            @args = i[:args]
+          
           end
-        else
-          if i.class == Symbol
-            @names << i.to_s 
-          else
-            @args = i
-          end
+        when Symbol
+          @names << i.to_s
         end
       end
       
       if @args == []
-        @args = [{:name => "ARG", :optional => false, :type => String}]
+        @args = [{:name => "ARG", :optional => false}]
       end
-
+      
       @block = block
     end
     
@@ -81,10 +77,10 @@ module Clive
     # @raise [InvalidArgument] only if +args+ is an array of acceptable inputs
     #   and a match is not found.
     def run(args)
-      if @args[0].is_a? Hash
+      if @args.is_a?(Array) && @args[0].is_a?(Hash)
         args = Clive::Array.new(@args.collect {|i| !i[:optional]}).optimise_fill(args)
       else # list
-        unless @args.include? args[0]
+        unless @args.to_a.map(&:to_s).include? args[0]
           raise InvalidArgument.new(args)
         end
       end
@@ -94,33 +90,56 @@ module Clive
     # @param [Boolean] optional whether to include optional arguments
     # @return [Integer] number of arguments this takes
     def arg_num(optional)
-      if @args[0].is_a? Hash
+      if @args.is_a?(Array) && @args[0].is_a?(Hash)
         @args.find_all {|i| i[:optional] == optional }.size
       else
         1
       end
     end
     
-    # @return [String] summary for help
-    def summary(width=30, prepend=5)
-      n = names_to_strings.join(', ')
-      a = nil
-      if @args[0].is_a? Hash
-        a = @args.map {|i| i[:name]}.join(' ')
-        if @optional
-          n << " [#{a}]"
-        else
-          n << " #{a}"
+    def args_to_strings
+      if @args.is_a? Range
+        [""]
+      elsif @args[0].is_a? Hash
+        r = []
+        @args.each do |arg|
+          if arg[:optional]
+            r << "[" + arg[:name] + "]"
+          else
+            r << arg[:name]
+          end
         end
+        r
       else
-        n << " {" << @args.join(', ') << "}"
+        [""]
       end
-
-      spaces = width-n.length
-      spaces = 1 if spaces < 1
-      s = spaces(spaces)
-      p = spaces(prepend)
-      "#{p}#{n}#{s}#{@desc}"
+    end
+    
+    def arg_size
+      if @args.is_a?(Range) || @args.is_a?(Array)
+        1
+      else
+        @args.size
+      end
+    end
+    
+    def options_to_strings
+      if @args.is_a? Range
+        [@args.to_s]
+      elsif @args[0].is_a? Hash
+        ['']
+      else
+        @args
+      end
+    end
+    
+    def to_h
+      {
+        'names'   => Clive::Array.new(names_to_strings),
+        'desc'    => @desc,
+        'args'    => Clive::Array.new(args_to_strings),
+        'options' => Clive::Array.new(options_to_strings)
+      }
     end
     
   end

@@ -1,4 +1,4 @@
-class Clive
+module Clive
   
   # A string which describes the command to execute
   #   eg. git add
@@ -8,7 +8,6 @@ class Clive
     
     attr_accessor :options, :commands
     attr_accessor :argv, :base
-    attr_accessor :header, :footer
     
     # Create a new Command instance
     #
@@ -51,6 +50,8 @@ class Clive
       @header << (@base ? "[commands]" : @names.join(', '))
       @header << " [options]"
       @footer = nil
+      @current_desc = ""
+      help_formatter :default
       
       self.build_help
     end
@@ -179,7 +180,7 @@ class Clive
         else
           if k == :word
             # add to last flag?
-            if r.last && r.last[0] == :flag && r.last.size - 2 < r.last[1].args.size
+            if r.last && r.last[0] == :flag && r.last.size - 2 < r.last[1].arg_size
               r.last.push(v)
             else
               r << [:argument, v]
@@ -211,19 +212,22 @@ class Clive
     #   and flags
     #
     def command(*args, &block)
-      @commands << Command.new(*args, &block)
+      @commands << Command.new(*args, @current_desc, &block)
+      @current_desc = ""
     end
     
     # Add a new switch to +@switches+
     # @see Switch#initialize
     def switch(*args, &block)
-      @options << Switch.new(*args, &block)
+      @options << Switch.new(*args, @current_desc, &block)
+      @current_desc = ""
     end
 
     # Adds a new flag to +@flags+
     # @see Flag#initialize
     def flag(*args, &block)
-      @options << Flag.new(*args, &block)
+      @options << Flag.new(*args, @current_desc, &block)
+      @current_desc = ""
     end
     
     # Creates a boolean switch. This is done by adding two switches of
@@ -232,8 +236,34 @@ class Clive
     #
     # @see Bool#initialize
     def bool(*args, &block)
-      @options << Bool.new(*args, true, &block)
-      @options << Bool.new(*args, false, &block)
+      @options << Bool.new(*args, @current_desc, true, &block)
+      @options << Bool.new(*args, @current_desc, false, &block)
+      @current_desc= ""
+    end
+    
+    # Add a description for the next option in the class.
+    #
+    # @example
+    #
+    #   class CLI
+    #     include Clive::Parser
+    #
+    #     desc 'Force build docs'
+    #     switch :force do
+    #       # code
+    #     end
+    #   end
+    #
+    def desc(str)
+      @current_desc = str
+    end
+    
+    
+    def to_h
+      {
+        'names' => @names,
+        'desc'  => @desc
+      }
     end
     
   # @group Help
@@ -257,40 +287,93 @@ class Clive
       @footer = val
     end
     
-    def summary(width=30, prepend=5)
-      a = @names.sort.join(', ')
-      b = @desc
-      s = spaces(width-a.length)
-      p = spaces(prepend)
-      "#{p}#{a}#{s}#{b}"
-    end
-    
     # Generate the summary for help, show all flags and switches, but do not
     # show the flags and switches within each command. Should also prepend the
     # header and append the footer if set.
-    def help(width=30, prepend=5)
-      summary = "#{@header}\n"
-      
-      if @options.length > 0
-        summary << "\n Options:\n"
-        @options.sort.each do |i|
-          next if i.names.include?("help")
-          summary << i.summary(width, prepend) << "\n" if i.summary
-        end
-      end
-      
-      if @commands.length > 0
-        summary << "\n Commands:\n"
-        @commands.sort.each do |i|
-          summary << i.summary(width, prepend) << "\n"
-        end
-      end
-      
-      summary << "\n#{@footer}\n" if @footer
-     
-      summary
+    def help
+      @formatter.format(@header, @footer, @commands, @options)
     end
     
+    # This allows you to define how the output from #help looks.
+    #
+    # For this you have access to several tokens which are evaluated in an object
+    # with the correct values, this means you are able to use #join on arrays or
+    # prepend, etc. The variables (tokens) are:
+    #
+    # * prepend - a string of spaces as specified when #help_formatter is called
+    # * names - an array of names for the option
+    # * spaces - a string of spaces to align the descriptions properly
+    # * desc - a string of the description for the option
+    #
+    # And for flags you have access to:
+    #
+    # * args - an array of arguments for the flag
+    # * options - an array of options to choose from
+    #
+    #
+    # @overload help_formatter(args, &block)
+    #   Create a new help formatter to use.
+    #   @param args [Hash]
+    #   @option args [Integer] :width Width before flexible spaces
+    #   @option args [Integer] :prepend Width of spaces to prepend with
+    #
+    # @overload help_formatter(name)
+    #   Use an existing help formatter.
+    #   @param name [Symbol] name of the formatter (either +:default+ or +:white+)
+    #
+    #
+    # @example
+    #   
+    #   CLI.help_formatter do |h|
+    #
+    #     h.switch  "{prepend}{names.join(', ')} {spaces}{desc.grey}"
+    #     h.bool    "{prepend}{names.join(', ')} {spaces}{desc.grey}"
+    #     h.flag    "{prepend}{names.join(', ')} {args.join(' ')} {spaces}{desc.grey}"
+    #     h.command "{prepend}{names.join(', ')} {spaces}{desc.grey}"
+    #
+    #   end
+    #   
+    #   
+    def help_formatter(*args, &block)    
+      if block_given?
+        width   = 30
+        prepend = 5
+      
+        args.each do |(k,v)|
+          case k
+          when :width
+            width = value
+          when :prepend
+            prepend = value
+          end
+        end
+        
+        @formatter = Formatter.new(width, prepend)
+        block.call(@formatter)
+      
+      else
+        case args[0]
+        when :default
+          help_formatter do |h|
+            h.switch  "{prepend}{names.join(', ')} {spaces}{desc.grey}"
+            h.bool    "{prepend}{names.join(', ')} {spaces}{desc.grey}"
+            h.flag    "{prepend}{names.join(', ')} {args.join(' ')} {spaces}" << 
+                        "{desc.grey} {options.join('(', ', ', ')').blue.bold}"
+            h.command "{prepend}{names.join(', ')} {spaces}{desc.grey}"
+          end
+        
+        when :white
+          help_formatter do |h|
+            h.switch  "{prepend}{names.join(', ')} {spaces}{desc}"
+            h.bool    "{prepend}{names.join(', ')} {spaces}{desc}"
+            h.flag    "{prepend}{names.join(', ')} {args.join(' ')} {spaces}" << 
+                        "{desc} {options.join('(', ', ', ')').bold}"
+            h.command "{prepend}{names.join(', ')} {spaces}{desc}"
+          end
+        
+        end
+      end
+    end
     
   end
 end

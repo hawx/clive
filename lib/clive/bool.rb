@@ -1,7 +1,8 @@
 module Clive
-  
+
   # A switch which can be triggered with either --no-[name] and --[name].
-  # The 'truthness' of this is then passed to the block.
+  # The 'truth' of this is then passed to the block.
+  #
   class Bool < Option
     attr_accessor :truth
     
@@ -15,9 +16,10 @@ module Clive
     #
     # @overload initialize(short, long, desc, truth, &block)
     #   Creates a new boolean switch
-    #   @param [Symbol] short single character to use
-    #   @param [Symbol] long word/longer name for boolean switch
-    #   @param [String] desc description of use/purpose
+    #   @param short [Symbol] single character to use
+    #   @param long [Symbol] word/longer name for boolean switch
+    #   @param desc [String] description of use/purpose
+    #   @param truth [Boolean] truth of switch to create
     #
     # @yield [Boolean] A block to be run when the switch is triggered
     # @raise [MissingLongName] raises when a long name is not given
@@ -46,23 +48,20 @@ module Clive
       @block = block
     end
     
-    # Run the block with +@truth+
+    # Run the block with the switches truth.
     def run
       @block.call(@truth)
     end
     
-    # @param [Integer] width the total ideal width of help
-    # @param [Integer] prepend the number of spaces to add before each line
-    # @return [String] summary for help or nil if +@truth = false+
-    def summary(width=30, prepend=5)
+    # Should only return a hash when this is the 'true' switch.
+    # @see Clive::Option#to_h
+    def to_h
       return nil unless @truth
       
-      n = names_to_strings(true).join(', ')
-      spaces = width-n.length
-      spaces = 1 if spaces < 1
-      s = spaces(spaces)
-      p = spaces(prepend)
-      "#{p}#{n}#{s}#{@desc}"
+      {
+        'names' => names_to_strings(true),
+        'desc' => @desc
+      }
     end
   
   end

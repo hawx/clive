@@ -23,7 +23,7 @@ module Clive
       self.reason + ': ' + args.join(' ')
     end
     alias_method :to_s, :message
-  
+    
   end
   
   # General problem with input

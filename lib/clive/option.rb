@@ -14,19 +14,10 @@ module Clive
       # @block.call
     end
     
-    def summary(width=30, prepend=5)
-      n = names_to_strings.join(', ')
-      spaces = width-n.length
-      spaces = 1 if spaces < 1
-      s = spaces(spaces)
-      p = spaces(prepend)
-      "#{p}#{n}#{s}#{@desc}"
-    end
-    
     # Convert the names to strings, if name is single character appends
     # +-+, else appends +--+.
     #
-    # @param [Boolean] bool whether to add [no-] to long
+    # @param bool [Boolean] whether to add [no-] to long
     #
     # @example
     #
@@ -51,16 +42,10 @@ module Clive
       r
     end
     
-    # Create a string of +n+ spaces
-    def spaces(n)
-      s = ''
-      (0...n).each {s << ' '}
-      s
-    end
-    
-    # Tries to get the short name, if not choose lowest alphabetically
+    # Tries to get the short name, if not chooses lowest alphabetically.
     #
     # @return [String] name to sort by
+    #
     def sort_name
       r = @names.sort[0]
       @names.each do |i|
@@ -71,9 +56,24 @@ module Clive
       r
     end
     
+    # The number of arguments this option requires
+    def args_size
+      0
+    end
+    
     # Compare options based on Option#sort_name
     def <=>(other)
       self.sort_name <=> other.sort_name
+    end
+    
+    # @return [Hash{String=>Object}]
+    #   Returns a hash which can be passed to the help formatter.
+    #
+    def to_h
+      {
+        "names" => names_to_strings,
+        "desc"  => @desc
+      }
     end
   
   end
