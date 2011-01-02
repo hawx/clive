@@ -125,11 +125,12 @@ module Clive
       end
     end
     
-    def option_list(*args)
+    def option_array(*args)
       args.each do |arg|
         option_var(arg, [])
       end
     end
+    alias_method :option_list, :option_array
 
   end
 end
