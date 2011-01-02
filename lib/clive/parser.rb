@@ -13,6 +13,16 @@ require 'clive/bool'
 require 'clive/output'
 require 'clive/formatter'
 
+
+class Object 
+  
+  # @see http://whytheluckystiff.net/articles/seeingMetaclassesClearly.html
+  # @see http://viewsourcecode.org/why/hacking/seeingMetaclassesClearly.html
+  def meta_def(name, &blk)
+    (class << self; self; end).instance_eval { define_method(name, &blk) }
+  end
+end
+
 module Clive
 
   # A module wrapping the command line parsing of clive. In the future this
@@ -92,6 +102,17 @@ module Clive
       base.help_formatter(*args, &block)
     end
     
+    
+    def option_var(name, value)
+      @klass.meta_def(name) do
+        instance_variable_get("@#{name}")
+      end
+      @klass.meta_def("#{name}=") do |val|
+        instance_variable_set("@#{name}", val)
+      end
+      instance_variable_set("@#{name}", value)
+    end
+    
     # Create a new hash which is accessible to the options in the new class
     # but can also be accessed from outside the class. Defines getters and 
     # setters for the symbols given, and sets their initial value to +{}+.
@@ -100,13 +121,13 @@ module Clive
     #
     def option_hash(*args)
       args.each do |arg|
-        @klass.meta_def(arg) do
-          instance_variable_get("@#{arg}")
-        end
-        @klass.meta_def("#{arg}=") do |val|
-          instance_variable_set("@#{arg}", val)
-        end
-        instance_variable_set("@#{arg}", {})
+        option_var(arg, {})
+      end
+    end
+    
+    def option_list(*args)
+      args.each do |arg|
+        option_var(arg, [])
       end
     end
 
