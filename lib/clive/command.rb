@@ -8,17 +8,18 @@ module Clive
     
     attr_accessor :options, :commands
     attr_accessor :argv, :base
+    attr_reader   :names, :current_desc
     
     # Create a new Command instance
     #
     # @overload initialize(base, &block)
     #   Creates a new base Command to house everything else
-    #   @param [Boolean] base whether the command is the base
+    #   @param base [Boolean] whether the command is the base
     #
-    # @overload initialize(name, desc, &block)
+    # @overload initialize(names, desc, &block)
     #   Creates a new Command as part of the base Command
-    #   @param [Symbol] name the name of the command
-    #   @param [String] desc the description of the command
+    #   @param names [Symbol] the name of the command
+    #   @param desc [String] the description of the command
     #
     # @yield A block to run, containing switches, flags and commands
     #
@@ -46,9 +47,12 @@ module Clive
         @block = block
       end
       
-      @header = "Usage: #{File.basename($0, '.*')} "
-      @header << (@base ? "[commands]" : @names.join(', '))
-      @header << " [options]"
+      # Create basic header "Usage: filename [command] [options]
+      #                  or "Usage: filename commandname(s) [options]
+      @header = "Usage: #{File.basename($0, '.*')} " << 
+                (@base ? "[command]" : @names.join(', ')) << 
+                " [options]"
+                
       @footer = nil
       @current_desc = ""
       help_formatter :default
@@ -147,7 +151,7 @@ module Clive
           pre_command << i
         end
       end
-      
+
       post_command = Tokens.new(tokens.array - pre_command - [command])
       pre_command_tokens = parse(pre_command)
       r = pre_command_tokens
@@ -193,13 +197,16 @@ module Clive
       r
     end
     
-  # @group Missing Helpers
+    def to_h
+      {
+        'names' => @names,
+        'desc'  => @desc
+      }
+    end
   
-    def option_missing(&block)
-      @option_missing = block
-    end      
+    
       
-  # @group Creators
+  # @group DSL
   
     # Add a new command to +@commands+
     #
@@ -219,14 +226,27 @@ module Clive
     # Add a new switch to +@switches+
     # @see Switch#initialize
     def switch(*args, &block)
-      @options << Switch.new(*args, @current_desc, &block)
+      @options << Switch.new(args, @current_desc, &block)
       @current_desc = ""
     end
 
     # Adds a new flag to +@flags+
     # @see Flag#initialize
     def flag(*args, &block)
-      @options << Flag.new(*args, @current_desc, &block)
+      names = []
+      arg = []
+      args.each do |i|
+        if i.is_a? Symbol
+          names << i
+        else
+          if i[:arg]
+            arg << i[:arg]
+          else
+            arg << i[:args]
+          end
+        end
+      end
+      @options << Flag.new(names, @current_desc, arg, &block)
       @current_desc = ""
     end
     
@@ -236,12 +256,13 @@ module Clive
     #
     # @see Bool#initialize
     def bool(*args, &block)
-      @options << Bool.new(*args, @current_desc, true, &block)
-      @options << Bool.new(*args, @current_desc, false, &block)
+      @options << Bool.new(args, @current_desc, true, &block)
+      @options << Bool.new(args, @current_desc, false, &block)
       @current_desc= ""
     end
     
-    # Add a description for the next option in the class.
+    # Add a description for the next option in the class. Or acts as an 
+    # accessor for @desc.
     #
     # @example
     #
@@ -254,28 +275,28 @@ module Clive
     #     end
     #   end
     #
-    def desc(str)
-      @current_desc = str
-    end
-    
-    
-    def to_h
-      {
-        'names' => @names,
-        'desc'  => @desc
-      }
-    end
-    
-  # @group Help
-    
-    # This actually creates a switch with "-h" and "--help" that controls
-    # the help on this command.
-    def build_help
-      @options << Switch.new(:h, :help, "Display help") do
-        puts self.help
-        exit 0
+    def desc(str=nil)
+      if str
+        @current_desc = str
+      else
+        @desc
       end
     end
+    
+    # Define a block to execute when the option to execute cannot be found.
+    #
+    # @example
+    #
+    #   class CLI
+    #     include Clive::Parser
+    #
+    #     option_missing do |name|
+    #       puts "#{name} couldn't be found"
+    #     end
+    #
+    def option_missing(&block)
+      @option_missing = block
+    end      
     
     # Set the header
     def header(val)
@@ -287,6 +308,17 @@ module Clive
       @footer = val
     end
     
+  # @group Help
+    
+    # This actually creates a switch with "-h" and "--help" that controls
+    # the help on this command.
+    def build_help
+      @options << Switch.new([:h, :help], "Display help") do
+        puts self.help
+        exit 0
+      end
+    end
+
     # Generate the summary for help, show all flags and switches, but do not
     # show the flags and switches within each command. Should also prepend the
     # header and append the footer if set.
@@ -339,36 +371,38 @@ module Clive
         width   = 30
         prepend = 5
       
-        args.each do |(k,v)|
-          case k
-          when :width
-            width = value
-          when :prepend
-            prepend = value
+        unless args.empty?
+          args[0].each do |k,v|
+            case k
+            when :width
+              width = v
+            when :prepend
+              prepend = v
+            end
           end
         end
         
         @formatter = Formatter.new(width, prepend)
         block.call(@formatter)
-      
+        @formatter
       else
         case args[0]
         when :default
-          help_formatter do |h|
-            h.switch  "{prepend}{names.join(', ')} {spaces}{desc.grey}"
-            h.bool    "{prepend}{names.join(', ')} {spaces}{desc.grey}"
-            h.flag    "{prepend}{names.join(', ')} {args.join(' ')} {spaces}" << 
+           help_formatter do |h|
+            h.switch  "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
+            h.bool    "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
+            h.flag    "{prepend}{names.join(', ')} {args.join(' ')}  {spaces}" << 
                         "{desc.grey} {options.join('(', ', ', ')').blue.bold}"
-            h.command "{prepend}{names.join(', ')} {spaces}{desc.grey}"
+            h.command "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
           end
         
         when :white
           help_formatter do |h|
-            h.switch  "{prepend}{names.join(', ')} {spaces}{desc}"
-            h.bool    "{prepend}{names.join(', ')} {spaces}{desc}"
-            h.flag    "{prepend}{names.join(', ')} {args.join(' ')} {spaces}" << 
+            h.switch  "{prepend}{names.join(', ')}  {spaces}{desc}"
+            h.bool    "{prepend}{names.join(', ')}  {spaces}{desc}"
+            h.flag    "{prepend}{names.join(', ')} {args.join(' ')}  {spaces}" << 
                         "{desc} {options.join('(', ', ', ')').bold}"
-            h.command "{prepend}{names.join(', ')} {spaces}{desc}"
+            h.command "{prepend}{names.join(', ')}  {spaces}{desc}"
           end
         
         end
