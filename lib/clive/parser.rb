@@ -1,5 +1,3 @@
-$: << File.join(File.dirname(__FILE__), '..') # remove this line after
-
 require 'clive/exceptions'
 require 'clive/tokens'
 require 'clive/ext'
@@ -13,15 +11,6 @@ require 'clive/bool'
 require 'clive/output'
 require 'clive/formatter'
 
-
-class Object 
-  
-  # @see http://whytheluckystiff.net/articles/seeingMetaclassesClearly.html
-  # @see http://viewsourcecode.org/why/hacking/seeingMetaclassesClearly.html
-  def meta_def(name, &blk)
-    (class << self; self; end).instance_eval { define_method(name, &blk) }
-  end
-end
 
 module Clive
 
@@ -92,18 +81,21 @@ module Clive
       base.desc(*args)
     end
     
-    # @see Clive::Command#help
-    def help(*args)
-      base.help(*args)
-    end
-    
     # @see Clive::Command#help_formatter
     def help_formatter(*args, &block)
       base.help_formatter(*args, &block)
     end
     
     
-    def option_var(name, value)
+    # @see http://whytheluckystiff.net/articles/seeingMetaclassesClearly.html
+    # or because that doesn't exist anymore from this mirror
+    # http://viewsourcecode.org/why/hacking/seeingMetaclassesClearly.html
+    #
+    def meta_def(name, &blk)
+      (class << self; self; end).instance_eval { define_method(name, &blk) }
+    end
+    
+    def option_var(name, value=nil)
       @klass.meta_def(name) do
         instance_variable_get("@#{name}")
       end

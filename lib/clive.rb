@@ -1,5 +1,4 @@
 require 'clive/parser'
-require 'clive/output'
 
 # Clive is a simple dsl for creating command line interfaces
 #

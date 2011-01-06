@@ -10,64 +10,58 @@ module Clive
     # Creates a new Flag instance. A flag is a switch that can take one or more
     # arguments.
     #
-    # +short+ *or* +long+ can be omitted but not both.
-    # +args+ can also be omitted (is "ARG" by default)
+    # @param names [Array[Symbol]]
+    #   An array of names the flag can be invoked by. Can contain a long name
+    #   and/or a short name.
     #
-    # @overload flag(short, long, args, desc, &block)
-    #   @param [Symbol] short single character for short flag, eg. +:t+ => +-t 10+
-    #   @param [Symbol] long longer switch to be used, eg. +:tries+ => +--tries=10+
-    #   @param [String, Array] args
-    #     either a string showing the arguments to be given, eg.
-    #    
-    #       "FROM"    # single arg, or
-    #       "FROM TO" # two args, or
-    #       "[VIA]"   # optional arg surrounded by square brackets
+    # @param desc [String]
+    #   A description of the flag.
     #
-    #     or an array of acceptable inputs, eg.
+    # @param args [String, Array, Range]
+    #   Either, a string showing the arguments to be given, eg.
+    #     
+    #     "FROM"          # single argument required, or
+    #     "[FROM]"        # single optional argument, or
+    #     "FROM TO"       # multiple arguments required, or
+    #     "FROM [VIA] TO" # multiple arguments with optional argument
     #
-    #       ["large", "medium", "small"] # will only accept these args
+    #   OR an array of acceptable inputs, eg.
     #
-    #   @param [String] desc the description for the flag
+    #     %w(large small medium) # will only accept these arguments
+    #   
+    #   OR a range, showing the acceptable inputs, eg.
+    #     1..10 #=> means 1, 2, 3, ..., 8, 9, 10
     #
-    # @yield [String] A block to be run if switch is triggered
+    # @yield [String] 
+    #   A block to be run if switch is triggered, will always be passed a string
     #
-    def initialize(*args, desc, &block)
-      @names = Clive::Array.new
+    def initialize(names, desc, args, &block)
+      @names = Clive::Array.new(names.map(&:to_s))
       @args  = Clive::Array.new
-      @desc  = desc
       
       # Need to be able to make each arg_name optional or not
       # and allow for type in future
       args.each do |i|
         case i
-        when Hash
-          case i[:args]
-          when String
-            i[:args].split(' ').each do |arg|
-              optional = false
-              if arg[0] == "["
-                optional = true
-                arg = arg[1..-2]
-              end
-              @args << {:name => arg, :optional => optional}
+        when String
+          i.split(' ').each do |arg|
+            optional = false
+            if arg[0] == "["
+              optional = true
+              arg = arg[1..-2]
             end
-          
-          when ::Array
-            @args = i[:args]
-          
-          when Range
-            @args = i[:args]
-          
+            @args << {:name => arg, :optional => optional}
           end
-        when Symbol
-          @names << i.to_s
+        else
+          @args = i
         end
       end
-      
-      if @args == []
+
+      if @args.empty?
         @args = [{:name => "ARG", :optional => false}]
       end
       
+      @desc  = desc
       @block = block
     end
     

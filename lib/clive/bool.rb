@@ -14,28 +14,27 @@ module Clive
     # +short+ and/or +desc+ can be omitted when creating a Boolean, all
     # other arguments must be present.
     #
-    # @overload initialize(short, long, desc, truth, &block)
-    #   Creates a new boolean switch
-    #   @param short [Symbol] single character to use
-    #   @param long [Symbol] word/longer name for boolean switch
-    #   @param desc [String] description of use/purpose
-    #   @param truth [Boolean] truth of switch to create
+    # @param names [Array[Symbol]]
+    #   Names that the boolean switch can be called with, must include
+    #   a long name (eg. 2 or more characters) so that the --no- can
+    #   be prefixed.
     #
-    # @yield [Boolean] A block to be run when the switch is triggered
-    # @raise [MissingLongName] raises when a long name is not given
+    # @param desc [String]
+    #   A description of the bool.
     #
-    def initialize(*args, truth, &block)
+    # @param truth [true, false] 
+    #   Truth of the switch to create.
+    #
+    # @yield [true, false] A block to be run when the switch is triggered
+    # @raise [MissingLongName] Raised when a long name is not given
+    #
+    def initialize(names, desc, truth, &block)
       @names = []
-      args.each do |i|
-        case i
-        when Symbol
-          if truth
-            @names << i.to_s
-          else
-            @names << "no-#{i.to_s}" if i.length > 1
-          end
-        when String
-          @desc = i
+      names.each do |i|
+        if truth
+          @names << i.to_s
+        else
+          @names << "no-#{i.to_s}" if i.length > 1
         end
       end
       
@@ -44,6 +43,7 @@ module Clive
         raise MissingLongName, @names[0]
       end
       
+      @desc = desc
       @truth = truth
       @block = block
     end
@@ -56,12 +56,11 @@ module Clive
     # Should only return a hash when this is the 'true' switch.
     # @see Clive::Option#to_h
     def to_h
-      return nil unless @truth
-      
-      {
-        'names' => names_to_strings(true),
-        'desc' => @desc
-      }
+      if @truth
+        {'names' => names_to_strings(true), 'desc' => @desc}
+      else
+        nil
+      end
     end
   
   end

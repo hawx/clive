@@ -42,7 +42,7 @@ module Clive
         result << "\n  Commands: \n"
         
         commands.each do |hash|
-          hash['prepend'] = options.first.spaces(@prepend)
+          hash['prepend'] = " " * @prepend
           result << parse(@command, hash) << "\n"
         end
       end
@@ -102,13 +102,13 @@ module Clive
       front, back = format.split('{spaces}')
       
       front_p = parse_format(front, args)
-      back_p  = parse_format(back, args)
+      back_p  = parse_format(back, args) 
       
       s = @width - front_p.length
+      s = 0 if s < 0 # can't have negative spaces!
       spaces = " " * s
       
       front_p << spaces << back_p
-      
     end
     
     def parse_format(format, args)
