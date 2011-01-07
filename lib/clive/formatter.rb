@@ -1,6 +1,3 @@
-require 'strscan'
-require 'ast_ast'
-
 module Clive
   
   # The formatter controls formatting of help. It can be configured

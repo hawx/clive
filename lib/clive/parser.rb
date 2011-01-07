@@ -1,17 +1,3 @@
-require 'clive/exceptions'
-require 'clive/tokens'
-require 'clive/ext'
-
-require 'clive/option'
-require 'clive/command'
-require 'clive/switch'
-require 'clive/flag'
-require 'clive/bool'
-
-require 'clive/output'
-require 'clive/formatter'
-
-
 module Clive
 
   # A module wrapping the command line parsing of clive. In the future this
