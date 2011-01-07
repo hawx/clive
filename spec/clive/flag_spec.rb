@@ -19,12 +19,6 @@ describe Clive::Flag do
     end
   end
   
-  describe "#arg_num" do
-    it "returns the number of arguments" do
-      subject.arg_num(false).should == 1
-    end
-  end
-  
   describe "#args_to_strings" do
     it "converts the arguments to strings" do
       subject.args_to_strings.should == ["WORD(S)"]
@@ -40,9 +34,18 @@ describe Clive::Flag do
     end
     
     context "when arguments are required" do
-      it "returns the number of arguments" do
-        subject.args = [{:name => "ARG", :optional => false}]
-        subject.arg_size.should == 1
+      subject { Clive::Flag.new([:n], "Description", ["REQ [OPT] REQ2 [OPT2] [OPT3]"]) }
+    
+      it "returns the number of all arguments" do
+        subject.arg_size(:all).should == 5
+      end
+      
+      it "returns the number of optional arguments" do
+        subject.arg_size(:optional).should == 3
+      end
+      
+      it "returns the number of mandatory arguments" do
+        subject.arg_size(:mandatory).should == 2
       end
     end
   end

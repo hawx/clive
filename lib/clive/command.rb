@@ -106,8 +106,8 @@ module Clive
           v.run
         when :flag
           args = i[2..-1]
-          opt_args = v.arg_num(true)
-          nec_args = v.arg_num(false)
+          opt_args = v.arg_size(:optional)
+          nec_args = v.arg_size(:mandatory)
           # check for missing args
           if args.size < nec_args
             raise MissingArgument.new(v.sort_name)
@@ -151,7 +151,7 @@ module Clive
           pre_command << i
         end
       end
-
+      
       post_command = Tokens.new(tokens.array - pre_command - [command])
       pre_command_tokens = parse(pre_command)
       r = pre_command_tokens
@@ -184,7 +184,7 @@ module Clive
         else
           if k == :word
             # add to last flag?
-            if r.last && r.last[0] == :flag && r.last.size - 2 < r.last[1].arg_size
+            if r.last && r.last[0] == :flag && r.last.size - 2 < r.last[1].arg_size(:all)
               r.last.push(v)
             else
               r << [:argument, v]

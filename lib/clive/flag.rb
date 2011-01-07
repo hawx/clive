@@ -81,13 +81,30 @@ module Clive
       @block.call(*args)
     end
     
-    # @param [Boolean] optional whether to include optional arguments
-    # @return [Integer] number of arguments this takes
-    def arg_num(optional)
-      if @args.is_a?(Array) && @args[0].is_a?(Hash)
-        @args.find_all {|i| i[:optional] == optional }.size
-      else
-        1
+    
+    # @param type [Symbol]
+    #   Can be passed three things; :all, returns size of all arguments; :optional
+    #   returns all optional arguments; :mandatory, returns size of mandatory arguments.
+    def arg_size(type=:all)
+      case type
+      when :all
+        if @args.is_a?(Array) && @args[0].is_a?(Hash)
+          @args.size
+        else
+          1
+        end
+      when :optional
+        if @args.is_a?(Array) && @args[0].is_a?(Hash)
+          @args.find_all {|i| i[:optional] == true }.size
+        else
+          0
+        end
+      when :mandatory
+        if @args.is_a?(Array) && @args[0].is_a?(Hash)
+          @args.find_all {|i| i[:optional] == false }.size
+        else
+          1
+        end
       end
     end
     
@@ -106,14 +123,6 @@ module Clive
         r
       else
         [""]
-      end
-    end
-    
-    def arg_size
-      if @args.is_a?(Range) || @args.is_a?(Array)
-        1
-      else
-        @args.size
       end
     end
     
