@@ -93,6 +93,7 @@ module Clive
     # @return [::Array] any arguments that were present in the input but not used
     #
     def run(argv=[])
+      tokens = argv
       tokens = tokenize(argv) if @base
       
       r = []
