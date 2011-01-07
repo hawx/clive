@@ -125,7 +125,7 @@ blocks of the options in it are only ran when they are found.
 ### Arguments
 
 Anything that is not captured as a command, option or argument of a flag, is returned by
-#parse in an array.
+\#parse in an array.
 
     class Args
       include Clive::Parser
