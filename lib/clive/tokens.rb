@@ -64,19 +64,18 @@ module Clive
     def tokens
       t = []
       self.each do |i|
-        if i[0..1] == "--"
+        case i
+        when /\-\-.+/
           if i.include?('=')
             a, b = i[2..i.length].split('=')
             t << [:long, a] << [:word, b]
           else
             t << [:long, i[2..i.length]]
           end
-          
-        elsif i[0] == "-"
+        when /\-.+/
           i[1..i.length].split('').each do |j|
             t << [:short, j]
           end
-        
         else
           t << [:word, i]
         end

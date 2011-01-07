@@ -38,8 +38,8 @@ module Clive
       else
         args.each do |i|
           case i
-          when Symbol
-            @names << i.to_s
+          when ::Array
+            @names = i.map {|i| i.to_s }
           when String
             @desc = i
           end
@@ -93,7 +93,6 @@ module Clive
     # @return [::Array] any arguments that were present in the input but not used
     #
     def run(argv=[])
-      tokens = argv
       tokens = tokenize(argv) if @base
       
       r = []
@@ -160,7 +159,7 @@ module Clive
         t = commands[command].tokenize(post_command)
         r << [:command, commands[command], t]
       end
-
+      
       r
     end
     
@@ -219,7 +218,7 @@ module Clive
     #   and flags
     #
     def command(*args, &block)
-      @commands << Command.new(*args, @current_desc, &block)
+      @commands << Command.new(args, @current_desc, &block)
       @current_desc = ""
     end
     
