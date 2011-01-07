@@ -1,4 +1,5 @@
 require 'strscan'
+require 'ast_ast'
 
 module Clive
   
@@ -113,23 +114,14 @@ module Clive
     
     def parse_format(format, args)
       if format
-        @scanner = StringScanner.new(format)
-        result = []
-  
-        # Create object to eval in
+        tokens = Lexer.tokenise(format).to_a
         obj = Obj.new(args)
-        
-        until @scanner.eos?
-          a = scan_block || a = scan_text
-          result << a
-        end
-        
         r = ""
-        result.each do |(t, v)|
+        tokens.each do |(t,v)|
           case t
-          when :block # contains ruby to eval
+          when :block
             r << obj.evaluate(v)
-          when :text # add this with no adjustment
+          when :text 
             r << v
           end
         end
@@ -139,42 +131,19 @@ module Clive
       end
     end
     
+    class Lexer < Ast::Tokeniser
+      rule :text, /%(.)/ do |i|
+        i[1]
+      end
     
-    # @group Scanning     
-      def scan_block
-        return unless @scanner.scan /\{/
-        
-        pos = @scanner.pos
-        if @scanner.scan_until /\}/
-          @scanner.pos -= @scanner.matched.size
-          [:block, @scanner.pre_match[pos..-1]]
-        end
+      rule :block, /\{(.*?)\}/ do |i|
+        i[1]
       end
       
-      def scan_text
-        text = nil
-        
-        pos = @scanner.pos
-        if @scanner.scan_until /(?<=[^\\])\{/
-          @scanner.pos -= @scanner.matched.size
-          text = @scanner.pre_match[pos..-1]
-        end
-        
-        if text.nil?
-          text = @scanner.rest
-          @scanner.clear
-        end
-        
-        # Remove }s from text
-        if text[0] == "}"
-          text = text[1..-1]
-        end
-        
-        text.gsub!(/\\(.)/) {|m| m[1] }
-                
-        [:text, text]
+      missing do |i|
+        Ast::Token.new(:text, i)
       end
-    # @endgroup
+    end
   
   end
 end
