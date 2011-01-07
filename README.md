@@ -139,7 +139,41 @@ Anything that is not captured as a command, option or argument of a flag, is ret
     #=> ['argument', 'A string']
 
 
-### Option Handling
+### Variables
+
+Usually you'll want to set up some kind of variable, such as a hash to store your 
+configuration in, or an array of items to do something with. This would be quite annoying
+due to the fact it's a class, so I addded some handy methods.
+
+    class CLI
+      option_var :ok, false
+    end
+    CLI.ok #=> false
+    CLI.ok = true 
+    CLI.ok #=> true
+    
+    class CLI
+      option_hash :config
+      #=> is same as option_var :config, {}
+      
+      flag :set, :args => "KEY VALUE" do |key, value|
+        config[key.to_sym] = value
+      end
+    
+      option_list :items
+      # or option_array :items
+      #=> are the same as option_var :items, []
+      #                   option_var :a_list, []
+      
+      flag :add, :args => "ITEM" do |item|
+        items << item
+      end
+    end
+    CLI.parse %w(--set works true --add apple --add orange)
+    CLI.config #=> {:works => true}
+    CLI.items #=> ['apple', 'orange']
+
+### Option Missing Handling
 
 You are able to intercept errors when an option does not exist in a similar way to 
 `method_missing`.
