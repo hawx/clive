@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Clive::Flag do
 
-  subject { Clive::Flag.new([:S, :say], "Say something", ["WORD(S)"]) {|i| puts i } }
+  subject { Clive::Flag.new([:S, :say], "Say something", ["WORD(S)"]) {|i| $stdout.puts i } }
 
   it_behaves_like "an option"
   

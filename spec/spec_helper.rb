@@ -1,5 +1,7 @@
-require 'duvet'
-Duvet.start :filter => 'clive/lib'
+if RUBY_VERSION >= "1.9"
+  require 'duvet'
+  Duvet.start :filter => 'clive/lib'
+end
 
 require 'rspec'
 require 'clive'

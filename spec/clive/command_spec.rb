@@ -7,7 +7,7 @@ describe Clive::Command do
   end
   
   subject { 
-    Clive::Command.new(:co, :comm, "A command") do
+    Clive::Command.new([:co, :comm], "A command") do
       bool(:boo) {}
       switch(:swi) {}
       flag(:fla) {}
@@ -19,7 +19,7 @@ describe Clive::Command do
   
   describe "#initialize" do
     subject { 
-      Clive::Command.new(:com, "A command") do
+      Clive::Command.new([:com], "A command") do
         flag(:test)
       end
     }

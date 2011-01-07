@@ -2,8 +2,8 @@ require 'spec_helper'
 
 describe Clive::Bool do
 
-  subject { Clive::Bool.new([:n, :name], "A test", true) {|arg| puts arg } }
-  let(:falsey) { Clive::Bool.new([:n, :name], "A test", false) {|arg| puts arg } }
+  subject { Clive::Bool.new([:n, :name], "A test", true) {|arg| $stdout.puts arg } }
+  let(:falsey) { Clive::Bool.new([:n, :name], "A test", false) {|arg| $stdout.puts arg } }
 
   describe "#truth" do
     it "returns the truth" do

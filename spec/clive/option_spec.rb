@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Clive::Option do
-  subject { Clive::Option.new([:n, :names], "A test option") { puts "hi" } }
+  subject { Clive::Option.new([:n, :names], "A test option") { $stdout.puts "hi" } }
 
   it_behaves_like "an option"
   

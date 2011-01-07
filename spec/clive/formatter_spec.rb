@@ -14,7 +14,7 @@ describe Clive::Formatter do
     describe "#evaluate" do
       it "evaluates code within the object" do
         $stdout.should_receive(:puts).with(5)
-        subject.evaluate("puts test")
+        subject.evaluate("$stdout.puts test")
       end
     end
   end
@@ -62,7 +62,7 @@ describe Clive::Formatter do
         Clive::Flag.new([:args], "With args", ["ARG [OPT]"]),
         Clive::Flag.new([:choose], "With options", [["a", "b", "c"]])
       ]
-      command = Clive::Command.new(:command, "A command")
+      command = Clive::Command.new([:command], "A command")
       result = <<EOS
 head
 
