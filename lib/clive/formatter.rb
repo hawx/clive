@@ -111,10 +111,9 @@ module Clive
     
     def parse_format(format, args)
       if format
-        tokens = Lexer.tokenise(format).to_a
         obj = Obj.new(args)
         r = ""
-        tokens.each do |(t,v)|
+        Lexer.tokenise(format).each do |t,v|
           case t
           when :block
             r << obj.evaluate(v)
