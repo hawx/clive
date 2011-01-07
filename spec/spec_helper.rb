@@ -1,5 +1,3 @@
-# $: << File.join(File.dirname(__FILE__), '..')
-# $: << File.dirname(__FILE__)
 require 'duvet'
 Duvet.start :filter => 'clive/lib'
 
