@@ -34,7 +34,7 @@ module Clive
         if truth
           @names << i.to_s
         else
-          @names << "no-#{i.to_s}" if i.length > 1
+          @names << "no-#{i.to_s}" if i.to_s.length > 1
         end
       end
       
