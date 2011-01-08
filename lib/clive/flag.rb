@@ -83,7 +83,7 @@ module Clive
     def run(args)
       case @args[:type]
       when :list
-        args = Clive::Array.new(@args.map {|i| !i[:optional]}).optimise_fill(args)
+        args = Clive::Array.new(@args[:arguments].map {|i| !i[:optional]}).optimise_fill(args)
       when :choice, :range
         unless @args.to_a.map{|i| i.to_s}.include?(args[0])
           raise InvalidArgument.new(args)
@@ -105,9 +105,9 @@ module Clive
         when :all
           @args[:arguments].size
         when :optional
-          @args[:arguments].find_all {|i| i[:optional] == true}.size
-        when :madatory
-          @args[:arguments].find_all {|i| i[:optional] == false}.size
+          @args[:arguments].find_all {|i| i[:optional] == true }.size
+        when :mandatory
+          @args[:arguments].find_all {|i| i[:optional] == false }.size
         end
       
       when :choice, :range

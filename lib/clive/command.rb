@@ -106,10 +106,8 @@ module Clive
           v.run
         when :flag
           args = i[2..-1]
-          opt_args = v.arg_size(:optional)
-          nec_args = v.arg_size(:mandatory)
           # check for missing args
-          if args.size < nec_args
+          if args.size < v.arg_size(:mandatory)
             raise MissingArgument.new(v.sort_name)
           end
           
