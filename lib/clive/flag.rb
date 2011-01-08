@@ -37,28 +37,38 @@ module Clive
     #
     def initialize(names, desc, args, &block)
       @names = Clive::Array.new(names.map(&:to_s))
-      @args  = Clive::Array.new
+      @args = {
+        :type => :list,
+        :arguments => [{:name => "ARG", :optional => false}]
+      }
       
       # Need to be able to make each arg_name optional or not
       # and allow for type in future
       args.each do |i|
         case i
         when String
-          i.split(' ').each do |arg|
-            optional = false
-            if arg[0] == "["
-              optional = true
-              arg = arg[1..-2]
-            end
-            @args << {:name => arg, :optional => optional}
-          end
-        else
-          @args = i
-        end
-      end
+          if i[-3..-1] == "..."
+            @args = {:type => :splat, :base_name => i[0..-4]}
+          
+          else
+            @args = {:type => :list, :arguments => []}
+            i.split(' ').each do |arg|
+              optional = false
+              if arg[0] == "["
+                optional = true
+                arg = arg[1..-2]
+              end
 
-      if @args.empty?
-        @args = [{:name => "ARG", :optional => false}]
+              @args[:arguments] << {:name => arg, :optional => optional}
+            end
+          end
+          
+        when Range
+          @args = {:type => :range, :range => i}
+          
+        when Array
+          @args = {:type => :choice, :items => i}
+        end
       end
       
       @desc  = desc
@@ -71,12 +81,15 @@ module Clive
     # @raise [InvalidArgument] only if +args+ is an array of acceptable inputs
     #   and a match is not found.
     def run(args)
-      if @args.is_a?(Array) && @args[0].is_a?(Hash)
-        args = Clive::Array.new(@args.collect {|i| !i[:optional]}).optimise_fill(args)
-      else # list
-        unless @args.to_a.map(&:to_s).include? args[0]
+      case @args[:type]
+      when :list
+        args = Clive::Array.new(@args.map {|i| !i[:optional]}).optimise_fill(args)
+      when :choice, :range
+        unless @args.to_a.map{|i| i.to_s}.include?(args[0])
           raise InvalidArgument.new(args)
         end
+      when :splat
+        args = [args]
       end
       @block.call(*args)
     end
@@ -86,34 +99,37 @@ module Clive
     #   Can be passed three things; :all, returns size of all arguments; :optional
     #   returns all optional arguments; :mandatory, returns size of mandatory arguments.
     def arg_size(type=:all)
-      case type
-      when :all
-        if @args.is_a?(Array) && @args[0].is_a?(Hash)
-          @args.size
-        else
-          1
+      case @args[:type]
+      when :list
+        case type
+        when :all
+          @args[:arguments].size
+        when :optional
+          @args[:arguments].find_all {|i| i[:optional] == true}.size
+        when :madatory
+          @args[:arguments].find_all {|i| i[:optional] == false}.size
         end
-      when :optional
-        if @args.is_a?(Array) && @args[0].is_a?(Hash)
-          @args.find_all {|i| i[:optional] == true }.size
-        else
-          0
-        end
-      when :mandatory
-        if @args.is_a?(Array) && @args[0].is_a?(Hash)
-          @args.find_all {|i| i[:optional] == false }.size
-        else
+      
+      when :choice, :range
+        (type == :optional) ? 0 : 1
+      
+      when :splat
+        case type
+        when :all
+          1.0/0 # Infinity!
+        when :optional
+          1.0/0 # Infinity!
+        when :mandatory
           1
         end
       end
     end
     
     def args_to_strings
-      if @args.is_a? Range
-        [""]
-      elsif @args[0].is_a? Hash
+      case @args[:type]
+      when :list
         r = []
-        @args.each do |arg|
+        @args[:arguments].each do |arg|
           if arg[:optional]
             r << "[" + arg[:name] + "]"
           else
@@ -121,18 +137,27 @@ module Clive
           end
         end
         r
-      else
+        
+      when :choice
         [""]
+      
+      when :range
+        [""]
+      when :splat
+        ["<#{@args[:base_name]}1 #{@args[:base_name]}2 ...>"]
       end
     end
     
     def options_to_strings
-      if @args.is_a? Range
-        [@args.to_s]
-      elsif @args[0].is_a? Hash
+      case @args[:type]
+      when :list
         ['']
-      else
-        @args
+      when :choice
+        @args[:items]
+      when :range
+        [@args[:range].to_s]
+      when :splat
+        ['']
       end
     end
     

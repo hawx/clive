@@ -183,7 +183,7 @@ module Clive
           r << [:flag, flag]
         else
           if k == :word
-            # add to last flag?
+            # add to last flag?         
             if r.last && r.last[0] == :flag && r.last.size - 2 < r.last[1].arg_size(:all)
               r.last.push(v)
             else
