@@ -91,6 +91,10 @@ module Clive
         "desc"  => @desc
       }
     end
+    
+    def inspect
+      "#<#{self.class.name} [#{@names.join(', ')}]>"
+    end
   
   end
 end
