@@ -96,6 +96,21 @@ module Clive
       find_opt(name).class.name || Clive::Command
     end
     
+    def opt_type(name)
+      case find_opt(name).class.name
+      when "Clive::Switch"
+        :switch
+      when "Clive::Bool"
+        :switch
+      when "Clive::Flag"
+        :flag
+      when "Clive::Command"
+        :command
+      else
+        nil
+      end
+    end
+    
     # Finds the option which has the name given
     #
     # @param name [String]
@@ -141,25 +156,11 @@ module Clive
       
       arr.each do |a|
         if a[0..1] == "--"
-          case type_is?(a[2..-1])
-          when 'Clive::Flag'
-            result << [:flag, find_opt(a[2..-1]), []]
-          when 'Clive::Switch'
-            result << [:switch, find_opt(a[2..-1])]
-          when 'Clive::Bool'
-            result << [:switch, find_opt(a[2..-1])]
-          end
+          result << [:option, a[2..-1]]
           
         elsif a[0] == "-"
           a[1..-1].split('').each do |i|
-            case type_is?(i)
-            when 'Clive::Flag'
-              result << [:flag, find_opt(i), []]
-            when 'Clive::Switch'
-              result << [:switch, find_opt(i)]
-            when 'Clive::Bool'
-              result << [:switch, find_opt(i)]
-            end
+            result << [:option, i]
           end
 
         else
@@ -190,48 +191,52 @@ module Clive
     #
     def tokens_to_tree(arr)
       tree = []
+      self.find
       
       l = arr.size
       i = 0
       while i < l
         a = arr[i]
         if a[0] == :word
-          # we need to find out if it is an arg or command
-          if tree.last[0] == :flag
-            if tree.last[2].size < tree.last[1].arg_size(:mandatory)
-              tree.last[2] << [:arg, a[1]]
-              
-            elsif (tree.last[2].size < tree.last[1].arg_size(:all)) && (!is_a_command?(a[1]))
-              tree.last[2] << [:arg, a[1]]
-              
+          last = tree.last || []
+          
+          if last[0] == :flag
+            tree.last[2] ||= []
+            # then this could be an argument, lets investigate
+            # if the flag _needs_ another argument it gets it
+            if last[2].size < last[1].arg_size(:mandatory)
+              last[2] << [:arg, a[1]]
+            
+            # if it can take another arg and the arg isn't a command it takes it
+            elsif (last[2].size < last[1].arg_size(:all)) && (!is_a_command?(a[1]))
+              last[2] << [:arg, a[1]]
+            
+            # it was a command or a normal argument
             else
               if command = find_command(a[1])
-                # it's a command
                 rest = arr[i+1..-1]
-                tree << [:command, command, tokens_to_tree(rest)]
-                i = l # set to end
+                tree << [:command, command, command.tokens_to_tree(rest)]
+                i = l
               else
-                # it's an arg
                 tree << [:arg, a[1]]
               end
             end
           else
             if command = find_command(a[1])
-              # it's a command
               rest = arr[i+1..-1]
-              tree << [:command, command, tokens_to_tree(rest)]
-              i = l # set to end
+              tree << [:command, command, command.tokens_to_tree(rest)]
+              i = l
             else
-              # it's an arg
               tree << [:arg, a[1]]
             end
           end
         else
-          tree << a
+          tree << [opt_type(a[1]), find_opt(a[1])]
         end
+        
         i += 1
       end
-      
+
       tree
     end
     
