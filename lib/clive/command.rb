@@ -87,113 +87,205 @@ module Clive
       @block = nil
     end
     
+    # Gets the type of the option which corresponds with the name given
+    #
+    # @param name [String]
+    # @return [Constant]
+    #
+    def type_is?(name)
+      find_opt(name).class.name || Clive::Command
+    end
+    
+    # Finds the option which has the name given
+    #
+    # @param name [String]
+    # @return [Clive::Option]
+    #
+    def find_opt(name)
+      options.find {|i| i.names.include?(name)}
+    end
+    
+    # Checks whether the string given is the name of a Command or not
+    #
+    # @param str [String]
+    # @return [true, false]
+    #
+    def is_a_command?(str)
+      find_command(str).empty?
+    end
+    
+    # Finds the command which has the name given
+    #
+    # @param name [String]
+    # @return [Clive::Command]
+    #
+    def find_command(str)
+      commands.find {|i| i.names.include?(str)}
+    end
+    
+    # Converts the array of input from the command line into a string of tokens.
+    # It replaces instances of the names of flags, switches and bools with the 
+    # actual option, but does not affect commands. Instead these are left as +words+.
+    #
+    # @example
+    #
+    #   array_to_tokens ['--switch', 'command', '-f', 'arg']
+    #   #=> [[:switch, #<Clive::Switch [switch]>], [:word, 'command'], 
+    #   #    [:flag, #<Clive::Flag [f, flag]>, []], [:word, 'arg']]
+    #
+    # @param arr [Array]
+    # @return [Array]
+    #
+    def array_to_tokens(arr)
+      result = []
+      
+      arr.each do |a|
+        if a[0..1] == "--"
+          case type_is?(a[2..-1])
+          when 'Clive::Flag'
+            result << [:flag, find_opt(a[2..-1]), []]
+          when 'Clive::Switch'
+            result << [:switch, find_opt(a[2..-1])]
+          when 'Clive::Bool'
+            result << [:switch, find_opt(a[2..-1])]
+          end
+          
+        elsif a[0] == "-"
+          a[1..-1].split('').each do |i|
+            case type_is?(i)
+            when 'Clive::Flag'
+              result << [:flag, find_opt(i), []]
+            when 'Clive::Switch'
+              result << [:switch, find_opt(i)]
+            when 'Clive::Bool'
+              result << [:switch, find_opt(i)]
+            end
+          end
+
+        else
+          result << [:word, a]
+        end
+      end
+
+      result 
+    end
+    
+    # Converts the set of tokens returned from #aray_to_tokens into a tree.
+    # This is where we determine whether a +word+ is an argument or command.
+    #
+    # @example
+    #   tokens_to_tree([[:switch, #<Clive::Switch [switch]>], [:word, 'command'],  
+    #                   [:flag, #<Clive::Flag [f, flag]>, []], [:word, 'arg']])
+    #   #=> [
+    #   #     [:switch, #<Clive::Switch [switch]>],
+    #   #     [:command, #<Clive::Command [command]>, [
+    #   #       [:flag, #<Clive::Flag [f, flag]>, [
+    #   #         [:arg, 'arg']
+    #   #       ]]
+    #   #     ]]
+    #   #   ]
+    #
+    # @param arr [Array]
+    # @return [Array]
+    #
+    def tokens_to_tree(arr)
+      tree = []
+      
+      l = arr.size
+      i = 0
+      while i < l
+        a = arr[i]
+        if a[0] == :word
+          # we need to find out if it is an arg or command
+          if tree.last[0] == :flag
+            if tree.last[2].size < tree.last[1].arg_size(:mandatory)
+              tree.last[2] << [:arg, a[1]]
+              
+            elsif (tree.last[2].size < tree.last[1].arg_size(:all)) && (!is_a_command?(a[1]))
+              tree.last[2] << [:arg, a[1]]
+              
+            else
+              if command = find_command(a[1])
+                # it's a command
+                rest = arr[i+1..-1]
+                tree << [:command, command, tokens_to_tree(rest)]
+                i = l # set to end
+              else
+                # it's an arg
+                tree << [:arg, a[1]]
+              end
+            end
+          else
+            if command = find_command(a[1])
+              # it's a command
+              rest = arr[i+1..-1]
+              tree << [:command, command, tokens_to_tree(rest)]
+              i = l # set to end
+            else
+              # it's an arg
+              tree << [:arg, a[1]]
+            end
+          end
+        else
+          tree << a
+        end
+        i += 1
+      end
+      
+      tree
+    end
+    
+    # Traverses the tree created by #tokens_to_tree and runs the correct options.
+    # 
+    # @param tree [Array]
+    # @return [Array]
+    #   Any unused arguments.
+    #
+    def run_tree(tree)
+      i = 0
+      l = tree.size
+      r = []
+      
+      while i < l
+        curr = tree[i]
+        
+        case curr[0]
+        when :command
+          r << curr[1].run(curr[2])
+          
+        when :switch
+          curr[1].run
+          
+        when :flag
+          args = curr[2].map {|i| i[1] }
+          if args.size < curr[1].arg_size(:mandatory)
+            raise MissingArgument.new(curr[1].sort_name)
+          end
+          curr[1].run(args)
+          
+        when :arg
+          r << curr[1]
+        end
+        
+        i += 1
+      end
+      r.flatten
+    end
+    
+    
     # Parse the ARGV passed from the command line, and run
     #
     # @param [::Array] argv the command line input, usually just +ARGV+
     # @return [::Array] any arguments that were present in the input but not used
     #
     def run(argv=[])
-      tokens = argv
-      tokens = tokenize(argv) if @base
-      
-      r = []
-      tokens.each do |i|
-        k, v = i[0], i[1]
-        case k
-        when :command
-          r << v.run(i[2])
-        when :switch
-          v.run
-        when :flag
-          args = i[2..-1]
-          # check for missing args
-          if args.size < v.arg_size(:mandatory)
-            raise MissingArgument.new(v.sort_name)
-          end
-          
-          v.run(args)
-        when :argument
-          r << v
-        end
+      to_run = argv
+      if @base # if not base we will have been passed the parsed tree already
+        to_run = tokens_to_tree( array_to_tokens(argv) )
       end
-      r.flatten
+      run_tree(to_run)
     end
     
-    # Turns the command line input into a series of tokens.
-    # It will only raise errors if this is the base command instance.
-    #
-    # @param [::Array] argv the command line input
-    # @return [::Array] a series of tokens
-    #
-    # @example
-    #
-    #   c.tokenize(["add", "-al", "--verbose"])
-    #   #=> [[:command, #<Clive::Command>, ...args...], [:switch, "a", 
-    #        #<Clive::Switch>], [:switch, "l", #<Clive::Switch>], [:switch, 
-    #        "verbose", #<Clive::Switch>]]
-    #
-    def tokenize(argv)
-      self.find
-      r = []
-      tokens = Tokens.new(argv)
-      
-      pre_command = Tokens.new
-      command = nil
-      tokens.tokens.each do |i|
-        k, v = i[0], i[1]
-        # check if a command
-        if k == :word && commands[v]
-          command = v
-          break
-        else
-          pre_command << i
-        end
-      end
-      
-      post_command = Tokens.new(tokens.array - pre_command - [command])
-      pre_command_tokens = parse(pre_command)
-      r = pre_command_tokens
-      
-      if command
-        t = commands[command].tokenize(post_command)
-        r << [:command, commands[command], t]
-      end
-      
-      r
-    end
-    
-    # This runs through the tokens from Tokens#to_tokens (or similar)
-    # and creates a new array with the type of object and the object
-    # itself, possibly with an argument in the case of Flag.
-    #
-    # @param [Tokens] tokens the tokens to run through
-    # @return [::Array] of the form 
-    #   [[:flag, #<Clive::Flag...>, "word"], [:switch, #<Clive::Switch....
-    # @raise [InvalidOption] raised if option given can't be found
-    #
-    def parse(tokens)
-      r = []
-      tokens.tokens.each do |i|
-        k, v = i[0], i[1]
-        if switch = switches[v] || switch = bools[v]
-          r << [:switch, switch]
-        elsif flag = flags[v]
-          r << [:flag, flag]
-        else
-          if k == :word
-            # add to last flag?         
-            if r.last && r.last[0] == :flag && r.last.size - 2 < r.last[1].arg_size(:all)
-              r.last.push(v)
-            else
-              r << [:argument, v]
-            end
-          else
-            @option_missing.call(v)
-          end
-        end
-      end
-      r
-    end
     
     def to_h
       {
