@@ -9,6 +9,14 @@ module Clive
     attr_accessor :options, :commands
     attr_accessor :argv, :base
     attr_reader   :names, :current_desc
+    attr_reader   :top_klass
+    
+    # Create the base Command instance. Replacement for the #initialize
+    # overloading.
+    #
+    def self.setup(klass, &block)
+      new([], "", klass, &block)
+    end
     
     # Create a new Command instance
     #
@@ -23,29 +31,22 @@ module Clive
     #
     # @yield A block to run, containing switches, flags and commands
     #
-    def initialize(*args, &block)
-      @argv     = []
-      @names    = []
-      @base     = false
-      @commands = Clive::Array.new
-      @options  = Clive::Array.new
+    def initialize(names, desc, top_klass, &block)
+      @argv      = []
+      @names     = names.map {|i| i.to_s }
+      @top_klass = top_klass
+      @desc      = desc
+      @commands  = Clive::Array.new
+      @options   = Clive::Array.new
+      @block     = block
+      @base      = false
       
-      @option_missing = Proc.new {|e| raise NoOptionError.new(e)}
-    
-      if args.length == 1 && args[0] == true
+      if @names == [] && @desc == ""
         @base = true
         self.instance_eval(&block) if block_given?
-      else
-        args.each do |i|
-          case i
-          when ::Array
-            @names = i.map {|i| i.to_s }
-          when String
-            @desc = i
-          end
-        end
-        @block = block
       end
+      
+      @option_missing = Proc.new {|e| raise NoOptionError.new(e)}
       
       # Create basic header "Usage: filename [command] [options]
       #                  or "Usage: filename commandname(s) [options]
@@ -298,6 +299,12 @@ module Clive
         'desc'  => @desc
       }
     end
+    
+    def method_missing(sym, *args, &block)
+      if @top_klass.respond_to?(sym)
+        @top_klass.send(sym, *args)
+      end
+    end
   
     
       
@@ -314,7 +321,7 @@ module Clive
     #   and flags
     #
     def command(*args, &block)
-      @commands << Command.new(args, @current_desc, &block)
+      @commands << Command.new(args, @current_desc, @top_klass, &block)
       @current_desc = ""
     end
     

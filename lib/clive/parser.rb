@@ -29,7 +29,7 @@ module Clive
     def self.included(klass)
       klass.instance_variable_set("@klass", klass)
       klass.extend(self)
-      klass.instance_variable_set "@base", Clive::Command.new(true)
+      klass.instance_variable_set "@base", Clive::Command.setup(klass)
     end
     
     # @return [Clive::Command]
