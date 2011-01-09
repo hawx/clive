@@ -36,8 +36,8 @@ module Clive
       @names     = names.map {|i| i.to_s }
       @top_klass = top_klass
       @desc      = desc
-      @commands  = Clive::Array.new
-      @options   = Clive::Array.new
+      @commands  = []
+      @options   = []
       @block     = block
       @base      = false
       
@@ -61,19 +61,19 @@ module Clive
       self.build_help
     end
     
-    # @return [Clive::Array] all bools in this command
+    # @return [Array] all bools in this command
     def bools
-      Clive::Array.new(@options.find_all {|i| i.class == Bool})
+      @options.find_all {|i| i.class == Bool}
     end
     
-    # @return [Clive::Array] all switches in this command
+    # @return [Array] all switches in this command
     def switches
-      Clive::Array.new(@options.find_all {|i| i.class == Switch})
+      @options.find_all {|i| i.class == Switch}
     end
     
-    # @return [Clive::Array] all flags in this command
+    # @return [Array] all flags in this command
     def flags
-      Clive::Array.new(@options.find_all {|i| i.class == Flag})
+      @options.find_all {|i| i.class == Flag}
     end
     
     # Run the block that was passed to find switches, flags, etc.
@@ -281,8 +281,8 @@ module Clive
     
     # Parse the ARGV passed from the command line, and run
     #
-    # @param [::Array] argv the command line input, usually just +ARGV+
-    # @return [::Array] any arguments that were present in the input but not used
+    # @param [Array] argv the command line input, usually just +ARGV+
+    # @return [Array] any arguments that were present in the input but not used
     #
     def run(argv=[])
       to_run = argv
@@ -471,7 +471,7 @@ module Clive
     def help_formatter(*args, &block)    
       if block_given?
         width   = 30
-        prepend = 5
+        prepend = 4
       
         unless args.empty?
           args[0].each do |k,v|
@@ -493,8 +493,7 @@ module Clive
            help_formatter do |h|
             h.switch  "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
             h.bool    "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
-            h.flag    "{prepend}{names.join(', ')} {args.join(' ')}  {spaces}" << 
-                        "{desc.grey} {options.join('(', ', ', ')').blue.bold}"
+            h.flag    "{prepend}{names.join(', ')} {args}  {spaces}{desc.grey} {options.blue.bold}"
             h.command "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
           end
         
@@ -502,8 +501,7 @@ module Clive
           help_formatter do |h|
             h.switch  "{prepend}{names.join(', ')}  {spaces}{desc}"
             h.bool    "{prepend}{names.join(', ')}  {spaces}{desc}"
-            h.flag    "{prepend}{names.join(', ')} {args.join(' ')}  {spaces}" << 
-                        "{desc} {options.join('(', ', ', ')').bold}"
+            h.flag    "{prepend}{names.join(', ')} {args}  {spaces}{desc} {options.bold}"
             h.command "{prepend}{names.join(', ')}  {spaces}{desc}"
           end
         

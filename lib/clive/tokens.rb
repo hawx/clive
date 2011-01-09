@@ -36,7 +36,7 @@ module Clive
     # Turn +@tokens+ into an array, this ensures that shorts are split
     # as is expected
     #
-    # @return [::Array] array representation of tokens held
+    # @return [Array] array representation of tokens held
     def array
       return [] unless self.tokens
       arr = []
@@ -60,7 +60,7 @@ module Clive
     # Strings beginning with --, eg. --verbose become [:long, "verbose"].
     # Strings which begin with neither become [:word, "value"].
     #
-    # @return [::Array] the tokens that are held
+    # @return [Array] the tokens that are held
     def tokens
       t = []
       self.each do |i|
@@ -105,7 +105,7 @@ module Clive
     
     # Test whether an array is a token
     #
-    # @param [::Array]
+    # @param [Array]
     # @return [Boolean]
     #
     # @example

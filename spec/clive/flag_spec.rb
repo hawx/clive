@@ -75,10 +75,10 @@ describe Clive::Flag do
   describe "#to_h" do
     it "returns a hash" do
       hsh = {
-        "names" => Clive::Array.new(%w(-S --say)),
+        "names" => %w(-S --say),
         "desc"  => "Say something",
-        "args"  => Clive::Array.new(["WORD(S)"]),
-        "options" => Clive::Array.new([""])
+        "args"  => "<WORD(S)>",
+        "options" => ""
       }
       subject.to_h.should == hsh
     end

@@ -36,7 +36,7 @@ module Clive
     #   A block to be run if switch is triggered, will always be passed a string
     #
     def initialize(names, desc, args, &block)
-      @names = Clive::Array.new(names.map(&:to_s))
+      @names = names.map(&:to_s)
       @args = {
         :type => :list,
         :arguments => [{:name => "ARG", :optional => false}]
@@ -125,7 +125,7 @@ module Clive
       end
     end
     
-    def args_to_strings
+    def args_to_string
       case @args[:type]
       when :list
         r = []
@@ -133,40 +133,34 @@ module Clive
           if arg[:optional]
             r << "[" + arg[:name] + "]"
           else
-            r << arg[:name]
+            r << "<" + arg[:name] + ">"
           end
         end
-        r
-        
-      when :choice
-        [""]
-      
-      when :range
-        [""]
+        r.join(' ')
+      when :choice, :range
+        ""
       when :splat
-        ["<#{@args[:base_name]}1 #{@args[:base_name]}2 ...>"]
+        "<#{@args[:base_name]}1> ..."
       end
     end
     
-    def options_to_strings
+    def options_to_string
       case @args[:type]
-      when :list
-        ['']
+      when :list, :splat
+        ''
       when :choice
-        @args[:items]
+        @args[:items].join(', ')
       when :range
-        [@args[:range].to_s]
-      when :splat
-        ['']
+        @args[:range].to_s
       end
     end
     
     def to_h
       {
-        'names'   => Clive::Array.new(names_to_strings),
+        'names'   => names_to_strings,
         'desc'    => @desc,
-        'args'    => Clive::Array.new(args_to_strings),
-        'options' => Clive::Array.new(options_to_strings)
+        'args'    => args_to_string,
+        'options' => options_to_string
       }
     end
     

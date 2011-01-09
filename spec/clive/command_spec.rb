@@ -214,7 +214,7 @@ describe Clive::Command do
   
   describe "#build_help" do
     it "adds a switch for help" do
-      subject.options = Clive::Array.new
+      subject.options = []
       subject.options.should be_empty
       subject.build_help
       subject.options.map(&:names).should include ['h', 'help']
