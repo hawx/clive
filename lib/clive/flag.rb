@@ -83,7 +83,7 @@ module Clive
     def run(args)
       case @args[:type]
       when :list
-        args = Clive::Array.new(@args[:arguments].map {|i| !i[:optional]}).optimise_fill(args)
+        args = optimise_fill(args, @args[:arguments].map {|i| !i[:optional] })
       when :choice, :range
         unless @args.to_a.map{|i| i.to_s}.include?(args[0])
           raise InvalidArgument.new(args)
@@ -169,6 +169,40 @@ module Clive
         'options' => Clive::Array.new(options_to_strings)
       }
     end
+    
+    
+    # Attempts to fill +self+ with values from +input+, giving priority to 
+    # true, then false. If insufficient input to fill all false will use nil.
+    #
+    # @param [Array] input array of values to fill +self+ with
+    # @return [Array] filled array
+    #
+    # @example
+    #
+    #   [true, false, false, true].optimise_fill(["a", "b", "c"])
+    #   #=> ["a", "b", nil, "c"]
+    #
+    #
+    def optimise_fill(input, match)
+      diff = input.size - match.reject{|i| i == false}.size
+      
+      result = []
+      match.each_index do |i|
+        curr_item = match[i]
+        if curr_item == true
+          result << input.shift
+        else
+          if diff > 0
+            result << input.shift
+            diff -= 1
+          else
+            result << nil
+          end
+        end
+      end
+      result
+    end
+    
     
   end
 end
