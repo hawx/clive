@@ -3,7 +3,6 @@ require 'ast_ast'
 require 'clive/parser'
 require 'clive/exceptions'
 require 'clive/tokens'
-require 'clive/ext'
 
 require 'clive/option'
 require 'clive/command'
