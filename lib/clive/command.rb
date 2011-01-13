@@ -212,12 +212,14 @@ module Clive
                 last[2] << [:arg, a[1]]
               else
                 tree << [:command, command, command.tokens_to_tree(arr[i+1..-1])]
+                i = l
               end
             else
               tree << [:command, command, command.tokens_to_tree(arr[i+1..-1])]
+              i = l
             end
           else
-            if last[2].size < last[1].arg_size(:all)
+            if last[0] == :flag && last[2].size < last[1].arg_size(:all)
               last[2] << [:arg, a[1]]
             else
               tree << [:arg, a[1]]
