@@ -146,8 +146,7 @@ module Clive
     # @example
     #
     #   array_to_tokens ['--switch', 'command', '-f', 'arg']
-    #   #=> [[:switch, #<Clive::Switch [switch]>], [:word, 'command'], 
-    #   #    [:flag, #<Clive::Flag [f, flag]>, []], [:word, 'arg']]
+    #   #=> [[:option, "switch"], [:word, "command"], [:option, "f"], [:word, "arg"]]
     #
     # @param arr [Array]
     # @return [Array]
@@ -172,12 +171,12 @@ module Clive
       result 
     end
     
-    # Converts the set of tokens returned from #aray_to_tokens into a tree.
-    # This is where we determine whether a +word+ is an argument or command.
+    # Converts the set of tokens returned from #array_to_tokens into a tree.
+    # This is where we determine whether a +word+ is an argument or command. 
     #
     # @example
-    #   tokens_to_tree([[:switch, #<Clive::Switch [switch]>], [:word, 'command'],  
-    #                   [:flag, #<Clive::Flag [f, flag]>, []], [:word, 'arg']])
+    #   tokens_to_tree([[:option, "switch"], [:word, "command"], 
+    #                   [:option, "f"], [:word, "arg"]])
     #   #=> [
     #   #     [:switch, #<Clive::Switch [switch]>],
     #   #     [:command, #<Clive::Command [command]>, [
@@ -198,43 +197,36 @@ module Clive
       i = 0
       while i < l
         a = arr[i]
+        
         if a[0] == :word
+          
           last = tree.last || []
           
           if last[0] == :flag
-            tree.last[2] ||= []
-            # then this could be an argument, lets investigate
-            # if the flag _needs_ another argument it gets it
-            if last[2].size < last[1].arg_size(:mandatory)
-              last[2] << [:arg, a[1]]
-            
-            # if it can take another arg and the arg isn't a command it takes it
-            elsif (last[2].size < last[1].arg_size(:all)) && (!is_a_command?(a[1]))
-              last[2] << [:arg, a[1]]
-            
-            # it was a command or a normal argument
-            else
-              if command = find_command(a[1])
-                rest = arr[i+1..-1]
-                tree << [:command, command, command.tokens_to_tree(rest)]
-                i = l
+            last[2] ||= []
+          end
+          
+          if command = find_command(a[1])
+            if last[0] == :flag              
+              if last[2].size < last[1].arg_size(:mandatory)
+                last[2] << [:arg, a[1]]
               else
-                tree << [:arg, a[1]]
+                tree << [:command, command, command.tokens_to_tree(arr[i+1..-1])]
               end
+            else
+              tree << [:command, command, command.tokens_to_tree(arr[i+1..-1])]
             end
           else
-            if command = find_command(a[1])
-              rest = arr[i+1..-1]
-              tree << [:command, command, command.tokens_to_tree(rest)]
-              i = l
+            if last[2].size < last[1].arg_size(:all)
+              last[2] << [:arg, a[1]]
             else
               tree << [:arg, a[1]]
-            end
+            end  
           end
         else
           tree << [opt_type(a[1]), find_opt(a[1])]
         end
-        
+
         i += 1
       end
 
