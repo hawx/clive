@@ -17,7 +17,7 @@ module Clive
     # @param desc [String]
     #   A description of the flag.
     #
-    # @param args [String, Array, Range]
+    # @param arguments [String, Array, Range]
     #   Either, a string showing the arguments to be given, eg.
     #     
     #     "FROM"          # single argument required, or
@@ -35,16 +35,9 @@ module Clive
     # @yield [String] 
     #   A block to be run if switch is triggered, will always be passed a string
     #
-    def initialize(names, desc, args, &block)
+    def initialize(names, desc, arguments, &block)
       @names = names.map(&:to_s)
-      @args = {
-        :type => :list,
-        :arguments => [{:name => "ARG", :optional => false}]
-      }
-      
-      # Need to be able to make each arg_name optional or not
-      # and allow for type in future
-      self.args = args
+      self.args = (arguments || "ARG")
       
       @desc  = desc
       @block = block
@@ -84,8 +77,12 @@ module Clive
       case @args[:type]
       when :list
         args = optimise_fill(args, @args[:arguments].map {|i| !i[:optional] })
-      when :choice, :range
-        unless @args.to_a.map{|i| i.to_s}.include?(args[0])
+      when :choice
+        unless @args[:items].map{|i| i.to_s}.include?(args[0])
+          raise InvalidArgument.new(args)
+        end
+      when :range
+        unless @args[:range].to_a.map {|i| i.to_s}.include?(args[0])
           raise InvalidArgument.new(args)
         end
       when :splat

@@ -330,7 +330,7 @@ module Clive
     # @see Flag#initialize
     def flag(*args, &block)
       names = []
-      arg = []
+      arg = nil
       args.each do |i|
         if i.is_a? Symbol
           names << i

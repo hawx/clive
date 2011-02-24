@@ -1,4 +1,4 @@
-require 'class_attr'
+require 'attr_plus'
 
 module Clive
 
