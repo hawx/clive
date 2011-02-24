@@ -1,5 +1,3 @@
-require 'attr_plus'
-
 module Clive
 
   # A module wrapping the command line parsing of clive. In the future this
@@ -7,7 +5,7 @@ module Clive
   #
   # @example
   #
-  #   require 'clive/parser'
+  #   require 'clive'
   # 
   #   class CLI
   #     include Clive::Parser

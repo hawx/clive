@@ -1,4 +1,5 @@
 require 'ast_ast'
+require 'attr_plus'
 
 require 'clive/parser'
 require 'clive/exceptions'
@@ -16,6 +17,8 @@ require 'clive/formatter'
 # Clive is a simple dsl for creating command line interfaces
 #
 # @example Simple Example
+#
+#   require 'clive'
 #
 #   class CLI
 #     include Clive::Parser
