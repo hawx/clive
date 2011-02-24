@@ -1,3 +1,5 @@
+require 'class_attr'
+
 module Clive
 
   # A module wrapping the command line parsing of clive. In the future this
@@ -72,23 +74,13 @@ module Clive
       base.help_formatter(*args, &block)
     end
     
-    
-    # @see http://whytheluckystiff.net/articles/seeingMetaclassesClearly.html
-    # or because that doesn't exist anymore from this mirror
-    # http://viewsourcecode.org/why/hacking/seeingMetaclassesClearly.html
-    #
-    def meta_def(name, &blk)
-      (class << self; self; end).instance_eval { define_method(name, &blk) }
-    end
-    
+    # This is a bit nicer, I think, for defining CLIs.
     def option_var(name, value=nil)
-      @klass.meta_def(name) do
-        instance_variable_get("@#{name}")
+      if value
+        @klass.class_attr_accessor name => value
+      else
+        @klass.class_attr_accessor name
       end
-      @klass.meta_def("#{name}=") do |val|
-        instance_variable_set("@#{name}", val)
-      end
-      instance_variable_set("@#{name}", value)
     end
     
     # Create a new hash which is accessible to the options in the new class

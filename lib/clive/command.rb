@@ -336,9 +336,9 @@ module Clive
           names << i
         else
           if i[:arg]
-            arg << i[:arg]
+            arg = i[:arg]
           else
-            arg << i[:args]
+            arg = i[:args]
           end
         end
       end
@@ -484,24 +484,27 @@ module Clive
       else
         case args[0]
         when :default
-           help_formatter do |h|
-            h.switch  "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
-            h.bool    "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
-            h.flag    "{prepend}{names.join(', ')} {args}  {spaces}{desc.grey} {options.blue.bold}"
-            h.command "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
-          end
-        
+          help_formatter(&HELP_FORMATTERS[:default])
         when :white
-          help_formatter do |h|
-            h.switch  "{prepend}{names.join(', ')}  {spaces}{desc}"
-            h.bool    "{prepend}{names.join(', ')}  {spaces}{desc}"
-            h.flag    "{prepend}{names.join(', ')} {args}  {spaces}{desc} {options.bold}"
-            h.command "{prepend}{names.join(', ')}  {spaces}{desc}"
-          end
-        
+          help_formatter(&HELP_FORMATTERS[:white])
         end
       end
     end
+    
+    HELP_FORMATTERS = {
+      :default => lambda do |h|
+        h.switch  "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
+        h.bool    "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
+        h.flag    "{prepend}{names.join(', ')} {args}  {spaces}{desc.grey} {options.blue.bold}"
+        h.command "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
+      end,
+      :white => lambda do |h|
+        h.switch  "{prepend}{names.join(', ')}  {spaces}{desc}"
+        h.bool    "{prepend}{names.join(', ')}  {spaces}{desc}"
+        h.flag    "{prepend}{names.join(', ')} {args}  {spaces}{desc} {options.bold}"
+        h.command "{prepend}{names.join(', ')}  {spaces}{desc}"
+      end
+    }
     
   end
 end

@@ -3,11 +3,11 @@ require 'spec_helper'
 describe Clive::Command do
 
   context "when creating a base command" do
-    subject { Clive::Command.new(true) {} }
+    subject { Clive::Command.setup(Class.new) {} }
   end
   
   subject { 
-    Clive::Command.new([:co, :comm], "A command") do
+    Clive::Command.new([:co, :comm], "A command", Class.new) do
       bool(:boo) {}
       switch(:swi) {}
       flag(:fla) {}
@@ -19,7 +19,7 @@ describe Clive::Command do
   
   describe "#initialize" do
     subject { 
-      Clive::Command.new([:com], "A command") do
+      Clive::Command.new([:com], "A command", Class.new) do
         flag(:test)
       end
     }
@@ -34,11 +34,6 @@ describe Clive::Command do
       expect {
         proc.call("hey")
       }.should raise_error Clive::NoOptionError
-    end
-    
-    it "sets the help formatter to :default" do
-      formatter = subject.instance_variable_get("@help_formatter")
-      formatter.should == subject.help_formatter(:default)
     end
     
     it "doesn't run the block given" do
@@ -95,21 +90,6 @@ describe Clive::Command do
       subject.find
       subject.run(%w(--swi what)).should == ['what']
     end
-  end
-  
-  describe "#tokenize" do
-    it "returns an array of tokens" do
-      subject.find
-      res = [
-        [:switch, subject.bools.find {|i| i.names == ["boo"] }],
-        [:argument, "what"]
-      ]
-      subject.tokenize(%w(--boo what)).should == res
-    end
-  end
-  
-  describe "#parse" do
-    it "returns an array of tokens"
   end
   
   describe "#to_h" do
@@ -227,7 +207,7 @@ describe Clive::Command do
 Usage: rspec co, comm [options]
 
   Options: 
-     -h, --help               \e[90mDisplay help\e[0m
+    -h, --help                \e[90mDisplay help\e[0m
 EOS
     
       subject.help.should == help

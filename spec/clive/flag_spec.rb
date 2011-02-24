@@ -2,26 +2,14 @@ require 'spec_helper'
 
 describe Clive::Flag do
 
-  subject { Clive::Flag.new([:S, :say], "Say something", ["WORD(S)"]) {|i| $stdout.puts i } }
+  subject { Clive::Flag.new([:S, :say], "Say something", "WORD(S)") {|i| $stdout.puts i } }
 
   it_behaves_like "an option"
-  
-  describe "#args" do
-    it "returns a hash with argument(s)" do
-      subject.args.should == [{:name => "WORD(S)", :optional => false}]
-    end
-  end
 
   describe "#run" do
     it "calls the block with the argument" do
       $stdout.should_receive(:puts).with("hey")
       subject.run(["hey"])
-    end
-  end
-  
-  describe "#args_to_strings" do
-    it "converts the arguments to strings" do
-      subject.args_to_strings.should == ["WORD(S)"]
     end
   end
   
@@ -34,7 +22,7 @@ describe Clive::Flag do
     end
     
     context "when arguments are required" do
-      subject { Clive::Flag.new([:n], "Description", ["REQ [OPT] REQ2 [OPT2] [OPT3]"]) }
+      subject { Clive::Flag.new([:n], "Description", "REQ [OPT] REQ2 [OPT2] [OPT3]") }
     
       it "returns the number of all arguments" do
         subject.arg_size(:all).should == 5
@@ -50,26 +38,68 @@ describe Clive::Flag do
     end
   end
   
-  describe "#options_to_strings" do
-    context "when @args is a range" do
-      it "returns array with range as string" do
-        subject.args = 1..4
-        subject.options_to_strings.should == ["1..4"]
+  describe "#args_to_string" do
+  
+    context "when a list of options" do
+      it "returns the arguments as a string" do
+        subject.args = "first [second]"
+        subject.args_to_string.should == "<first> [second]"
       end
     end
     
-    context "when @args is a hash" do
-      it "converts the options to strings" do
-        subject.options_to_strings.should == [""]
+    context "when a splat as option" do
+      it "returns the argument and ellipsis" do
+        subject.args = "arg..."
+        subject.args_to_string.should == "<arg1> ..."
       end
     end
     
-    context "when @args is an array" do
-      it "returns the array" do
-        subject.args = %w(1 2 3 4)
-        subject.options_to_strings.should == %w(1 2 3 4)
+    context "when a choice of options" do
+      it "returns an empty string" do
+        subject.args = %w(a b c)
+        subject.args_to_string.should == ""
       end
     end
+    
+    context "when a range of options" do
+      it "returns an empty string" do
+        subject.args = 1..5
+        subject.args_to_string.should == ""
+      end
+    end
+    
+  end
+  
+  describe "#options_to_string" do
+  
+    context "when a list of options" do
+      it "returns an empty string" do
+        subject.args = "first [second]"
+        subject.options_to_string.should == ""
+      end
+    end
+    
+    context "when a splat as option" do
+      it "returns an empty string" do
+        subject.args = "arg..."
+        subject.options_to_string.should == ""
+      end
+    end
+    
+    context "when a choice of options" do
+      it "returns the choices joined" do
+        subject.args = %w(a b c)
+        subject.options_to_string.should == "(a, b, c)"
+      end
+    end
+    
+    context "when a range of options" do
+      it "returns a string representation of the range" do
+        subject.args = 1..5
+        subject.options_to_string.should == "(1..5)"
+      end
+    end
+    
   end
   
   describe "#to_h" do

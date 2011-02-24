@@ -5,7 +5,7 @@ module Clive
   #       wget -t 10
   #
   class Flag < Option
-    attr_accessor :args
+    attr_reader :args
         
     # Creates a new Flag instance. A flag is a switch that can take one or more
     # arguments.
@@ -44,35 +44,35 @@ module Clive
       
       # Need to be able to make each arg_name optional or not
       # and allow for type in future
-      args.each do |i|
-        case i
-        when String
-          if i[-3..-1] == "..."
-            @args = {:type => :splat, :base_name => i[0..-4]}
-          
-          else
-            @args = {:type => :list, :arguments => []}
-            i.split(' ').each do |arg|
-              optional = false
-              if arg[0] == "["
-                optional = true
-                arg = arg[1..-2]
-              end
-
-              @args[:arguments] << {:name => arg, :optional => optional}
-            end
-          end
-          
-        when Range
-          @args = {:type => :range, :range => i}
-          
-        when Array
-          @args = {:type => :choice, :items => i}
-        end
-      end
+      self.args = args
       
       @desc  = desc
       @block = block
+    end
+    
+    def args=(val)
+      case val
+      when String
+        if val[-3..-1] == "..."
+          @args = {:type => :splat, :base_name => val[0..-4]}
+        
+        else
+          @args = {:type => :list, :arguments => []}
+          val.split(' ').each do |arg|
+            optional = false
+            if arg[0] == "["
+              optional = true
+              arg = arg[1..-2]
+            end
+
+            @args[:arguments] << {:name => arg, :optional => optional}
+          end
+        end
+      when Range
+        @args = {:type => :range, :range => val}
+      when Array
+        @args = {:type => :choice, :items => val}
+      end
     end
     
     # Runs the block that was given with an argument
@@ -149,9 +149,9 @@ module Clive
       when :list, :splat
         ''
       when :choice
-        @args[:items].join(', ')
+        '(' + @args[:items].join(', ') + ')'
       when :range
-        @args[:range].to_s
+        '(' + @args[:range].to_s + ')'
       end
     end
     

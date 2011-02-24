@@ -54,26 +54,26 @@ describe Clive::Formatter do
   
   describe "#format" do
     it "generates the help" do
-      formatter = Clive::Command.new(true).help_formatter(:white)
+      formatter = Clive::Command.setup(Class.new).help_formatter(:white)
       options = [
         Clive::Switch.new([:t, :test], "A test switch"),
         Clive::Bool.new([:boolean], "A bool", true),
         Clive::Bool.new([:boolean], "A bool", false),
-        Clive::Flag.new([:args], "With args", ["ARG [OPT]"]),
-        Clive::Flag.new([:choose], "With options", [["a", "b", "c"]])
+        Clive::Flag.new([:args], "With args", "ARG [OPT]"),
+        Clive::Flag.new([:choose], "With options", ["a", "b", "c"])
       ]
-      command = Clive::Command.new([:command], "A command")
+      command = Clive::Command.new([:command], "A command", Class.new)
       result = <<EOS
 head
 
   Commands: 
-     command                  A command
+    command                   A command
 
   Options: 
-     -t, --test               A test switch
-     --[no-]boolean           A bool
-     --args ARG [OPT]         With args \e[1m\e[0m
-     --choose                 With options \e[1m(a, b, c)\e[0m
+    -t, --test                A test switch
+    --[no-]boolean            A bool
+    --args <ARG> [OPT]        With args \e[1m\e[0m
+    --choose                  With options \e[1m(a, b, c)\e[0m
 
 foot
 EOS
