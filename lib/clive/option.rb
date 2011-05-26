@@ -31,7 +31,7 @@ module Clive
     end
     
     # Calls the block.
-    def run
+    def run(*args)
       @block.call
     end
     

@@ -63,17 +63,17 @@ module Clive
     
     # @return [Array] all bools in this command
     def bools
-      @options.find_all {|i| i.class == Bool}
+      @options.find_all {|i| i.class == Bool }
     end
     
     # @return [Array] all switches in this command
     def switches
-      @options.find_all {|i| i.class == Switch}
+      @options.find_all {|i| i.class == Switch }
     end
     
     # @return [Array] all flags in this command
     def flags
-      @options.find_all {|i| i.class == Flag}
+      @options.find_all {|i| i.class == Flag }
     end
     
     # Run the block that was passed to find switches, flags, etc.
@@ -151,7 +151,7 @@ module Clive
     # @param arr [Array]
     # @return [Array]
     #
-    def array_to_tokens(arr)
+    def __array_to_tokens(arr)
       result = []
       
       arr.each do |a|
@@ -189,7 +189,7 @@ module Clive
     # @param arr [Array]
     # @return [Array]
     #
-    def tokens_to_tree(arr)
+    def __tokens_to_tree(arr)
       tree = []
       self.find
       
@@ -241,7 +241,7 @@ module Clive
     # @return [Array]
     #   Any unused arguments.
     #
-    def run_tree(tree)
+    def __run_tree(tree)
       i = 0
       l = tree.size
       r = []
@@ -278,7 +278,7 @@ module Clive
     # @param [Array] argv the command line input, usually just +ARGV+
     # @return [Array] any arguments that were present in the input but not used
     #
-    def run(argv=[])
+    def __run(argv=[])
       to_run = argv
       if @base # if not base we will have been passed the parsed tree already
         to_run = tokens_to_tree( array_to_tokens(argv) )
