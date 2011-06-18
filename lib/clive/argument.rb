@@ -1,6 +1,6 @@
 module Clive
 
-  module Parser
+  class Argument
   
   end
 end
