@@ -7,8 +7,12 @@ end
 
 require_relative '../lib/clive'
 
+begin
+  gem 'minitest'
+rescue
+end
+
 require 'minitest/mock'
 require 'minitest/pride'
-
-MiniTest::Unit.autorun
+require 'minitest/autorun'
 
