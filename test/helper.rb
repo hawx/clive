@@ -2,7 +2,7 @@ $: << File.dirname(__FILE__)
 
 if RUBY_VERSION >= "1.9"
   require 'duvet'
-  Duvet.start :filter => 'lib/duvet'
+  Duvet.start :filter => 'lib/clive'
 end
 
 require_relative '../lib/clive'
