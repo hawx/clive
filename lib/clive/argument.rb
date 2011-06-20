@@ -4,7 +4,7 @@ module Clive
   
     attr_reader :name
   
-    # @param name [Symbol,String,#to_s]
+    # @param name [Symbol, #to_sym]
     #   Name of the argument.
     # @param optional [true, false]
     #   Whether this argument is optional.
@@ -15,7 +15,7 @@ module Clive
     # @param within [Array, #include?]
     #   Collection that the matching argument should be in.
     def initialize(name, optional, type=nil, match=nil, within=nil)
-      @name     = name.to_s
+      @name     = name.to_sym
       @optional = optional
       @type     = type
       @match    = match

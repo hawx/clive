@@ -1,6 +1,13 @@
 require_relative 'helper'
 
-class TestArgument < MiniTest::Unit::TestCase  
+class TestArgument < MiniTest::Unit::TestCase
+
+  def test_name_is_symbol
+    a = Clive::Argument.new(:a, false)
+    assert_equal Symbol, a.name.class
+    b = Clive::Argument.new('b', false)
+    assert_equal Symbol, b.name.class
+  end
 
   def test_can_be_optional
     a = Clive::Argument.new(:a, true)
