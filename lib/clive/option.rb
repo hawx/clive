@@ -2,200 +2,425 @@ module Clive
 
   class InvalidArgumentString < RuntimeError; end
 
+  # An option is called using either a long form +--opt+ or a short form +-o+
+  # they can take arguments and these arguments can be restricted using various
+  # parameters.
+  #
+  #   opt :name, arg: '<first> [<middle>] <second>' do |f, m, s|
+  #     # do something
+  #   end
+  #   # call with
+  #   #  --name John Doe          to set; f='John', m=nil,      s='Doe'
+  #   #  --name John Thomas Doe   to set; f='John', m='Thomas', s='Doe'
+  #
+  #   opt :F, :force, as: Boolean
+  #   # call with
+  #   #   -F or --force  to set to true
+  #   #   --no-force     to set to false
+  #
+  #   opt :email, arg: '<a@b.c>', match: /\w+@\w+\.\w+/
+  #   # call with
+  #   #   --email john@doe.com
+  #   # but not
+  #   #   --email not-an-email-address
+  #   # which gives raises Clive::Parser::MissingArgumentError
+  #
+  #   opt :fruit, arg: '<choice>', in: %w(apple pear banana)
+  #   # here any argument not in the array passed with :in will raise an error
+  #
+  #   opt :start, arg: '<date>', as: Date
+  #   # here any argument which can't be parsed as a Date will raise an error,
+  #   # the argument is saved into the hash as a Date object.
+  #
   class Option
 
-    attr_reader :short, :long, :desc, :opts, :args
-  
+    extend Type::Lookup
+
+    attr_reader :names, :opts, :args, :description
+    alias_method :desc, :description
+
     # @param short [Symbol, #to_sym]
-    #   Short name (single character) for this option
+    #   Short name (single character) for this option.
+    #
     # @param long [Symbol, #to_sym]
-    #   Long name (multiple characters) for this option
-    # @param desc [String]
-    #   Description of the option
-    # @param opts [Hash] Options for the option!
-    #   @option opts [true, false] :head
-    #     If option should be at top of help listing
-    #   @option opts [true, false] :tail
-    #     If option should be at bottom of help listing
-    #   @option opts [String] :args
-    #     Arguments that the option takes. See Argument.
-    #   @option opts [#_coerce, Array[#_coerce]] :as
-    #     The class the argument(s) should be cast to
-    #   @option opts [#match, Array[#match]] :match
-    #     Regular expression that the argument(s) must match
-    #   @option opts [#include?, Array[#include?]] :in
-    #     Collection that argument(s) must be in
-    def initialize(short, long, desc="", opts={}, &block)
-      @short = short.to_sym if short
-      @long  = long.to_sym if long
-      @desc  = desc
-      @opts  = map_opts(opts)
+    #   Long name (multiple characters) for this option.
+    #
+    # @param description [String]
+    #   Description of the option.
+    #
+    # @param opts [Hash]
+    # @option opts [true, false] :head
+    #   If option should be at top of help listing
+    # @option opts [true, false] :tail
+    #   If option should be at bottom of help listing
+    # @option opts [String] :args
+    #   Arguments that the option takes. See {Argument}.
+    # @option opts [Type, Array[Type]] :as
+    #   The class the argument(s) should be cast to. See {Type}.
+    # @option opts [#match, Array[#match]] :match
+    #   Regular expression that the argument(s) must match
+    # @option opts [#include?, Array[#include?]] :in
+    #   Collection that argument(s) must be in
+    # @option opts :default
+    #   Default value that is used if argument is not given
+    #
+    # @example
+    #
+    #   Option.new(
+    #     [:N, :new],
+    #     "Add a new thing",
+    #     {:args => "<dir> [<size>]", :matches => [/^\//], :types => [nil, Integer]}
+    #   )
+    #
+    def initialize(names=[], description="", opts={}, &block)
+      @names = names.sort_by(&:size)
+      @description  = description
       @block = block
 
-      @args = parse_args(opts[:args], nextify(opts[:as]), nextify(opts[:match]), nextify(opts[:in]))
+      @opts, hash = sort_opts(opts)
+
+      hash  = args_to_hash(hash)
+      hash  = infer_args(hash)
+      @args = optify(hash)
     end
 
-    # Defines the #next method on the object, if the object is responds to #pop, #next 
-    # will pop the last item until there is only one left, which it will then continue 
-    # to return. Any other object will just return itself.
-    #
-    # @param obj [Object]
-    # @return [#next]
-    def nextify(obj)
-      if obj.respond_to?(:pop)
-        def obj.next
-          if size > 1
-            pop
-          else
-            first
-          end
-        end
-      else
-        def obj.next
-          self
+    def pad(arr, max)
+      if arr.size < max
+        (max - arr.size).times { arr << nil }
+      end
+      arr
+    end
+
+
+    # @return [Array[Hash]] Two hashes.
+    #  The first hash contains all options relevent to the Option, to be stored
+    #  in +@opts+.
+    #  The second hash contains all options for building the arguments and should
+    #  be used in the relevant methods.
+    #  Hash keys for the returned hashes will be mapped to standard names from
+    #  common variations.
+    def sort_opts(hash)
+      arg_keys = {
+        :args        => [:arg],
+        :types       => [:type, :kind, :as],
+        :matches     => [:match],
+        :withins     => [:within, :in],
+        :defaults    => [:default],
+        :constraints => [:constraint]
+      }.flip
+
+      opt_keys = {
+        :head => [:head],
+        :tail => [:tail]
+      }.flip
+
+      arg, opt = {}, {}
+      hash.each do |k, v|
+        if arg_keys.has_key?(k)
+          arg[arg_keys[k]] = v
+        elsif opt_keys.has_key?(k)
+          opt[opt_keys[k]] = v
+        elsif arg_keys.has_value?(k)
+          arg[k] = v
+        elsif opt_keys.has_value?(k)
+          opt[k] = v
         end
       end
+
+      [opt, arg]
     end
-    
-    def head?
-      @opts[:head]
-    end
-    
-    def tail?
-      @opts[:tail]
-    end
-    
-    
-    def map_opts(options)
-      { :arg  => :args, :matches => :match, 
-        :type => :as,   :from => :in
-      }.each do |from, to|
-        options[to] = options.delete(from) if options.has_key?(from)
+
+
+    def args_to_hash(opts)
+      withins = []
+      if opts.has_key?(:withins)
+        if opts[:withins].respond_to?(:[]) && opts[:withins][0].is_a?(Array)
+          withins = opts[:withins]
+        else
+          withins = [opts[:withins]]
+        end
       end
-      options
-    end
-    
-    # @param args [String]
-    # @param types [Array[#_coerce, #_matches?], #next]
-    # @param matches [Array[#match], #next]
-    # @param withins [Array[#include?], #next]
-    def parse_args(args, types=nextify(nil), matches=nextify(nil), withins=nextify(nil))
-      return [] unless args
-      
-      args = args.split(' ')
-      
-      r = []
-      optional = false           # keep track of optionality(?)
-      cancelled_optional = false # keep track of whether optionality was changed
-      
-      args.each do |arg|
-        name = ""
-        
-        if arg[-1] == "]"
-          arg = arg[0..-2]
+
+      a = {
+        :types       => Array(opts[:types])       || [],
+        :matches     => Array(opts[:matches])     || [],
+        :withins     => withins,
+        :defaults    => Array(opts[:defaults])    || [],
+        :constraints => Array(opts[:constraints]) || []
+      }
+
+      max = a.values.map(&:size).max
+
+      a = Hash[ a.map {|k,v|
+        [k, pad(v, max)]
+      }]
+
+      b = []
+      max.times {|i|
+        c = {}
+        {
+          :types => :type,
+          :matches => :match,
+          :withins => :within,
+          :defaults => :default,
+          :constraints => :constaint
+        }.each do |plural, single|
+          c[single] = a[plural][i] if a[plural][i]
+        end
+
+        b << c
+      }
+
+      return b unless opts[:args]
+
+      optional = false
+      cancelled_optional = false
+      opts[:args].split(' ').zip(b).map {|arg, opts|
+        if cancelled_optional
+          optional = false
+          cancelled_optional = false
+        end
+
+        if arg[-1] == ']'
           cancelled_optional = true
         end
-        
-        if arg[0] == "["
-          optional = true          
-          if arg[1] == "<"
-            name = arg[2..-2]
-          else
-            name = arg[1..-1]
-          end
-          
-        elsif arg[0] == "<"
-          name = arg[1..-2]
+
+        if arg[0] == '['
+          optional = true
+        elsif arg[0] == '<'
+          # okay
         else
           # problem
           raise InvalidArgumentString
         end
-        
-        r << Argument.new(name, optional, types.next, matches.next, withins.next)
-        
-        if cancelled_optional
-          optional = false
+
+        opts ||= {}
+        {:name => arg.gsub(/^\[?\<|\>\]?$/, ''), :optional => optional}.merge(opts)
+      }
+    end
+
+    def optify(hash)
+      hash.map do |opts|
+        Argument.new(opts[:name] || 'arg', *opts.without(:name))
+      end
+    end
+
+    def infer_args(opts)
+      opts.map do |hash|
+        if hash.has_key?(:default)
+          hash.merge({:name => 'arg', :optional => true})
+        elsif hash.has_key?(:within)
+          hash.merge({:name => 'choice'})
+        elsif hash.has_any_key?(:type, :match, :constraint)
+          hash.merge({:name => 'arg'})
+        else
+          hash
         end
       end
-      
+    end
+
+    def do_opts(opts)
+      opts[:as]           = Array(opts[:as]) || []
+      opts[:match]        = Array(opts[:match]) || []
+      opts[:in]           = [opts[:in]] if opts[:in].is_a?(Array) && !opts[:in][0].is_a?(Array)
+      opts[:in]         ||= []
+      opts[:default]      = Array(opts[:default]) || []
+      opts[:constraint]   = Array(opts[:constraint])
+      opts
+    end
+
+    # If size is 1, then returns [name], otherwise appends a number starting at 1 after each.
+    def string_with_numbers(name, size)
+      if size > 1
+        (1..size).map {|i| name + i.to_s }
+      else
+        [name]
+      end
+    end
+
+    def short
+      @names.find {|i| i.size == 1 }
+    end
+
+    def long
+      @names.find {|i| i.size > 1 }
+    end
+
+    def name
+      names.last
+    end
+
+    def to_s
+      r = ""
+      r << "-#{short}" if short
+      r << ", "        if short && long
+      r << "--#{long}" if long
       r
     end
-    
-    def requires_arguments?
-      @args.reject {|i| i.optional? }.size > 0
+
+    def inspect
+      "#<#{self.class} #{to_s}>"
     end
-    
+
+    # @return [true, false] Whether this option should come first in the help
+    def head?
+      @opts[:head]
+    end
+
+    # @return [true, false] Whether this option should come last in the help
+    def tail?
+      @opts[:tail]
+    end
+
+    # @return [true, false] Whether a block was given.
+    def block?
+      @block != nil
+    end
+
     # Maps the +args+ to this options arguments
     # @return [::Hash{Argument=>Object}]
     def map_args(args)
-      filled = optimise_fill(args, @args.map {|i| !i.optional? })
-      ::Hash[ @args.zip(filled) ]
+      ::Hash[@args.zip(filled_args(args)).find_all {|a,e| a.possible?(e) }]
     end
-    
-    # Attempts to fill the result with values from +input+, giving priority to 
-    # true, then false. If insufficient input to fill all false will use nil.
-    #
-    # @param [Array] input array of values to fill +match+ with
-    # @param [Array] match array of trues and falses which is the pattern to match
-    # @return [Array] filled array
-    #
-    # @example
-    #
-    #   optimise_fill(["a", "b", "c"], [true, false, false, true])
-    #   #=> ["a", "b", nil, "c"]
-    #
-    def optimise_fill(input, match)
-      diff = input.size - match.reject{|i| i == false}.size
-      
+
+    # Puts the arguments in the correct places, with +nil+ where an optional
+    # argument has not been given.
+    def filled_args(args)
+      diff = args.size - @args.reject {|i| i.optional? }.size
+
+      @args.zip(args).map do |arg, real|
+        if arg.optional?
+          if diff > 0
+            diff -= 1
+            real
+          else
+            nil
+          end
+        else
+          real
+        end
+      end
+    end
+
+    # @param state [Hash] Global state for parser, this may be modified!
+    # @param args [Array] Arguments for the block which is run
+    def run(state, args=[])
+      mapped_args = if boolean?
+         {:truth => args.first}
+      else
+        Hash[ map_args(args).map {|k,v| [k.name, v]} ]
+      end
+
+      RunClass._run(mapped_args, state, @block)
+    end
+
+
+    def boolean?
+      args.size == 1 && args.first.type == Clive::Type::Boolean
+    end
+
+    def min_args
+      if boolean?
+        0
+      else
+        @args.reject {|i| i.optional? }.size
+      end
+    end
+
+    def max_args
+      if boolean?
+        0
+      else
+        @args.size
+      end
+    end
+
+    def possible?(list)
+      @args.zip(list).all? {|arg,item| item ? arg.possible?(item) : true } && list.size <= max_args
+    end
+
+    def valid?(list)
+      if boolean?
+        list == [true] || list == [false]
+      else
+        list.size >= min_args && possible?(list)
+      end
+    end
+
+    def valid_arg_list(list)
+      match = @args.map {|i| !i.optional? }
+      list = list.dup
+      diff = list.size - match.find_all {|i| i == true }.size
+
       result = []
       match.each_index do |i|
-        curr_item = match[i]
-        if curr_item == true
-          result << input.shift
+        curr = match[i]
+        result << if curr
+          list.shift
+        elsif diff > 0
+          diff -= 1
+          list.shift
         else
-          if diff > 0
-            result << input.shift
-            diff -= 1
-          else
-            result << nil
-          end
+          nil
         end
       end
-      result
+
+      # Use defaults if necessary and coerce
+      result.zip(@args).map {|r,a| r ? a.coerce(r) : a.coerce(a.default) }
     end
-    
-    # @param args [Array]
-    def run(args=nil)
-      if args
-        if @o
-          @o._run(Hash[ map_args(args).map {|k,v| [k.name, v]} ], @block)
-        else
-          @o = Class.new {
-            def _run(a, f)
-              @a = a
-              if f.arity > 0
-                instance_exec(a.values, &f)
-              else
-                instance_exec &f
-              end
-            end
-            
-            def method_missing(sym, *args)
-              if @a.has_key?(sym)
-                @a[sym]
-              else
-                super
-              end
-            end
-          }.new
-          
-          run(args)
-        end
-        
-      else
-        @block.call
-      end
+
+    def name
+      @names.find {|i| i.size > 1 }
     end
-  
+
+    def args
+      @args
+    end
+
+
+    puts "#{__FILE__}:#{__LINE__} remove these methods"
+    def option?
+      true
+    end
+
+    def command?
+      false
+    end
+
   end
+
+  # Class for running in
+  class RunClass
+    class << self
+
+      def _run(args, state, fn)
+        @args = args
+        @state = state
+        return unless fn
+        if fn.arity > 0
+          instance_exec(*args.values, &fn)
+        else
+          instance_exec &fn
+        end
+      end
+
+      def get(key)
+        @state[key]
+      end
+
+      def set(key, value)
+        @state[key] = value
+      end
+
+      def method_missing(sym, *args)
+        if @args.has_key?(sym)
+          @args[sym]
+        else
+          super
+        end
+      end
+
+    end
+  end
+
 end

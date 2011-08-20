@@ -8,7 +8,7 @@ module Clive
     end
     
     def l_pad(str, margin, with=" ")
-      r = (with * margin) + str
+      (with * margin) + str
     end
     
     # @param str [String] Text to be wrapped
