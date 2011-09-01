@@ -1,14 +1,5 @@
 $: << File.dirname(__FILE__)
 
-require 'seq'
-
-# Last item of list is made default
-class LSeq < Seq
-  def initialize(list=[], items=1, offset=0)
-    super(list, items, offset, list.last)
-  end
-end
-
 require 'clive/core_ext'
 require 'clive/error'
 require 'clive/type'
