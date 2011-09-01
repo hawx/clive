@@ -110,6 +110,7 @@ class TestOption < MiniTest::Unit::TestCase
     assert_argument [:arg, true, Clive::Type::Symbol, nil, nil], o.args.first
   end
   
+  # TODO
   def test_can_add_infinite_args
     o = Clive::Option.new([:add], "", {:args => "<item>..."})
     assert_equal Infinite, o.args.size

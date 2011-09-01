@@ -42,9 +42,9 @@ class TestArgument < MiniTest::Unit::TestCase
   end
   
   def test_possible_with_constraint
-    a = Clive::Argument.new(:a, :constraint => proc {|i| i.true? })
-    assert a.possible?('true')
-    refute a.possible?('false')
+    a = Clive::Argument.new(:a, :type => Integer, :constraint => proc {|i| i.odd? })
+    assert a.possible?('1')
+    refute a.possible?('2')
   end
 
   def test_coerce
