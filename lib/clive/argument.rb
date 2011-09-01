@@ -111,9 +111,11 @@ module Clive
       if !(@within.include?(str) || @within.include?(@type.typecast(str)))
         return false
       end
-
-      if !(@constraint.call(str) || @constraint.call(@type.typecast(str)))
-        return false
+      
+      begin
+        return false unless @constraint.call(str)
+      rescue
+        return false unless @constraint.call(@type.typecast(str))
       end
 
       true
