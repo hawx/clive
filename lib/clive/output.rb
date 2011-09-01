@@ -1,13 +1,49 @@
-# This should control the character output to the command line.
-# It will allow you to set different colours, using:
-#
-#   "I'm red".red
-#   "I'm red and bold".red.bold
-#
-#
-
 module Clive
-  module Output
+  module Output extend self
+  
+    def pad(str, len, with=" ")
+      diff = len - str.clear_colours.size
+      str += with * diff unless diff < 0
+      str
+    end
+    
+    def l_pad(str, margin, with=" ")
+      (with * margin) + str
+    end
+    
+    # @param str [String] Text to be wrapped
+    # @param left_margin [Integer] Width of space at left
+    # @param width [Integer] Total width of text
+    def wrap_text(str, left_margin, width)
+      text_width = width - left_margin
+      
+      words = str.split(" ")
+      r = [""]
+      i = 0
+      
+      words.each do |word|
+        if (r[i] + word).clear_colours.size < text_width
+          r[i] << " " << word
+        else
+          i += 1
+          r[i] = word
+        end
+      end
+      
+      # Clean up strings
+      r.map! {|i| i.strip }
+      
+      ([r[0]] + r[1..-1].map {|i| l_pad(i, left_margin) }).join("\n")
+    end
+    
+    def option_name_to_string(sym)
+      str = sym.to_s
+      if str.size == 1
+        "-#{str}"
+      else
+        "--#{str}"
+      end
+    end
   
   end
 end
@@ -83,4 +119,13 @@ class String
     end
 
   end
+  
+  def clear_colours
+    gsub /\e\[?\d\d{0,2}m/, ''
+  end
+  
+  def clear_colours!
+    gsub! /\e\[?\d\d{0,2}m/, ''
+  end
+  
 end

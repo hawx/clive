@@ -1,63 +1,52 @@
 module Clive
-  
-  # A string which describes the command to execute
-  #   eg. git add
-  #       git pull
+
+  # A command is a subcommand that allows you to separate options under it's 
+  # namespace, it can also take arguments but does not execute the block with
+  # their values but instead another block defined with #action.
+  #
+  # @example
+  #
+  #   class CLI
+  #     include Clive
+  #
+  #     command :new, arg: '<dir>' do
+  #       # opt definitions
+  #       opt :force, as: Boolean
+  #
+  #       action do |dir|
+  #         # code
+  #       end
+  #     end
+  #   end
+  #
+  #   # call with
+  #   #   file.rb new ~/somewhere --force
   #
   class Command < Option
-    
-    attr_accessor :options, :commands
-    attr_accessor :argv, :base
-    attr_reader   :names, :current_desc
-    attr_reader   :top_klass
-    
-    # Create the base Command instance. Replacement for the #initialize
-    # overloading.
+  
+    attr_reader :names, :desc, :options
+  
+    # @param names [Array[Symbol]]
+    #   Names that the Command can be ran with.
     #
-    def self.setup(klass, &block)
-      new([], "", klass, &block)
-    end
-    
-    # Create a new Command instance
+    # @param desc [String]
+    #   Description of the Command, this is shown in help and will be wrapped properly.
     #
-    # @overload initialize(base, &block)
-    #   Creates a new base Command to house everything else
-    #   @param base [Boolean] whether the command is the base
+    # @param opts [Hash] The options available for commands are the same as for Options
+    #   see {Option#initialize} for details.
     #
-    # @overload initialize(names, desc, &block)
-    #   Creates a new Command as part of the base Command
-    #   @param names [Symbol] the name of the command
-    #   @param desc [String] the description of the command
-    #
-    # @yield A block to run, containing switches, flags and commands
-    #
-    def initialize(names, desc, top_klass, &block)
-      @argv      = []
-      @names     = names.map {|i| i.to_s }
-      @top_klass = top_klass
-      @desc      = desc
-      @commands  = []
-      @options   = []
-      @block     = block
-      @base      = false
+    def initialize(names, desc="", opts={}, &block)
+      @names = names.sort
+      @desc  = desc
+      @_block = block
       
-      if @names == [] && @desc == ""
-        @base = true
-        self.instance_eval(&block) if block_given?
-      end
+      @opts, hash = sort_opts(opts)
       
-      @option_missing = Proc.new {|e| raise NoOptionError.new(e)}
+      hash  = args_to_hash(hash)
+      hash  = infer_args(hash)
+      @args = optify(hash)
       
-      # Create basic header "Usage: filename [command] [options]
-      #                  or "Usage: filename commandname(s) [options]
-      @header = "Usage: #{File.basename($0, '.*')} " << 
-                (@base ? "[command]" : @names.join(', ')) << 
-                " [options]"
-                
-      @footer = nil
-      @current_desc = ""
-      help_formatter :default
-      
+<<<<<<< HEAD
       self.build_help
     end
     
@@ -95,62 +84,47 @@ module Clive
     #
     def type_is?(name)
       find_opt(name).class.name || Clive::Command
+=======
+      @options = []
+      current_desc
+>>>>>>> master
     end
     
-    def opt_type(name)
-      case find_opt(name).class.name
-      when "Clive::Switch"
-        :switch
-      when "Clive::Bool"
-        :switch
-      when "Clive::Flag"
-        :flag
-      when "Clive::Command"
-        :command
-      else
-        nil
-      end
+    # @return [Symbol] Single name to use when referring specifically to this command.
+    def name
+      names.first
     end
     
-    # Finds the option which has the name given
-    #
-    # @param name [String]
-    # @return [Clive::Option]
-    #
-    def find_opt(name)
-      options.find {|i| i.names.include?(name)}
+    # @return [String]
+    def to_s
+      names.join(', ')
     end
     
-    # Checks whether the string given is the name of a Command or not
-    #
-    # @param str [String]
-    # @return [true, false]
-    #
-    def is_a_command?(str)
-      find_command(str).empty?
+    # Runs the block that was given to Command#initialize within the context of the 
+    # command.
+    def run_block
+      instance_exec(&@_block) if @_block
     end
     
-    # Finds the command which has the name given
-    #
-    # @param name [String]
-    # @return [Clive::Command]
-    #
-    def find_command(str)
-      commands.find {|i| i.names.include?(str)}
+    # @return [String]
+    #   Returns the last description to be set with {#description}, it then clears the
+    #   stored description so that it is not returned twice.
+    def current_desc
+      r = @_last_desc
+      @_last_desc = ""
+      r
     end
     
-    # Converts the array of input from the command line into a string of tokens.
-    # It replaces instances of the names of flags, switches and bools with the 
-    # actual option, but does not affect commands. Instead these are left as +words+.
+    # Creates a new Option in the Command.
     #
-    # @example
+    # @overload option(short=nil, long=nil, description=current_desc, opts={}, &block)
+    #   Creates a new Option
+    #   @param short [Symbol] The short name for the option (:a would become +-a+)
+    #   @param long [Symbol] The long name for the option (:add would become +--add+)
+    #   @param description [String] Description of the option
+    #   @param opts [Hash] Options to create the Option with, see Option#initialize
     #
-    #   array_to_tokens ['--switch', 'command', '-f', 'arg']
-    #   #=> [[:option, "switch"], [:word, "command"], [:option, "f"], [:word, "arg"]]
-    #
-    # @param arr [Array]
-    # @return [Array]
-    #
+<<<<<<< HEAD
     def __array_to_tokens(arr)
       result = []
       
@@ -227,16 +201,25 @@ module Clive
           end
         else
           tree << [opt_type(a[1]), find_opt(a[1])]
+=======
+    def option(*args, &block)
+      ns, d, o = [], current_desc, {}
+      args.each do |i|
+        case i
+          when Symbol then ns << i
+          when String then d = i
+          when Hash   then o = i
+>>>>>>> master
         end
-
-        i += 1
       end
-
-      tree
+      @options << Option.new(ns, d, o, &block)
     end
+    alias_method :opt, :option
     
-    # Traverses the tree created by #tokens_to_tree and runs the correct options.
+    # If an argument is given it will set the description to that, otherwise it will
+    # return the description for the command.
     # 
+<<<<<<< HEAD
     # @param tree [Array]
     # @return [Array]
     #   Any unused arguments.
@@ -268,10 +251,19 @@ module Clive
         end
         
         i += 1
+=======
+    # @param arg [String]
+    def description(arg=nil)
+      if arg
+        @_last_desc = arg
+      else
+        @description
+>>>>>>> master
       end
-      r.flatten
     end
+    alias_method :desc, :description
     
+<<<<<<< HEAD
     
     # Parse the ARGV passed from the command line, and run
     #
@@ -284,227 +276,64 @@ module Clive
         to_run = tokens_to_tree( array_to_tokens(argv) )
       end
       run_tree(to_run)
+=======
+    # The action block is the block which will be executed with any arguments that
+    # are found for it. It sets +@block+ so that {Option#run} does not have to be redefined.
+    def action(&block)
+      @block = block
+>>>>>>> master
     end
     
+    # Why do the general methods take strings not symbols?
+    # > So that I can find out which array to check in. Otherwise, if for example,
+    # > there was an option and command with the same name you would not know which
+    # > to return.
     
-    def to_h
-      {
-        'names' => @names,
-        'desc'  => @desc
-      }
-    end
-    
-    def method_missing(sym, *args, &block)
-      if @top_klass.respond_to?(sym)
-        @top_klass.send(sym, *args)
+    # Finds the option represented by +arg+, this can either be the long name +--opt+
+    # or the short name +-o+, if the option can't be found +nil+ is returned.
+    #
+    # @param arg [String]
+    # @return [Option, nil]
+    def find(arg)
+      if arg[0..1] == '--'
+        find_option(arg[2..-1].to_sym)
+      elsif arg[0...1] == '-'
+        find_option(arg[1..-1].to_sym)
       end
     end
-  
+    alias_method :[], :find
     
-      
-  # @group DSL
-  
-    # Add a new command to +@commands+
+    # Attempts to find the option represented by the string +arg+, returns true if
+    # it exists and false if not.
     #
-    # @overload command(name, ..., desc, &block)
-    #   Creates a new command
-    #   @param [Symbol] name the name(s) of the command, eg. +:add+ for +git add+
-    #   @param [String] desc description of the command
-    # 
-    # @yield A block to run when the command is called, can contain switches
-    #   and flags
-    #
-    def command(*args, &block)
-      @commands << Command.new(args, @current_desc, @top_klass, &block)
-      @current_desc = ""
+    # @param arg [String]
+    def has?(arg)
+      !!find(arg)
     end
     
-    # Add a new switch to +@switches+
-    # @see Switch#initialize
-    def switch(*args, &block)
-      @options << Switch.new(args, @current_desc, &block)
-      @current_desc = ""
+    # Finds the option with the name given by +arg+, this must be in Symbol form so
+    # does not have a dash before it. As with {#find} if the option does not exist +nil+
+    # will be returned.
+    #
+    # @param arg [Symbol]
+    # @return [Option, nil]
+    def find_option(arg)
+      @options.find {|opt| opt.names.include?(arg) }
+    end
+    
+    # Attempts to find the option with the Symbol name given, returns true if the option
+    # exists and false if not.
+    #
+    # @param arg [Symbol]
+    def has_option?(arg)
+      !!find_option(arg)
     end
 
-    # Adds a new flag to +@flags+
-    # @see Flag#initialize
-    def flag(*args, &block)
-      names = []
-      arg = nil
-      args.each do |i|
-        if i.is_a? Symbol
-          names << i
-        else
-          if i[:arg]
-            arg = i[:arg]
-          else
-            arg = i[:args]
-          end
-        end
-      end
-      @options << Flag.new(names, @current_desc, arg, &block)
-      @current_desc = ""
-    end
-    
-    # Creates a boolean switch. This is done by adding two switches of
-    # Bool type to +@switches+, one is created normally the other has
-    # "no-" appended to the long name and has no short name.
-    #
-    # @see Bool#initialize
-    def bool(*args, &block)
-      @options << Bool.new(args, @current_desc, true, &block)
-      @options << Bool.new(args, @current_desc, false, &block)
-      @current_desc= ""
-    end
-    
-    # Add a description for the next option in the class. Or acts as an 
-    # accessor for @desc.
-    #
-    # @example
-    #
-    #   class CLI
-    #     include Clive::Parser
-    #
-    #     desc 'Force build docs'
-    #     switch :force do
-    #       # code
-    #     end
-    #   end
-    #
-    def desc(str=nil)
-      if str
-        @current_desc = str
-      else
-        @desc
-      end
-    end
-    
-    # Define a block to execute when the option to execute cannot be found.
-    #
-    # @example
-    #
-    #   class CLI
-    #     include Clive::Parser
-    #
-    #     option_missing do |name|
-    #       puts "#{name} couldn't be found"
-    #     end
-    #
-    def option_missing(&block)
-      @option_missing = block
-    end      
-    
-    # Set the header
-    def header(val)
-      @header = val
-    end
-    
-    # Set the footer
-    def footer(val)
-      @footer = val
-    end
-    
-  # @group Help
-    
-    # This actually creates a switch with "-h" and "--help" that controls
-    # the help on this command.
-    def build_help
-      @options << Switch.new([:h, :help], "Display help") do
-        puts self.help
-        exit 0
-      end
-    end
-
-    # Generate the summary for help, show all flags and switches, but do not
-    # show the flags and switches within each command. Should also prepend the
-    # header and append the footer if set.
-    def help
-      @formatter.format(@header, @footer, @commands, @options)
-    end
-    
-    # This allows you to define how the output from #help looks.
-    #
-    # For this you have access to several tokens which are evaluated in an object
-    # with the correct values, this means you are able to use #join on arrays or
-    # prepend, etc. The variables (tokens) are:
-    #
-    # * prepend - a string of spaces as specified when #help_formatter is called
-    # * names - an array of names for the option
-    # * spaces - a string of spaces to align the descriptions properly
-    # * desc - a string of the description for the option
-    #
-    # And for flags you have access to:
-    #
-    # * args - an array of arguments for the flag
-    # * options - an array of options to choose from
-    #
-    #
-    # @overload help_formatter(args, &block)
-    #   Create a new help formatter to use.
-    #   @param args [Hash]
-    #   @option args [Integer] :width Width before flexible spaces
-    #   @option args [Integer] :prepend Width of spaces to prepend with
-    #
-    # @overload help_formatter(name)
-    #   Use an existing help formatter.
-    #   @param name [Symbol] name of the formatter (either +:default+ or +:white+)
-    #
-    #
-    # @example
-    #   
-    #   CLI.help_formatter do |h|
-    #
-    #     h.switch  "{prepend}{names.join(', ')} {spaces}{desc.grey}"
-    #     h.bool    "{prepend}{names.join(', ')} {spaces}{desc.grey}"
-    #     h.flag    "{prepend}{names.join(', ')} {args.join(' ')} {spaces}{desc.grey}"
-    #     h.command "{prepend}{names.join(', ')} {spaces}{desc.grey}"
-    #
-    #   end
-    #   
-    #   
-    def help_formatter(*args, &block)    
-      if block_given?
-        width   = 30
-        prepend = 4
-      
-        unless args.empty?
-          args[0].each do |k,v|
-            case k
-            when :width
-              width = v
-            when :prepend
-              prepend = v
-            end
-          end
-        end
-        
-        @formatter = Formatter.new(width, prepend)
-        block.call(@formatter)
-        @formatter
-      else
-        case args[0]
-        when :default
-          help_formatter(&HELP_FORMATTERS[:default])
-        when :white
-          help_formatter(&HELP_FORMATTERS[:white])
-        end
-      end
-    end
-    
-    HELP_FORMATTERS = {
-      :default => lambda do |h|
-        h.switch  "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
-        h.bool    "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
-        h.flag    "{prepend}{names.join(', ')} {args}  {spaces}{desc.grey} {options.blue.bold}"
-        h.command "{prepend}{names.join(', ')}  {spaces}{desc.grey}"
-      end,
-      :white => lambda do |h|
-        h.switch  "{prepend}{names.join(', ')}  {spaces}{desc}"
-        h.bool    "{prepend}{names.join(', ')}  {spaces}{desc}"
-        h.flag    "{prepend}{names.join(', ')} {args}  {spaces}{desc} {options.bold}"
-        h.command "{prepend}{names.join(', ')}  {spaces}{desc}"
-      end
-    }
+    # A command is a command
+    def command?; true;  end
+    # A command is not an option, these methods should be removed!
+    def option?;  false; end
+    puts "#{__FILE__}:#{__LINE__} remove these methods"
     
   end
 end
