@@ -5,6 +5,10 @@ module Clive
     class MissingArgumentError < Error
       reason 'missing argument for #0, found #1, needed #2'
     end
+    
+    class MissingOptionError < Error
+      reason 'option could not be found: #0'
+    end
 
     # :state [#[], #[]=] Used to store values from options that do not trigger blocks.
     # :debug [Boolean] Whether to print debug messages, useful if parsing oddly.
@@ -58,7 +62,8 @@ module Clive
 
       until ended?
         # does +curr+ exist? (and also check that if it is a command a command hasn't been run yet
-        if @base.has?(curr) && ( (@base.find(curr).command? && !command_ran) || (@base.find(curr).option?) )
+        if @base.has?(curr) && ((@base.find(curr).command? && !command_ran) || (@base.find(curr).option?))
+        
           found = @base.find(curr)
 
           # is it a command?
@@ -77,7 +82,7 @@ module Clive
               if found.has?(curr)
                 opt = found.find(curr)
                 debug "Found option: #{opt}"
-
+                
                 args = opt.max_args > 0 ? do_arguments_for(opt) : [true]
 
                 if opt.block?
@@ -85,6 +90,7 @@ module Clive
                 else
                   state[found.name][opt.name] = (opt.max_args <= 1 ? args[0] : args)
                 end
+                
               else
                 break unless found.possible?(command_args + [curr])
                 command_args << curr
@@ -133,6 +139,7 @@ module Clive
 
           currs.each do |c|
             opt = @base.find(c)
+            raise Parser::MissingOptionError.new(name) unless opt
             debug "Found option: #{opt}"
 
             if c == currs.last
