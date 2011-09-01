@@ -1,4 +1,4 @@
-$: << File.dirname(__FILE__) + '..'
+$: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
 class TestOption < MiniTest::Unit::TestCase
@@ -108,6 +108,12 @@ class TestOption < MiniTest::Unit::TestCase
     o = Clive::Option.new([:T, :type], "", {:default => "large", :as => Symbol})
     assert_equal 1, o.args.size
     assert_argument [:arg, true, Clive::Type::Symbol, nil, nil], o.args.first
+  end
+  
+  def test_can_add_infinite_args
+    o = Clive::Option.new([:add], "", {:args => "<item>..."})
+    assert_equal Infinite, o.args.size
+    assert_argument [:arg1, false, nil, nil, nil], o.args.first
   end
 
 end

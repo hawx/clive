@@ -1,4 +1,4 @@
-$: << File.dirname(__FILE__) + '..'
+$: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
 class TestArgument < MiniTest::Unit::TestCase
@@ -39,6 +39,12 @@ class TestArgument < MiniTest::Unit::TestCase
     a = Clive::Argument.new(:a, :type => Integer, :within => 1..11)
     assert a.possible?('8')
     refute a.possible?('100')
+  end
+  
+  def test_possible_with_constraint
+    a = Clive::Argument.new(:a, :constraint => proc {|i| i.true? })
+    assert a.possible?('true')
+    refute a.possible?('false')
   end
 
   def test_coerce

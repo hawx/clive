@@ -1,8 +1,9 @@
-$: << File.dirname(__FILE__) + '..'
+$: << File.dirname(__FILE__) + '/..'
 require 'helper'
-=begin
+
+
 class CliveTestClass
-  include Clive
+  extend Clive
   
   opt :version, tail: true do
     puts "Version 1"
@@ -32,7 +33,10 @@ class CliveTestClass
       puts "Creating #{get :type} in #{dir}"
     end
   end
+
 end
+
+
 
 class TestClive < MiniTest::Unit::TestCase
 
@@ -51,13 +55,11 @@ class TestClive < MiniTest::Unit::TestCase
   end
   
   def test_commands
-    reset_std
     $stdout.expect(:puts, nil, ["Creating post in ~/my_site"])
     a,s = CliveTestClass.run %w(-v new --type post ~/my_site --no-auto arg)
     assert_equal %w(arg), a
     assert_equal({:verbose => true, :new => {:type => :post}, :auto => false}, s)
     $stdout.verify
   end
-
+  
 end
-=end

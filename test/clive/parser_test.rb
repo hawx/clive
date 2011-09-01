@@ -1,6 +1,5 @@
-$: << File.dirname(__FILE__) + '..'
+$: << File.dirname(__FILE__) + '/..'
 require 'helper'
-
 
 class TestParser < MiniTest::Unit::TestCase
   extend Clive::Type::Lookup
@@ -17,7 +16,6 @@ class TestParser < MiniTest::Unit::TestCase
     base.run %w(--force)
     assert_equal "forced", a
   end
-
 
   def test_parsing_with_arguments_for_options
     a = nil

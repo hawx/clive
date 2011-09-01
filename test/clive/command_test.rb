@@ -1,4 +1,4 @@
-$: << File.dirname(__FILE__) + '..'
+$: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
 class TestCommand < MiniTest::Unit::TestCase
