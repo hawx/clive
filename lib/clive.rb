@@ -11,9 +11,6 @@ require 'clive/output'
 require 'clive/version'
 
 
-
-
-
 module Clive
 
   # TopCommand is the top command. It doesn't have a name, the class that
@@ -68,20 +65,40 @@ module Clive
   # save it in an instance variable, then the necessary methods can
   # be aliased to call it. Also adds a reader method for it as {#base}
   # and extends with {Type::Lookup}.
-  def self.included(other)
+  def self.extended(other)
     other.instance_variable_set :@base,  Clive::TopCommand.new
     other.class.send :attr_reader, :base
     other.extend Type::Lookup
     
-    str = %w(opt option description desc command run).map do |meth|
+    # List of common command methods that should be defined for performance
+    common_methods = [:opt, :option, :desc, :description, :command, 
+                      :run, :has?, :find, :[]]
+    
+    str = common_methods.map do |meth|
       <<-EOS
-        def #{meth}(sym, *args, &block)
-          @base.#{meth}(sym, *args, &block)
+        def #{meth}(*args, &block)
+          @base.#{meth}(*args, &block)
         end
       EOS
     end.join("\n")
-    
+
     other.instance_eval str
+  end
+
+  def self.included(other)
+    other.extend(self)
+  end
+  
+  def method_missing(sym, *args, &block)
+    if @base.respond_to?(sym)
+      @base.send(sym, *args, &block)
+    else
+      super
+    end
+  end
+  
+  def respond_to_missing?(sym)
+    @base.respond_to?(sym)
   end
 
 end
