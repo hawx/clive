@@ -24,7 +24,7 @@ module Clive
   #
   class Command < Option
   
-    attr_reader :names, :desc, :options
+    attr_reader :names, :options
   
     # @param names [Array[Symbol]]
     #   Names that the Command can be ran with.
@@ -35,9 +35,9 @@ module Clive
     # @param opts [Hash] The options available for commands are the same as for Options
     #   see {Option#initialize} for details.
     #
-    def initialize(names, desc="", opts={}, &block)
+    def initialize(names, description="", opts={}, &block)
       @names = names.sort
-      @desc  = desc
+      @description = description
       @_block = block
       
       @opts, hash = sort_opts(opts)
