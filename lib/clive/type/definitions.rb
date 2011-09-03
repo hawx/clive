@@ -60,6 +60,13 @@ module Clive
       end
     end
     
+    require 'pathname'
+    class Pathname < Object
+      def typecast(arg)
+        Pathname.new(arg)
+      end
+    end
+    
     # Range accepts 'a..b', 'a...b' which behave as in ruby and
     # 'a-b' which behaves like 'a..b'. It returns the correct 
     # Range object.
