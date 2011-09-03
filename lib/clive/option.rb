@@ -163,7 +163,7 @@ module Clive
           :matches => :match,
           :withins => :within,
           :defaults => :default,
-          :constraints => :constaint
+          :constraints => :constraint
         }.each do |plural, single|
           c[single] = a[plural][i] if a[plural][i]
         end
@@ -207,14 +207,22 @@ module Clive
 
     def infer_args(opts)
       opts.map do |hash|
-        if hash.has_key?(:default)
-          hash.merge({:name => 'arg', :optional => true})
-        elsif hash.has_key?(:within)
-          hash.merge({:name => 'choice'})
-        elsif hash.has_any_key?(:type, :match, :constraint)
-          hash.merge({:name => 'arg'})
-        else
+        if hash.has_key?(:name)
           hash
+        else
+          if hash.has_key?(:default)
+            if hash.has_key?(:optional)
+              hash.merge({:name => 'arg'})
+            else
+              hash.merge({:name => 'arg', :optional => true})
+            end
+          elsif hash.has_key?(:within)
+            hash.merge({:name => 'choice'})
+          elsif hash.has_any_key?(:type, :match, :constraint)
+            hash.merge({:name => 'arg'})
+          else
+            hash
+          end
         end
       end
     end
@@ -378,15 +386,24 @@ module Clive
     end
 
 
-    puts "#{__FILE__}:#{__LINE__} remove these methods"
-    def option?
-      true
+    # @return [Array[String]]
+    #   Returns two strings, the first is the first half of the help string
+    #   with the name(s) and any arguments, the second is the description.
+    def help_strings
+      b, a = '', ''
+      b << "-#{short}" if short
+      b << ', ' if short && long
+      b << "--#{long}" if long
+      # and do args!
+      
+      a = @description
+      if args.size == 1
+        a << " " << args.first.choice_str
+      end
+      
+      return b, a
     end
-
-    def command?
-      false
-    end
-
+    
   end
 
   # Class for running in
@@ -400,7 +417,7 @@ module Clive
         if fn.arity > 0
           instance_exec(*args.values, &fn)
         else
-          instance_exec &fn
+          instance_exec(&fn)
         end
       end
 
