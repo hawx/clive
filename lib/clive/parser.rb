@@ -59,6 +59,15 @@ module Clive
       @arguments   = []
       @state       = @opts[:state].new
       command_ran  = false # only one command can be ran per parse!
+      
+      # Pull out 'help' command immediately if found
+      if @argv[0] == 'help'
+        if @argv[1]
+          puts @base.find[@argv[1]].help
+        else
+          puts @base.help
+        end
+      end
 
       until ended?
         # does +curr+ exist? (and also check that if it is a command a command hasn't been run yet
