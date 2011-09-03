@@ -61,7 +61,7 @@ module Clive
     def initialize(name, *opts)
       opts  = (opts[0].is_a?(Hash) ? opts[0] : Hash[opts])
       @name = name.to_sym
-
+  
       opts = DEFAULTS.merge(Hash[opts])
 
       @optional   = opts[:optional]
@@ -97,25 +97,25 @@ module Clive
       "#<#{r.join(' ')}>"
     end
 
-    # @param str [String] Found argument that could be this object's object.
-    # @return [true, false] Whether +str+ could be this argument.
-    def possible?(str)
-      if !@type.valid?(str)
+    # @param obj [Object] Found and typecast argument that could be this object's object.
+    # @return Whether +obj+ could be this argument.
+    def possible?(obj)
+      if !@type.valid?(obj)
         return false
       end
 
-      if !@match.match(str)
+      if !@match.match(obj)
         return false
       end
 
-      if !(@within.include?(str) || @within.include?(@type.typecast(str)))
+      if !(@within.include?(obj) || @within.include?(obj.to_s))
         return false
       end
       
       begin
-        return false unless @constraint.call(str)
+        return false unless @constraint.call(obj)
       rescue
-        return false unless @constraint.call(@type.typecast(str))
+        return false unless @constraint.call(obj.to_s)
       end
 
       true
