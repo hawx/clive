@@ -51,7 +51,7 @@ module Clive
         if other.respond_to?(:to_proc)
           @valid = other.to_proc
         else
-          @valid = proc {|arg| other =~ arg }
+          @valid = proc {|arg| other =~ arg.to_s }
         end
       end
       
@@ -63,7 +63,7 @@ module Clive
         if other.respond_to?(:to_proc)
           @valid = proc {|arg| !arg.send(other) }
         else
-          @valid = proc {|arg| other !~ arg }
+          @valid = proc {|arg| other !~ arg.to_s }
         end
       end
 
