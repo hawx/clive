@@ -47,6 +47,12 @@ module Clive
       @args = optify(hash)
       
       @options = []
+      
+      self.option(:h, :help, "Display this help message", :tail => true) do
+        puts self.help
+        exit 0
+      end
+      
       current_desc
     end
     
@@ -160,12 +166,33 @@ module Clive
     def has_option?(arg)
       !!find_option(arg)
     end
-
-    # A command is a command
-    def command?; true;  end
-    # A command is not an option, these methods should be removed!
-    def option?;  false; end
-    puts "#{__FILE__}:#{__LINE__} remove these methods"
+    
+    def help
+      command_strings = Hash[@commands.map {|i| [i.name, i.help_strings] }]
+      option_strings = Hash[@options.map {|i| [i.name, i.help_strings] }]
+      
+      max = [
+        command_strings.values.map {|i| i[0].size }.max,
+        option_strings.values.map {|i| i[0].size }.max
+      ].max
+      
+      r = ''
+      r << "  Commands:\n"
+      command_strings.sort_by {|i| i[0] }.each do |_, (b, a)|
+        r << "    " << b << (" " * (max - b.size))
+        r << "    # " << a unless a.empty?
+        r << "\n"
+      end
+      
+      r << "\n  Options:\n"
+      option_strings.sort_by {|i| i[0] }.each do |_, (b, a)|
+        r << "    " << b << (" " * (max - b.size))
+        r << "    # " << a unless a.empty?
+        r << "\n"
+      end
+      
+      r
+    end
     
   end
 end
