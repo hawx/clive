@@ -85,6 +85,23 @@ module Clive
         "<#@name>"
       end
     end
+    
+    # @return [String] Choices or range of choices that can be made,
+    #  for the help string.
+    def choice_str
+      if @within
+        case @within
+        when Array
+          '(' + @within.join(', ') + ')'
+        when Range
+          '(' + @within.to_s + ')'
+        else
+          ''
+        end
+      else
+        ''
+      end
+    end
 
     def inspect
       r = [self.class, to_s]
