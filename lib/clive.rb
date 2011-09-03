@@ -2,13 +2,14 @@ $: << File.dirname(__FILE__)
 
 require 'clive/core_ext'
 require 'clive/error'
+require 'clive/output'
+require 'clive/version'
+
 require 'clive/type'
 require 'clive/argument'
 require 'clive/option'
 require 'clive/command'
 require 'clive/parser'
-require 'clive/output'
-require 'clive/version'
 
 
 module Clive
