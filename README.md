@@ -11,12 +11,15 @@ Install with:
 
 ## Usage
 
-__NOTE__: Throughout I will be using the new 1.9 hash syntax, obviously the old `=>`
-syntax still works and can be used if you want.
+__NOTE__: Throughout I will be using the new 1.9 `{a: b}` hash syntax, obviously the old
+`{:a => b}` syntax still works and can be used if you want or where 1.8 compatibility is
+needed.
 
 Clive is built around the idea that it makes more sense to define a cli in a class,
-this way it can be easily modified and reopened to add more options. To use it 
-`require 'clive'` then `extend Clive`:
+this way it can be easily modified and reopened to add more options.
+
+    # my_app.rb
+    require 'clive'
 
     module MyApp
       VERSION = "0.1.4"
@@ -36,7 +39,7 @@ this way it can be easily modified and reopened to add more options. To use it
     
     args, state = MyApp::CLI.run(ARGV)
 
-Then run with `my_app.rb --version` to display the version for MyApp. `Clive.run`
+Then run with `my_app.rb --version` to display the version for MyApp. `.run`
 returns two arguments the first is an Array with all of the arguments that were 
 not used; the second is a Hash, if any option is called which doesn't have a
 block an entry is added with the name of the option and `true`.
@@ -48,12 +51,16 @@ Options are defined using `#opt` or `#option` they can have short ('-a') or long
 names ('--abc') and can also have arguments. The description can be given as an
 argument to `#opt` or can be defined before it using `#desc`.
 
-    opt(:v, :version, 'Display the current version') { ... }
+    opt :v, :version, 'Display the current version' do
+      # ...
+    end
     
     # is equivelant to
     
     desc 'Display the current version'
-    opt(:v, :version) { ... }
+    opt :v, :version do
+      # ...
+    end
 
 Boolean options can be created by passing `as: Boolean` in the call to `#opt`.
 
