@@ -23,6 +23,18 @@ module Clive
       @names    = []
       @options  = []
       @commands = []
+      
+      # Create basic header "Usage: filename [command] [options]
+      @header = "Usage: #{File.basename($0)} [command] [options]\n\n"
+      @footer = nil
+      
+      self.option(:h, :help, "Display this help message", :tail => true) do
+        puts self.help
+        exit 0
+      end
+      
+      self.command(:help, 'Display help', :arg => '[<command>]', :tail => true)
+      
       current_desc
     end
     

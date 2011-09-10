@@ -354,54 +354,50 @@ module Clive
         list.size >= min_args && possible?(list)
       end
     end
+    
+    def zip_args(list)
+      @args.zip_to_pattern(list, @args.map {|i| !i.optional? })
+    end
 
+    # Given +list+ will fill blank spaces with +nil+ where appropriate then
+    # coerces each argument and uses default values if necessary.
     def valid_arg_list(list)
-      match = @args.map {|i| !i.optional? }
-      list = list.dup
-      diff = list.size - match.find_all {|i| i == true }.size
-
-      result = []
-      match.each_index do |i|
-        curr = match[i]
-        result << if curr
-          list.shift
-        elsif diff > 0
-          diff -= 1
-          list.shift
-        else
-          nil
-        end
-      end
-
       # Use defaults if necessary and coerce
-      result.zip(@args).map {|r,a| r ? a.coerce(r) : a.coerce(a.default) }
+      zip_args(list).map {|a,r| r ? a.coerce(r) : a.coerce(a.default) }
     end
 
-    def name
-      @names.find {|i| i.size > 1 }
+    # The first half of the help string.
+    # @return [String]
+    def before_help_string
+      b = to_s
+      if @args != [] && !boolean?
+        b << " " << @args.map {|i| i.to_s }.join(' ').gsub('] [', ' ')
+      end
+      b
     end
-
-    def args
-      @args
-    end
-
-
-    # @return [Array[String]]
-    #   Returns two strings, the first is the first half of the help string
-    #   with the name(s) and any arguments, the second is the description.
-    def help_strings
-      b, a = '', ''
-      b << "-#{short}" if short
-      b << ', ' if short && long
-      b << "--#{long}" if long
-      # and do args!
-      
+    
+    # The second half of the help string.
+    # @return [String]
+    def after_help_string
       a = @description
       if args.size == 1
         a << " " << args.first.choice_str
       end
-      
-      return b, a
+      a.strip!
+      a
+    end
+    
+    # Compare based on the size of {#name}, makes sure {#tail?}s go to the bottom
+    # and {#head?}s go to the top. If both are {#head?} or {#tail?} then sorts
+    # based on size.
+    def <=>(other)
+      if (tail? && !other.tail?) || (head? && !other.head?)
+        1
+      elsif (other.tail? && !tail?) || (other.head? && !head?)
+        -1
+      else
+        self.name <=> other.name
+      end
     end
     
   end
