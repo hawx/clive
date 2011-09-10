@@ -36,5 +36,12 @@ class TestCommand < MiniTest::Unit::TestCase
     command.run_block
     command.run(['hey'])
   end
+  
+  def test_arguments_work
+    command = Clive::Command.new([:new], "", {:arg => '<dir>', :as => Clive::Type::Pathname})
+    
+    a,s = command.run(%w(new hey))
+    assert_equal({:new => {:args => [Pathname.new('hey')]}}, s)
+  end
 
 end
