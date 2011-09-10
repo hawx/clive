@@ -174,18 +174,8 @@ module Clive
       !!find_option(arg)
     end
     
-    # Builds the help string. Formatted like:
-    #
-    #  @header
-    #   
-    #    Commands:
-    #      command            # Description
-    #
-    #    Options:
-    #      -a, --abc <arg>    # Description
-    #
-    #  @footer
-    #
+    # Builds the help string.
+    # @see Formatter
     # @return [String]
     def help
       Formatter.new(@header, @footer, @commands, @options)
