@@ -330,17 +330,18 @@ module Clive
       mapped_args = if boolean?
          {:truth => args.first}
       else
-        Hash[ map_args(args).map {|k,v| [k.name, v]} ]
+        Hash[ zip_args(args).map {|k,v| [k.name, v] } ]
       end
 
       RunClass._run(mapped_args, state, @block)
     end
 
-
+    # Whether this is a boolean option and can be called with a +--no+ prefix.
     def boolean?
       args.size == 1 && args.first.type == Clive::Type::Boolean
     end
-
+    
+    # @return [Integer] The minimum number of arguments that this option takes.
     def min_args
       if boolean?
         0
