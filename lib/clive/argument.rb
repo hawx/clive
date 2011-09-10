@@ -142,27 +142,25 @@ module Clive
       if !@match.match(obj)
         return false
       end
-
-      if !(@within.include?(obj) || @within.include?(obj.to_s))
+      
+      if !(@within.include?(obj) || @within.include?(coerce(obj)))
         return false
       end
       
       begin
         return false unless @constraint.call(obj)
       rescue
-        return false unless @constraint.call(obj.to_s)
+        return false unless @constraint.call(coerce(obj))
       end
 
       true
     end
 
-    # Makes the found string argument the correct type.
+    # Converts the given String argument to the correct type determined by the
+    # {Type} object passed.
     def coerce(str)
-      if @type
-        @type.typecast(str)
-      else
-        str
-      end
+      return str unless str.is_a?(String)
+      @type.typecast(str)
     end
 
   end
