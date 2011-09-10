@@ -71,12 +71,12 @@ module Clive
 
       until ended?
         # does +curr+ exist? (and also check that if it is a command a command hasn't been run yet
-        if @base.has?(curr) && ((@base.find(curr).command? && !command_ran) || (@base.find(curr).option?))
+        if @base.has?(curr) && ((@base.find(curr).kind_of?(Command) && !command_ran) || (@base.find(curr).kind_of?(Option)))
         
           found = @base.find(curr)
 
           # is it a command?
-          if found.command?
+          if found.kind_of?(Command)
             command_ran = true
             found.run_block
 
@@ -209,7 +209,7 @@ module Clive
     def validate_arguments(opt, arg_list)
       # If we don't have enough args
       unless opt.valid?(arg_list)
-        raise MissingArgumentError.new(opt, arg_list, opt.args)
+        raise MissingArgumentError.new(opt, arg_list, opt.args.join(' ').gsub('] [', ' '))
       end
 
       opt.valid_arg_list(arg_list)
