@@ -40,7 +40,17 @@ class Hash
     res
   end
   
+  # @example
+  #
+  #   {:a => 1, :b => 2}.rename(:a => :c, :b => :d)
+  #   #=> {:c => 1, :d => 2}
+  #
+  def rename(new_names)
+    Hash[ map {|k,v| [new_names[k], v] } ]
+  end
+  
 end
+
 
 class Array
   
@@ -56,7 +66,7 @@ class Array
     result = dup.map {|i| [i, nil] }
     pattern.each_index do |i|
       curr = pattern[i]
-      if (curr.respond_to?(:call) && curr.call(other.first)) || curr
+      if curr
         result[i][1]= other.shift
       elsif diff > 0
         diff -= 1
@@ -65,6 +75,49 @@ class Array
     end
     
     result
+  end
+  
+  # @example
+  #  
+  #   arr = [:a, :bb, :ccc]
+  #   other = [1, 3]
+  #   conds = [-> a,b { a.size == b}] * 3
+  #
+  #   arr.zip_with_conditions(other, conds)
+  #   #=> [[:a, 1], [:bb, nil], [:ccc, 3]]
+  #
+  def zip_with_conditions(other, conditions)
+    other = other.dup
+    r = []
+    
+    # count the number of trues we will get
+    _other = other.dup
+    trues = 0
+    zip(conditions).each do |a, cond|
+      _other.each do |o|
+        if cond.call(a, o)
+          trues += 1
+          _other.shift
+          break
+        end
+      end
+    end
+    
+    # how many can we add that are false?
+    diff = other.size - trues
+    
+    zip(conditions).each do |a, cond|
+      if cond.call(a, other.first)
+        r << other.shift
+      elsif diff > 0
+        diff -= 1
+        r << other.shift
+      else
+        r << nil
+      end
+    end
+    
+    zip(r)
   end
   
 end
