@@ -19,14 +19,11 @@ class HashTest < MiniTest::Unit::TestCase
     assert_equal({:aa => :a, :ab => :a, :ac => :a, :ba => :b}, hsh.flip)
   end
   
-end
-
-class ArrayTest < MiniTest::Unit::TestCase
-
-  def test_can_zip_to_pattern
-    assert_equal [[1, 'a'], [2, nil], [3, 'c']], [1, 2, 3].zip_to_pattern(%w(a c), [true,false,true])
+  def test_renames_hash
+    hsh = {:a => 1, :b => 2}
+    assert_equal({:c => 1, :d => 2}, hsh.rename({:a => :c, :b => :d}))
   end
-
+  
 end
 
 class SymbolTest < MiniTest::Unit::TestCase
