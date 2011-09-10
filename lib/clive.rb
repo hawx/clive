@@ -5,6 +5,7 @@ require 'clive/error'
 require 'clive/output'
 require 'clive/version'
 
+require 'clive/formatter'
 require 'clive/type'
 require 'clive/argument'
 require 'clive/option'
