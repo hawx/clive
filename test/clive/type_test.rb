@@ -43,16 +43,18 @@ class TestType < MiniTest::Unit::TestCase
   
   def test_calls_instance_valid
     type = create { def valid?(o); puts "Called valid?"; end }
-    $stdout.expect(:puts, nil, ["Called valid?"])
-    type.valid?('arg')
-    $stdout.verify
+
+    assert_output "Called valid?\n" do
+      type.valid?('arg')
+    end
   end
   
   def test_calls_instance_typecast
     type = create { def typecast(o); puts "Called typecast"; end }
-    $stdout.expect(:puts, nil, ["Called typecast"])
-    type.typecast('arg')
-    $stdout.verify
+  
+    assert_output "Called typecast\n" do
+      type.typecast('arg')
+    end
   end
   
   def test_finds_type_class

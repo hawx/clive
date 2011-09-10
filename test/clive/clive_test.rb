@@ -66,33 +66,29 @@ class TestClive < MiniTest::Unit::TestCase
   end
   
   def test_commands
-    $stdout.expect(:puts, nil, ["Creating post in ~/my_site"])
-    a,s = CliveTestClass.run %w(-v new --type post ~/my_site --no-auto arg)
-    assert_equal %w(arg), a
-    assert_equal({:verbose => true, :new => {:type => :post}, :auto => false}, s)
-    $stdout.verify
+    assert_output "Creating post in ~/my_site\n" do
+      a,s = CliveTestClass.run %w(-v new --type post ~/my_site --no-auto arg)
+      assert_equal %w(arg), a
+      assert_equal({:verbose => true, :new => {:type => :post}, :auto => false}, s)
+    end
   end
   
   def test_complex_arguments
-    $stdout.expect(:puts, nil, ["a: 1, b: 22, c: 333"])
-    a,s = CliveTestClass.run %w(--complex 1 22 333)
-    $stdout.verify
-    $stdout.reset
+    assert_output "a: 1, b: 22, c: 333\n" do
+      CliveTestClass.run %w(--complex 1 22 333)
+    end
     
-    $stdout.expect(:puts, nil, ["a: 1, b: 22, c: "])
-    CliveTestClass.run %w(--complex 1 22)
-    $stdout.verify
-    $stdout.reset
+    assert_output "a: 1, b: 22, c: \n" do
+      CliveTestClass.run %w(--complex 1 22)
+    end
     
-    $stdout.expect(:puts, nil, ["a: , b: 22, c: 333"])
-    CliveTestClass.run %w(--complex 22 333)
-    $stdout.verify
-    $stdout.reset
+    assert_output "a: , b: 22, c: 333\n" do
+      CliveTestClass.run %w(--complex 22 333)
+    end
     
-    $stdout.expect(:puts, nil, ["a: , b: 22, c: "])
-    CliveTestClass.run %w(--complex 22)
-    $stdout.verify
-    $stdout.reset
+    assert_output "a: , b: 22, c: \n" do
+      CliveTestClass.run %w(--complex 22)
+    end
     
     assert_raises Clive::Parser::MissingArgumentError do
       CliveTestClass.run %w(--complex 1)
@@ -104,7 +100,7 @@ class TestClive < MiniTest::Unit::TestCase
   end
   
   def test_displays_help
-    $stdout.expect(:puts, nil, [<<EOS])
+    help = <<EOS
 Usage: clive_test.rb [command] [options]
 
   Commands:
@@ -121,9 +117,10 @@ Usage: clive_test.rb [command] [options]
     -h, --help                           # Display this help message
     --version
 EOS
-    
-    a,s = CliveTestClass.run %w(help)
-    $stdout.verify
+
+    assert_output help do
+      CliveTestClass.run %w(help)
+    end
   end
   
 end
