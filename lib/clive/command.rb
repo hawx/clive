@@ -141,7 +141,7 @@ module Clive
     # @return [Option, nil]
     def find(arg)
       if arg[0..1] == '--'
-        find_option(arg[2..-1].to_sym)
+        find_option(arg[2..-1].symbolify)
       elsif arg[0...1] == '-'
         find_option(arg[1..-1].to_sym)
       end
