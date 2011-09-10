@@ -19,32 +19,37 @@ class TestArgument < MiniTest::Unit::TestCase
 
   def test_possible_on_type
     a = Clive::Argument.new(:a, :type => Time)
-    assert a.possible?('12:34')
-    refute a.possible?('not-a-time')
+    assert a.possible? '12:34'
+    refute a.possible? 'not-a-time'
+    assert a.possible? Time.parse('12:34')
   end
 
   def test_possible_on_match
     a = Clive::Argument.new(:a, :match => /^[a-e]+![f-o]+\?\.$/)
-    assert a.possible?('abe!off?.')
-    refute a.possible?('off?abe!.')
+    assert a.possible? 'abe!off?.'
+    refute a.possible? 'off?abe!.'
   end
 
   def test_possible_on_within
     a = Clive::Argument.new(:a, :within => %w(dog cat fish))
-    assert a.possible?('dog')
-    refute a.possible?('mouse')
+    assert a.possible? 'dog'
+    refute a.possible? 'mouse'
   end
 
   def test_possible_with_range
     a = Clive::Argument.new(:a, :type => Integer, :within => 1..11)
-    assert a.possible?('8')
-    refute a.possible?('100')
+    assert a.possible? '8'
+    refute a.possible? '100'
+    assert a.possible? 8
+    refute a.possible? 100
   end
   
   def test_possible_with_constraint
-    a = Clive::Argument.new(:a, :type => Integer, :constraint => proc {|i| i.odd? })
-    assert a.possible?('1')
-    refute a.possible?('2')
+    a = Clive::Argument.new(:a, :type => Integer, :constraint => proc {|i| i.to_f % 2 == 1 })
+    assert a.possible? '1'
+    refute a.possible? '2'
+    assert a.possible? 1
+    refute a.possible? 2
   end
 
   def test_coerce
