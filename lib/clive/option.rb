@@ -191,7 +191,7 @@ module Clive
         Hash[ zip_args(args).map {|k,v| [k.name, v] } ]
       end
 
-      RunClass._run(mapped_args, state, @block)
+      Runner._run(mapped_args, state, @block)
     end
 
     # Whether this is a boolean option and can be called with a +--no+ prefix.
@@ -239,7 +239,7 @@ module Clive
     end
     
     def zip_args(list)
-      @args.zip_to_pattern(list, @args.map {|i| !i.optional? })
+      @args.cool_zip(list)
     end
 
     # Given +list+ will fill blank spaces with +nil+ where appropriate then
