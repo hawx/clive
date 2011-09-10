@@ -86,12 +86,12 @@ module Clive
       attr_reader :opts, :args
       
       ARG_KEYS = {
-        :args        => [:arg],
-        :types       => [:type, :kind, :as],
-        :matches     => [:match],
-        :withins     => [:within, :in],
-        :defaults    => [:default],
-        :constraints => [:constraint]
+        :args        => [:args, :arg],
+        :types       => [:types, :type, :kind, :as],
+        :matches     => [:matches, :match],
+        :withins     => [:withins, :within, :in],
+        :defaults    => [:defaults, :default],
+        :constraints => [:constraints, :constraint]
       }.flip
       
       OPT_KEYS = {
@@ -114,7 +114,6 @@ module Clive
         args = infer_args(args_to_hash(hash))
   
         args.map! {|arg| Clive::Argument.new(arg[:name] || 'arg', arg.without(:name)) }
-        
         @opts = opts
         @args = ArgumentList.new(args)
       end
@@ -132,7 +131,7 @@ module Clive
       #  be used in the relevant methods.
       #  Hash keys for the returned hashes will be mapped to standard names from
       #  common variations.
-      def sort_opts(hash)  
+      def sort_opts(hash)
         [get_and_rename_hash(hash, OPT_KEYS), get_and_rename_hash(hash, ARG_KEYS)]
       end
       
