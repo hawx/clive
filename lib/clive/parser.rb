@@ -209,7 +209,7 @@ module Clive
     def validate_arguments(opt, arg_list)
       # If we don't have enough args
       unless opt.valid?(arg_list)
-        raise MissingArgumentError.new(opt, arg_list, opt.args.join(' ').gsub('] [', ' '))
+        raise MissingArgumentError.new(opt, arg_list, opt.args.to_s)
       end
 
       opt.valid_arg_list(arg_list)
