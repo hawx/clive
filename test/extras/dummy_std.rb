@@ -1,4 +1,4 @@
-# Stop #puts, #p, #print and #warn from outputing text, instead save the
+# Stop #puts, #p, #print and #warn from outputting text, instead save the
 # calls in a special mock object which can have expectation placed
 # on it which can be verified.
 #
@@ -13,17 +13,29 @@ class MiniTest::Mock::StringIO
     @actual = Hash.new {|h,k| h[k] = [] }
   end
   
+  def calls
+    @actual
+  end
+  
   # @param name [Symbol] Name of method expected
   # @param retval Value to return when +name+ is called
   # @param args [Array] Arguments expected
   def expect(name, retval, args=[])
     @expect[name] = {:retval => retval, :args => args}
   end
+  
+  include MiniTest::Assertions
 
   def verify
     @expect.each_key do |name|
       expected = @expect[name]
-      msg = "expected #{name}, #{expected.inspect}"
+      
+      if @actual[name]
+        msg = diff(expected[:args][0], @actual[name][0][:args][0])
+      else
+        msg = "expected #{name} with, \n\n" + expected[:args][0].to_s
+      end
+        
       raise MiniTest::Mock::MockExpectationError, msg unless
         @actual.has_key?(name) and @actual[name].include?(expected)
     end
@@ -58,11 +70,11 @@ MiniTest::Unit.before_each_test {
 #
 module Kernel
   def d(*o)
-    $_stdout.send(:p, *o)
+    $_stdout.send(:puts, *o.map {|i| i.inspect })
   end
   
   def duts(*o)
-    $_stdout.send(:puts, *o)
+    $_stdout.send(:puts, *o.map {|i| i.to_s })
   end
   
   def drint(*o)
