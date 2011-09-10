@@ -135,20 +135,20 @@ module Clive
     # @return Whether +obj+ could be this argument.
     #
     def possible?(obj)  
-      if !@type.valid?(obj)
+      if !@type.valid?(obj.to_s)
         return false
       end
 
-      if !@match.match(obj)
+      if !@match.match(obj.to_s)
         return false
       end
       
-      if !(@within.include?(obj) || @within.include?(coerce(obj)))
+      if !(@within.include?(obj.to_s) || @within.include?(coerce(obj)))
         return false
       end
       
       begin
-        return false unless @constraint.call(obj)
+        return false unless @constraint.call(obj.to_s)
       rescue
         return false unless @constraint.call(coerce(obj))
       end
