@@ -4,21 +4,21 @@ require 'helper'
 class TestOption < MiniTest::Unit::TestCase
 
   def test_head
-    h = Clive::Option.new([],nil,{:head => true})
+    h = Clive::Option.new([:a],nil,{:head => true})
     assert h.head?
     refute h.tail?
   end
 
   def test_tail
-    t = Clive::Option.new([],nil,{:tail => true})
+    t = Clive::Option.new([:a],nil,{:tail => true})
     assert t.tail?
     refute t.head?
   end
 
   def test_parsing_argument_string
-    a = Clive::Option.new([],nil,{:args => '<h> <w>'})
-    b = Clive::Option.new([],nil,{:args => '<h> [<w>]'})
-    c = Clive::Option.new([],nil,{:args => '[<h> <w>]'})
+    a = Clive::Option.new([:a],nil,{:args => '<h> <w>'})
+    b = Clive::Option.new([:a],nil,{:args => '<h> [<w>]'})
+    c = Clive::Option.new([:a],nil,{:args => '[<h> <w>]'})
 
     [[ a, [false, false] ],
      [ b, [false, true]  ],
@@ -31,24 +31,24 @@ class TestOption < MiniTest::Unit::TestCase
 
   def test_parsing_invalid_argument_string
     assert_raises Clive::InvalidArgumentString do
-      Clive::Option.new([], nil, {:args => 'invalid'})
+      Clive::Option.new([:a], nil, {:args => 'invalid'})
     end
   end
 
   def test_running
     a = nil
-    o = Clive::Option.new { a = "hello" }
+    o = Clive::Option.new([:a]) { a = "hello" }
     o.run({})
     assert_equal "hello", a
   end
 
   def test_running_with_arguments
     a = nil
-    o = Clive::Option.new([],nil,{:args => '<h> <w>'}) {|h,w| a = [h,w] }
+    o = Clive::Option.new([:a],nil,{:args => '<h> <w>'}) {|h,w| a = [h,w] }
     o.run({}, [5, 10])
     assert_equal [5,10], a
 
-    o = Clive::Option.new([],nil,{:args => '<size>'}) { a = size }
+    o = Clive::Option.new([:a],nil,{:args => '<size>'}) { a = size }
     o.run({}, [50])
     assert_equal 50, a
   end
@@ -61,12 +61,12 @@ class TestOption < MiniTest::Unit::TestCase
   def test_infer_needs_argument_with_in
     o = Clive::Option.new([:T, :type], "", {:in => %w(small medium large)})
     assert_equal 1, o.args.size
-    assert_argument [:choice, false, nil, nil, %w(small medium large)], o.args.first
+    assert_argument [:arg, false, nil, nil, %w(small medium large)], o.args.first
 
     o = Clive::Option.new([:T, :type], "", {:in => [%w(small medium large), %w(wide thin)]})
     assert_equal 2, o.args.size
-    assert_argument [:choice, false, nil, nil, %w(small medium large)], o.args[0]
-    assert_argument [:choice, false, nil, nil, %w(wide thin)], o.args[1]
+    assert_argument [:arg, false, nil, nil, %w(small medium large)], o.args[0]
+    assert_argument [:arg, false, nil, nil, %w(wide thin)], o.args[1]
   end
 
   def test_infer_needs_argument_with_match
@@ -109,6 +109,7 @@ class TestOption < MiniTest::Unit::TestCase
     assert_equal 1, o.args.size
     assert_argument [:arg, true, Clive::Type::Symbol, nil, nil], o.args.first
   end
+  
   
   # TODO
   def test_can_add_infinite_args
