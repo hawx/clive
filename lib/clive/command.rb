@@ -66,7 +66,7 @@ module Clive
       names.join(', ')
     end
     
-    # Runs the block that was given to Command#initialize within the context of the 
+    # Runs the block that was given to {Command#initialize} within the context of the 
     # command.
     def run_block
       instance_exec(&@_block) if @_block
@@ -81,14 +81,26 @@ module Clive
       r
     end
     
+    # Set the header for {#help}.
+    # @param [String]
+    def header(val)
+      @header = val
+    end
+    
+    # Set the footer for {#help}.
+    # @param [String]
+    def footer(val)
+      @footer = val
+    end
+    
     # Creates a new Option in the Command.
     #
     # @overload option(short=nil, long=nil, description=current_desc, opts={}, &block)
-    #   Creates a new Option
+    #   Creates a new Option. Either short or long must be set.
     #   @param short [Symbol] The short name for the option (:a would become +-a+)
     #   @param long [Symbol] The long name for the option (:add would become +--add+)
     #   @param description [String] Description of the option
-    #   @param opts [Hash] Options to create the Option with, see Option#initialize
+    #   @param opts [Hash] Options to create the Option with, see {Option#initialize}
     #
     def option(*args, &block)
       ns, d, o = [], current_desc, {}
@@ -121,11 +133,6 @@ module Clive
     def action(&block)
       @block = block
     end
-    
-    # Why do the general methods take strings not symbols?
-    # > So that I can find out which array to check in. Otherwise, if for example,
-    # > there was an option and command with the same name you would not know which
-    # > to return.
     
     # Finds the option represented by +arg+, this can either be the long name +--opt+
     # or the short name +-o+, if the option can't be found +nil+ is returned.

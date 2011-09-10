@@ -11,7 +11,24 @@ require 'clive/option'
 require 'clive/command'
 require 'clive/parser'
 
-
+# Clive is a DSL for creating command line interfaces. Extend a class with it
+# (or include it) to use.
+#
+# @example
+#
+#   class CLI
+#     extend Clive
+#
+#     opt :working, 'Test if it is working' do
+#       puts "YEP!".green
+#     end
+#   end
+#
+#   CLI.run ARGV
+#
+#   # app.rb --working
+#   #=> "YEP!"
+#
 module Clive
 
   # TopCommand is the top command. It doesn't have a name, the class that
@@ -74,7 +91,7 @@ module Clive
     end
   end
 
-  # When included need to set create a {TopCommand} in the class and
+  # When included need to create a {TopCommand} instance in the class and
   # save it in an instance variable, then the necessary methods can
   # be aliased to call it. Also adds a reader method for it as {#base}
   # and extends with {Type::Lookup}.
@@ -98,10 +115,13 @@ module Clive
     other.instance_eval str
   end
 
+  # If included act as though it was extended.
   def self.included(other)
     other.extend(self)
   end
   
+  # Delegate all method calls to the base instance of {TopCommand} if it
+  # responds to it, otherwise raise the usual exception.
   def method_missing(sym, *args, &block)
     if @base.respond_to?(sym)
       @base.send(sym, *args, &block)
@@ -110,6 +130,8 @@ module Clive
     end
   end
   
+  # {#method_missing} responds to all methods that the base instance of 
+  # {TopCommand} responds to.
   def respond_to_missing?(sym)
     @base.respond_to?(sym)
   end

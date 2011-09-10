@@ -3,62 +3,73 @@ module Clive
   # An Argument represents an argument for an Option or Command, it can be optional
   # and can also be constricted by various other values.
   class Argument
-
-    class AlwaysInclude
+  
+    # A class which always returns true when a method is called on it. It has
+    # {.include?}, {.match} and {.call} because they are the methods used.
+    # So really it isn't __always__ true!
+    class AlwaysTrue
+      # @return [TrueClass]
       def self.include?(arg)
         true
       end
-    end
-
-    class AlwaysMatch
+      
+      # @return [TrueClass]
       def self.match(arg)
+        true
+      end
+      
+      # @return [TrueClass]
+      def self.call(arg)
         true
       end
     end
 
+    # An Argument will have these traits by default.
     DEFAULTS = {
-      :optional => false,
-      :type => Object,
-      :match => AlwaysMatch,
-      :within => AlwaysInclude,
-      :default => nil,
-      :constraint => proc {|a| true }
+      :optional   => false,
+      :type       => Object,
+      :match      => AlwaysTrue,
+      :within     => AlwaysTrue,
+      :default    => nil,
+      :constraint => AlwaysTrue
     }
 
     attr_reader :name, :default, :type
 
     # A new instance of Argument.
     #
-    # @param name [Symbol, #to_sym]
+    # @param opts [Hash]
+    #
+    # @option opts [#to_sym] :name
     #   Name of the argument.
     #
-    # @param optional [true, false]
-    #   Whether this argument is optional. An optional argument does not have to be
-    #   given and will instead pass +nil+ to the block.
+    # @option opts [true, false] :optional
+    #   Whether this argument is optional. An optional argument does not have 
+    #   to be given and will instead pass +nil+ to the block.
     #
-    # @param type [Type]
-    #   Type that the matching argument should be cast to. See {Type} and the various
-    #   subclasses for details.
+    # @option opts [Type] :type
+    #   Type that the matching argument should be cast to. See {Type} and the 
+    #   various subclasses for details.
     #
-    # @param match [#match]
+    # @option opts [#match] :match
     #   Regular expression the argument must match.
     #
-    # @param within [#include?]
+    # @option opts [#include?] :within
     #   Collection that the matching argument should be in. This will be checked
-    #   against the string argument and the cast object (see type above).
+    #   against the string argument and the cast object (see +:type+).
     #
-    # @param default
+    # @option opts :default
     #   Default value the argument takes.
     #
-    # @param constraint [#call]
-    #   Proc which is passed the found argument and should return true if the value is
-    #   ok and false if not.
+    # @option opts [#call] :constraint
+    #   Proc which is passed the found argument and should return +true+ if the
+    #   value is ok and false if not.
     #
     # @example
     #
     #   Argument.new(:arg, :optional => true, :type => Integer)
     #
-    def initialize(name, *opts)
+    def initialize(name, opts={})
       opts  = (opts[0].is_a?(Hash) ? opts[0] : Hash[opts])
       @name = name.to_sym
   
@@ -79,15 +90,12 @@ module Clive
 
     # @return [String] String representation for the argument.
     def to_s
-      if optional?
-        "[<#@name>]"
-      else
-        "<#@name>"
-      end
+      optional? ? "[<#@name>]" : "<#@name>"
     end
     
-    # @return [String] Choices or range of choices that can be made,
-    #  for the help string.
+    
+    # @return [String] 
+    #  Choices or range of choices that can be made, for the help string.
     def choice_str
       if @within
         case @within
@@ -114,9 +122,19 @@ module Clive
       "#<#{r.join(' ')}>"
     end
 
-    # @param obj [Object] Found and typecast argument that could be this object's object.
+    # Determines whether the object given (see param note), can be this argument.
+    # Checks whether it is valid based on the options passed to Argument#initialize.
+    #
+    # @param obj [String,Object]
+    #   This method will be called at least twice for each argument, the first
+    #   time when testing for {Option#possible?} and then for {Option#valid?}.
+    #   When called in {Option#possible?} +obj+ will be passed as a string,
+    #   for {Option#valid?} though +obj+ will have been cast using {#coerce}
+    #   to the correct type meaning this method must deal with both cases.
+    #
     # @return Whether +obj+ could be this argument.
-    def possible?(obj)
+    #
+    def possible?(obj)  
       if !@type.valid?(obj)
         return false
       end

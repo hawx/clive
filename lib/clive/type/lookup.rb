@@ -1,10 +1,10 @@
 module Clive
   class Type
   
+    # Clive::Type::Lookup is an almost carbon copy of DataMapper::Property::Lookup
+    # @see https://github.com/datamapper/dm-core/blob/master/lib/dm-core/property/lookup.rb
     module Lookup
-    
-      protected
-      
+
       # Provides access to Types defined under {Type} as if accessed
       # normally.
       #

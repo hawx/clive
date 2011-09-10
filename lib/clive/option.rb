@@ -1,10 +1,11 @@
 module Clive
-
+  
+  # Raised when the argument string passed to {Option} is wrong.
   class InvalidArgumentString < RuntimeError; end
 
   # An option is called using either a long form +--opt+ or a short form +-o+
   # they can take arguments and these arguments can be restricted using various
-  # parameters.
+  # parameters. 
   #
   #   opt :name, arg: '<first> [<middle>] <second>' do |f, m, s|
   #     # do something
@@ -30,7 +31,22 @@ module Clive
   #
   #   opt :start, arg: '<date>', as: Date
   #   # here any argument which can't be parsed as a Date will raise an error,
-  #   # the argument is saved into the hash as a Date object.
+  #   # the argument is saved into the state hash as a Date object.
+  #
+  #   opt :five_letter_word, arg: '<word>', constraint: -> i { i.size == 5 }
+  #   # this only accepts words of five letters by calling the proc given.
+  #
+  # Since options can take multiple arguments (+<a> <b> <c>+) it is possible to
+  # use each of the constraints above for each argument. 
+  #
+  #   opt :worked, arg: '<from> [<to>]', as: [Date, Date]
+  #   # This makes both <from> and <to> a Date
+  #
+  #   opt :fruits, arg: '<choice> <number>', in: [%w(apple pear banana), nil], as: [nil, Integer]
+  #   # Here we extend the :fruit example from above to allow a number of fruit
+  #   # to be picked. Note the use of nil in places where we want the default to
+  #   # be used. Also for :in I didn't have to put the second nil as that is 
+  #   # implied but it does make it clearer.
   #
   class Option
 
@@ -39,10 +55,10 @@ module Clive
     attr_reader :names, :opts, :args, :description
     alias_method :desc, :description
 
-    # @param short [Symbol, #to_sym]
+    # @param short [Symbol]
     #   Short name (single character) for this option.
     #
-    # @param long [Symbol, #to_sym]
+    # @param long [Symbol]
     #   Long name (multiple characters) for this option.
     #
     # @param description [String]
@@ -50,9 +66,9 @@ module Clive
     #
     # @param opts [Hash]
     # @option opts [true, false] :head
-    #   If option should be at top of help listing
+    #   If option should be at top of help list
     # @option opts [true, false] :tail
-    #   If option should be at bottom of help listing
+    #   If option should be at bottom of help list
     # @option opts [String] :args
     #   Arguments that the option takes. See {Argument}.
     # @option opts [Type, Array[Type]] :as
@@ -73,27 +89,66 @@ module Clive
     #   )
     #
     def initialize(names=[], description="", opts={}, &block)
-      @names = names.sort_by(&:size)
+      raise "A name must be given for this Option"   if names.size == 0
+      raise "Too many names passed to Option"        if names.size > 2
+      raise "An option can only have one long name"  if names.find_all {|i| i.size > 1 }.size > 1
+      raise "An option can only have one short name" if names.find_all {|i| i.size == 1 }.size > 1
+    
+      @names = names.sort
       @description  = description
       @block = block
 
-      @opts, hash = sort_opts(opts)
-
-      hash  = args_to_hash(hash)
-      hash  = infer_args(hash)
-      @args = optify(hash)
+      @opts, @args = do_options(opts)
+    end
+    
+    # Short name for the option. (ie. +-a+)
+    # @return [Symbol]
+    def short
+      @names.find {|i| i.size == 1 }
+    end
+    
+    # Long name for the option. (ie. +--abc+)
+    # @return [Symbol]
+    def long
+      @names.find {|i| i.size > 1 }
     end
 
-    def pad(arr, max)
-      if arr.size < max
-        (max - arr.size).times { arr << nil }
+    # The longest name available, as names are sorted by size the longest name
+    # is the last in the Array.
+    # @return [Symbol]
+    def name
+      names.last
+    end
+
+    # Pads +obj+ with +pad+ until it has size of +max+
+    # @param obj [#size, #<<]
+    # @param max [Integer]
+    # @param pad [Object]
+    def pad(obj, max, pad=nil)
+      if obj.size < max
+        (max - obj.size).times { obj << pad }
       end
-      arr
+      obj
     end
+    
+    # @return [Array<Hash,Array>]
+    #  The first is a hash containing options for the Option.
+    #  The second is an array of arguments the option takes.
+    def do_options(opts)
+      opts, hash = sort_opts(opts)
+      args = infer_args(args_to_hash(hash))
 
-
+      args.map! {|arg| Argument.new(arg[:name] || 'arg', arg.without(:name)) }
+      
+      [opts, args]
+    end
+    
+    # This does two things, it splits the options hash into two hashes as explained
+    # below. AND normalises the names of the hash keys meaning they can be accessed
+    # easily.
+    #
     # @return [Array[Hash]] Two hashes.
-    #  The first hash contains all options relevent to the Option, to be stored
+    #  The first hash contains all options relevant to the Option, to be stored
     #  in +@opts+.
     #  The second hash contains all options for building the arguments and should
     #  be used in the relevant methods.
@@ -130,9 +185,11 @@ module Clive
       [opt, arg]
     end
 
-
+    # This turns the arguments string and other options into a nicely formatted 
+    # hash.
     def args_to_hash(opts)
       withins = []
+      # Normalise withins separately as it will usually be an Array.
       if opts.has_key?(:withins)
         if opts[:withins].respond_to?(:[]) && opts[:withins][0].is_a?(Array)
           withins = opts[:withins]
@@ -140,24 +197,27 @@ module Clive
           withins = [opts[:withins]]
         end
       end
-
-      a = {
+      
+      # Make everything an Array
+      multiple = {
         :types       => Array(opts[:types])       || [],
         :matches     => Array(opts[:matches])     || [],
         :withins     => withins,
         :defaults    => Array(opts[:defaults])    || [],
         :constraints => Array(opts[:constraints]) || []
       }
-
-      max = a.values.map(&:size).max
-
-      a = Hash[ a.map {|k,v|
-        [k, pad(v, max)]
-      }]
-
-      b = []
-      max.times {|i|
-        c = {}
+      
+      # Find the largest Array...
+      max = multiple.values.map(&:size).max
+      
+      singles = []
+      # Split into an array of hashes, with each hash for each item of the previous
+      # Arrays.
+      # ie. go from {:as => [b, c], ...}
+      #          to [{:a => b, ...}, {:a => c, ...}, ...]
+      #
+      max.times do |i|
+        singles[i] = {}
         {
           :types => :type,
           :matches => :match,
@@ -165,107 +225,67 @@ module Clive
           :defaults => :default,
           :constraints => :constraint
         }.each do |plural, single|
-          c[single] = a[plural][i] if a[plural][i]
+          singles[i][single] = multiple[plural][i] if multiple[plural][i]
         end
-
-        b << c
-      }
-
-      return b unless opts[:args]
+      end
+      
+      # If no arg string to parse return now.
+      return singles unless opts[:args]
 
       optional = false
       cancelled_optional = false
-      opts[:args].split(' ').zip(b).map {|arg, opts|
+      # Parse the argument string and merge in previous options from +singles+.
+      opts[:args].split(' ').zip(singles).map {|arg, opts|
         if cancelled_optional
           optional = false
           cancelled_optional = false
         end
 
-        if arg[-1] == ']'
-          cancelled_optional = true
-        end
+        cancelled_optional = true if arg[-1] == ']'
 
         if arg[0] == '['
           optional = true
-        elsif arg[0] == '<'
-          # okay
-        else
-          # problem
+        elsif arg[0] != '<'
           raise InvalidArgumentString
         end
-
-        opts ||= {}
-        {:name => arg.gsub(/^\[?\<|\>\]?$/, ''), :optional => optional}.merge(opts)
+        
+        {:name => arg.gsub(/^\[?\<|\>\]?$/, ''), :optional => optional}.merge(opts || {})
       }
     end
-
-    def optify(hash)
-      hash.map do |opts|
-        Argument.new(opts[:name] || 'arg', *opts.without(:name))
-      end
-    end
-
+    
+    # Infer arguments that haven't been explicitly defined by name. This allows you
+    # to just say "it" should be within the range +1..5+ and have an argument 
+    # created without having to pass +:arg => '<choice>'+.
     def infer_args(opts)
       opts.map do |hash|
         if hash.has_key?(:name)
           hash
         else
-          if hash.has_key?(:default)
-            if hash.has_key?(:optional)
-              hash.merge({:name => 'arg'})
-            else
-              hash.merge({:name => 'arg', :optional => true})
-            end
-          elsif hash.has_key?(:within)
-            hash.merge({:name => 'choice'})
-          elsif hash.has_any_key?(:type, :match, :constraint)
-            hash.merge({:name => 'arg'})
-          else
-            hash
+          if hash.has_any_key?(:type, :match, :constraint, :within, :default)
+            hash.merge!({:name => 'arg'})
           end
+          hash.merge!({:optional => true}) if hash.has_key?(:default) && !hash.has_key?(:optional)
+        
+          hash
         end
       end
     end
 
-    def do_opts(opts)
-      opts[:as]           = Array(opts[:as]) || []
-      opts[:match]        = Array(opts[:match]) || []
-      opts[:in]           = [opts[:in]] if opts[:in].is_a?(Array) && !opts[:in][0].is_a?(Array)
-      opts[:in]         ||= []
-      opts[:default]      = Array(opts[:default]) || []
-      opts[:constraint]   = Array(opts[:constraint])
-      opts
-    end
-
-    # If size is 1, then returns [name], otherwise appends a number starting at 1 after each.
-    def string_with_numbers(name, size)
-      if size > 1
-        (1..size).map {|i| name + i.to_s }
-      else
-        [name]
-      end
-    end
-
-    def short
-      @names.find {|i| i.size == 1 }
-    end
-
-    def long
-      @names.find {|i| i.size > 1 }
-    end
-
-    def name
-      names.last
-    end
-
+    # @return [String]
     def to_s
       r = ""
-      r << "-#{short}" if short
-      r << ", "        if short && long
-      r << "--#{long}" if long
+      r << "-#{short}"         if short
+      if long
+        r << ", "              if short
+        r << "--"
+        r << "[no-]"           if boolean?
+        r << long.dashify
+      end
+      
       r
     end
-
+  
+    # @return [String]
     def inspect
       "#<#{self.class} #{to_s}>"
     end
@@ -283,12 +303,6 @@ module Clive
     # @return [true, false] Whether a block was given.
     def block?
       @block != nil
-    end
-
-    # Maps the +args+ to this options arguments
-    # @return [::Hash{Argument=>Object}]
-    def map_args(args)
-      ::Hash[@args.zip(filled_args(args)).find_all {|a,e| a.possible?(e) }]
     end
 
     # Puts the arguments in the correct places, with +nil+ where an optional
@@ -335,6 +349,7 @@ module Clive
       end
     end
 
+    # @return [Integer] The maximum number of arguments that this option takes.
     def max_args
       if boolean?
         0
@@ -343,10 +358,19 @@ module Clive
       end
     end
 
+    # Whether the +list+ of found arguments could possibly be the arguments for
+    # this option. This does not need to check the minimum length as the list
+    # may not be completely built, this just checks it hasn't failed completely.
     def possible?(list)
-      @args.zip(list).all? {|arg,item| item ? arg.possible?(item) : true } && list.size <= max_args
+      (
+        @args.zip(list).all? {|arg,item| item ? arg.possible?(item) : true } ||
+        zip_args(list).all? {|arg,item| item ? arg.possible?(item) : true }
+      ) && list.size <= max_args
     end
 
+    # Whether the +list+ of found arguments is valid to be the arguments for this
+    # option. Here length is checked as we need to make sure enough arguments are
+    # present.
     def valid?(list)
       if boolean?
         list == [true] || list == [false]
