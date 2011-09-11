@@ -27,11 +27,11 @@ module Clive
     # An Argument will have these traits by default.
     DEFAULTS = {
       :optional   => false,
-      :type       => Object,
-      :match      => AlwaysTrue,
-      :within     => AlwaysTrue,
+      :type       => Clive::Type::Object,
+      :match      => Clive::Argument::AlwaysTrue,
+      :within     => Clive::Argument::AlwaysTrue,
       :default    => nil,
-      :constraint => AlwaysTrue
+      :constraint => Clive::Argument::AlwaysTrue
     }
 
     attr_reader :name, :default, :type
@@ -163,6 +163,18 @@ module Clive
     def coerce(str)
       return str unless str.is_a?(String)
       @type.typecast(str)
+    end
+    
+    def to_h
+      {
+        :name       => @name,
+        :optional   => @optional,
+        :type       => @type,
+        :match      => @match,
+        :within     => @within,
+        :default    => @default,
+        :constraint => @constraint
+      }
     end
 
   end
