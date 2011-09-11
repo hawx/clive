@@ -61,19 +61,21 @@ module Clive
     # @option opts :default
     #   Default value the argument takes.
     #
-    # @option opts [#call] :constraint
+    # @option opts [#call, #to_proc] :constraint
     #   Proc which is passed the found argument and should return +true+ if the
     #   value is ok and false if not.
+    #   If the object responds to #to_proc this will be called and the resulting
+    #   Proc object saved for later use.
     #
     # @example
     #
-    #   Argument.new(:arg, :optional => true, :type => Integer)
+    #   Argument.new(:arg, :optional => true, :type => Integer, :constraint => :odd?)
     #
     def initialize(name, opts={})
-      opts  = (opts[0].is_a?(Hash) ? opts[0] : Hash[opts])
       @name = name.to_sym
   
-      opts = DEFAULTS.merge(Hash[opts])
+      opts[:constraint] = opts[:constraint].to_proc if opts[:constraint].respond_to?(:to_proc)
+      opts = DEFAULTS.merge(opts)
 
       @optional   = opts[:optional]
       @type       = Type.find_class(opts[:type].to_s)
