@@ -1,4 +1,4 @@
-$: << File.dirname(__FILE__)
+$: << File.dirname(__FILE__) + '/..'
 
 if RUBY_VERSION >= "1.9"
   require 'fileutils'
@@ -6,15 +6,14 @@ if RUBY_VERSION >= "1.9"
   Duvet.start :filter => 'lib/clive'
 end
 
-require_relative '../lib/clive'
+require 'lib/clive'
 
 gem 'minitest'
 
 require 'minitest/unit'
 require 'minitest/mock'
-
-require 'extras/red_green'
-require 'extras/assertions/assert_argument'
-require 'extras/hooks'
-
 require 'minitest/autorun'
+
+Dir['test/extras/**/*'].reject {|i| File.directory?(i) }.each do |l|
+  require l
+end
