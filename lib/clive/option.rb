@@ -188,7 +188,7 @@ module Clive
       mapped_args = if boolean?
          {:truth => args.first}
       else
-        Hash[ zip_args(args).map {|k,v| [k.name, v] } ]
+        Hash[ @args.zip(args).map {|k,v| [k.name, v] } ]
       end
 
       Runner._run(mapped_args, state, @block)
@@ -221,10 +221,9 @@ module Clive
     # this option. This does not need to check the minimum length as the list
     # may not be completely built, this just checks it hasn't failed completely.
     def possible?(list)
-      (
-        @args.zip(list).all? {|arg,item| item ? arg.possible?(item) : true } ||
-        zip_args(list).all? {|arg,item| item ? arg.possible?(item) : true }
-      ) && list.size <= max_args
+      @args.zip(list).all? {|arg,item| 
+        item ? arg.possible?(item) : true 
+      } && list.size <= max_args
     end
 
     # Whether the +list+ of found arguments is valid to be the arguments for this
@@ -238,15 +237,11 @@ module Clive
       end
     end
     
-    def zip_args(list)
-      @args.cool_zip(list)
-    end
-
     # Given +list+ will fill blank spaces with +nil+ where appropriate then
     # coerces each argument and uses default values if necessary.
     def valid_arg_list(list)
       # Use defaults if necessary and coerce
-      zip_args(list).map {|a,r| r ? a.coerce(r) : a.coerce(a.default) }
+      @args.zip(list).map {|a,r| r ? a.coerce(r) : a.coerce(a.default) }
     end
 
     # The first half of the help string.
