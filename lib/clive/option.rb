@@ -221,9 +221,9 @@ module Clive
     # this option. This does not need to check the minimum length as the list
     # may not be completely built, this just checks it hasn't failed completely.
     def possible?(list)
-      @args.zip(list).all? {|arg,item| 
+      @args.zip(list).all? do |arg,item|
         item ? arg.possible?(item) : true 
-      } && list.size <= max_args
+      end && list.size <= max_args
     end
 
     # Whether the +list+ of found arguments is valid to be the arguments for this
@@ -233,7 +233,10 @@ module Clive
       if boolean?
         list == [true] || list == [false]
       else
-        list.size >= min_args && possible?(list)
+        # It is important that when the arguments are put in the correct place
+        # that we check for missing arguments (which have been added as +nil+s)
+        # so compact the list _then_ check the size.
+        @args.zip(list).map {|i| i[1] }.compact.size >= min_args && possible?(list)
       end
     end
     
