@@ -27,21 +27,24 @@ class TestCommand < MiniTest::Unit::TestCase
   end
   
   def test_can_have_arguments
-    command = Clive::Command.new([:new], 'New stuff', {:arg => '<place>'}) {
+    command = Clive::Command.new([:new], 'New stuff', {:arg => '<place>'}) do
       action do |place|
-        p place
+        puts place
       end
-    }
+    end
     
     command.run_block
-    command.run(['hey'])
+    assert_output "hey\n" do
+      command.run({}, ['hey'])
+    end
   end
   
   def test_arguments_work
-    command = Clive::Command.new([:new], "", {:arg => '<dir>', :as => Clive::Type::Pathname})
+    command = Clive::Command.new([:new], "", {:arg => '<dir>'})
     
-    a,s = command.run(%w(new hey))
-    assert_equal({:new => {:args => [Pathname.new('hey')]}}, s)
+    state = {}
+    command.run(state, %w(~/somewhere))
+    assert_equal({:args => '~/somewhere'}, state)
   end
 
 end

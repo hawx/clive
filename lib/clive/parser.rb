@@ -113,35 +113,21 @@ module Clive
               raise MissingArgumentError.new(found, command_args, found.opts)
             end
 
-            if found.block?
-              found.run(state[found.name], command_args)
-            else
-              state[found.name][:args] = (found.max_args <= 1 ? command_args[0] : command_args)
-            end
-
+            found.run(state[found.name], command_args)
             @debug_padding = ""
 
           # otherwise it is an option
           else
             debug "Found option:  #{found}"
             args = found.max_args > 0 ? do_arguments_for(found) : [true]
-
-            if found.block?
-              found.run(state, args)
-            else
-              state[found.name] = (found.max_args <= 1 ? args[0] : args)
-            end
+            found.run(state, args)
           end
 
         elsif curr[0..4] == '--no-'
           found = @base.find("--#{curr[5..-1]}")
           debug "Found argument: #{found} (false)"
-
-          if found.block?
-            found.run(state, [false])
-          else
-            state[found.name] = false
-          end
+          
+          found.run(state, [false])
 
         elsif curr[0] == '-' && curr.size > 2 && @base.has?("-#{curr[1]}")
           currs = curr[1..-1].split('').map {|i| "-#{i}" }
@@ -153,22 +139,14 @@ module Clive
 
             if c == currs.last
               args = opt.max_args > 0 ? do_arguments_for(opt) : [true]
-
-              if opt.block?
-                opt.run(state, args)
-              else
-                state[opt.name] = (opt.max_args <= 1 ? args[0] : args)
-              end
+              
+              opt.run(state, args)
             else # can't take any arguments as an option is next to it
               if opt.max_args > 0
                 raise MissingArgumentError.new(opt, [], opt.args)
               end
-
-              if opt.block?
-                opt.run(state, [true])
-              else
-                state[opt.name] = true
-              end
+              
+              opt.run(state, [true])
             end
           end
 

@@ -182,16 +182,29 @@ module Clive
       end
     end
 
-    # @param state [Hash] Global state for parser, this may be modified!
+    # @param state [Hash] Local state for parser, this may be modified!
     # @param args [Array] Arguments for the block which is run
+    # @return [Hash] the state which may have been modified!
+    #
     def run(state, args=[])
       mapped_args = if boolean?
          {:truth => args.first}
       else
         Hash[ @args.zip(args).map {|k,v| [k.name, v] } ]
       end
-
-      Runner._run(mapped_args, state, @block)
+      
+      if block?
+        Runner._run(mapped_args, state, @block)
+      else
+        state = set_state(state, args)
+      end
+      
+      state
+    end
+    
+    def set_state(state, args)
+      state[name] = (max_args <= 1 ? args[0] : args)
+      state
     end
 
     # Whether this is a boolean option and can be called with a +--no+ prefix.

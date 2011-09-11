@@ -16,6 +16,7 @@ module Clive
           else
             instance_exec(&fn)
           end
+          @state
         end
         
         # @param key [Symbol]

@@ -179,8 +179,12 @@ module Clive
     # @return [String]
     def help
       Formatter.new(@header, @footer, @commands, @options)
-    end
+    end    
     
+    def set_state(state, args)
+      state[:args] = (max_args <= 1 ? args[0] : args)
+      state
+    end
     
   end
 end
