@@ -7,18 +7,18 @@ class CliveTestClass
   
   header 'Usage: clive_test.rb [command] [options]'
   
-  opt :version, tail: true do
+  opt :version, :tail => true do
     puts "Version 1"
   end
   
-  opt :a, :auto, as: Boolean
-  opt :v, :verbose, as: Boolean
+  opt :a, :auto, :as => Boolean
+  opt :v, :verbose, :as => Boolean
   
-  opt :s, :size, 'Size of thing', arg: '<size>', as: Float
+  opt :s, :size, 'Size of thing', :arg => '<size>', :as => Float
   opt :S, :super_size
     
   desc 'Print <message> <n> times'
-  opt :print, arg: '<message> <n>', as: [String, Integer] do
+  opt :print, :arg => '<message> <n>', :as => [String, Integer] do
     n.times { puts message }
   end
   
@@ -26,10 +26,10 @@ class CliveTestClass
     puts "a: #{a}, b: #{b}, c: #{c}"
   end
   
-  command :new, 'Creates new things', arg: '<dir>' do
+  command :new, 'Creates new things', :arg => '<dir>' do
 
     # implicit arg as "<choice>", also added default
-    opt :type, in: %w(post page blog), default: :page, as: Symbol
+    opt :type, :in => %w(post page blog), :default => :page, :as => Symbol
     opt :force, 'Force overwrite' do
       require 'highline/import'
       answer = ask("Are you sure, this could delete stuff? [y/n]\n")

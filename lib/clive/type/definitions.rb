@@ -75,11 +75,14 @@ module Clive
       
       def typecast(arg)
         if arg.include?('...')
-          ::Range.new(*arg.split('...'), true)
+          a,b = arg.split('...')
+          ::Range.new(a, b, true)
         elsif arg.include?('..')
-          ::Range.new(*arg.split('..'), false)
+          a,b = arg.split('..')
+          ::Range.new(a, b, false)
         else
-          ::Range.new(*arg.split('-'), false)
+          a,b = arg.split('-')
+          ::Range.new(a, b, false)
         end
       end
     end

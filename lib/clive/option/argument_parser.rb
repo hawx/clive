@@ -95,10 +95,10 @@ module Clive
         # ie. go from {:as => [b, c], ...}
         #          to [{:a => b, ...}, {:a => c, ...}, ...]
         #
-        singles = multiple.rename(PLURAL_KEYS)
-                           .map {|k, arr| pad(arr, max).map {|i| [k, i] } }
-                           .transpose
-                           .map {|i| Hash[ i.reject {|a,b| b == nil || a == :arg } ] }
+        singles = multiple.rename(PLURAL_KEYS).
+                            map {|k, arr| pad(arr, max).map {|i| [k, i] } }.
+                            transpose.
+                            map {|i| Hash[ i.reject {|a,b| b == nil || a == :arg } ] }
  
         # If no arg string to parse return now.
         return singles unless opts[:args]
@@ -114,9 +114,9 @@ module Clive
   
           cancelled_optional = true if arg[-1] == ']'
   
-          if arg[0] == '['
+          if arg[0..0] == '['
             optional = true
-          elsif arg[0] != '<'
+          elsif arg[0..0] != '<'
             raise InvalidArgumentString
           end
           

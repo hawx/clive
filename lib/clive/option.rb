@@ -91,10 +91,10 @@ module Clive
     def initialize(names=[], description="", opts={}, &block)
       raise "A name must be given for this Option"   if names.size == 0
       raise "Too many names passed to Option"        if names.size > 2
-      raise "An option can only have one long name"  if names.find_all {|i| i.size > 1 }.size > 1
-      raise "An option can only have one short name" if names.find_all {|i| i.size == 1 }.size > 1
+      raise "An option can only have one long name"  if names.find_all {|i| i.to_s.size > 1 }.size > 1
+      raise "An option can only have one short name" if names.find_all {|i| i.to_s.size == 1 }.size > 1
     
-      @names = names.sort
+      @names = names.sort_by {|i| i.to_s }
       @description  = description
       @block = block
 
@@ -104,13 +104,13 @@ module Clive
     # Short name for the option. (ie. +-a+)
     # @return [Symbol]
     def short
-      @names.find {|i| i.size == 1 }
+      @names.find {|i| i.to_s.size == 1 }
     end
     
     # Long name for the option. (ie. +--abc+)
     # @return [Symbol]
     def long
-      @names.find {|i| i.size > 1 }
+      @names.find {|i| i.to_s.size > 1 }
     end
 
     # The longest name available, as names are sorted by size the longest name
@@ -290,7 +290,7 @@ module Clive
       elsif (other.tail? && !tail?) || (other.head? && !head?)
         -1
       else
-        self.name <=> other.name
+        self.name.to_s <=> other.name.to_s
       end
     end
     

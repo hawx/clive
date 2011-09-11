@@ -20,7 +20,7 @@ class TestParser < MiniTest::Unit::TestCase
   def test_parsing_with_arguments_for_options
     a = nil
     base = Class.new { include Clive
-      opt :name, arg: '<name>' do |name|
+      opt :name, :arg => '<name>' do |name|
         a = name
       end
     }
@@ -37,7 +37,7 @@ class TestParser < MiniTest::Unit::TestCase
   end
 
   def test_parsing_with_automatic_blocks_and_arguments
-    base = Class.new { include Clive; opt :name, arg: '<name>' }
+    base = Class.new { include Clive; opt :name, :arg => '<name>' }
 
     args, state = base.run %w(--name John)
     assert_equal [], args
@@ -48,8 +48,8 @@ class TestParser < MiniTest::Unit::TestCase
     a = nil
 
     base = Class.new { include Clive
-      opt :force, as: Boolean
-      opt :auto, as: Boolean do |truth|
+      opt :force, :as => Boolean
+      opt :auto, :as => Boolean do |truth|
         a = truth
       end
     }
@@ -63,8 +63,8 @@ class TestParser < MiniTest::Unit::TestCase
     a = nil
     base = Class.new { include Clive
 
-      command :new, args: '<dir>' do
-        opt :force, as: Boolean
+      command :new, :args => '<dir>' do
+        opt :force, :as => Boolean
 
         action do |dir|
           a = dir

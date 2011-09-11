@@ -129,7 +129,7 @@ module Clive
           
           found.run(state, [false])
 
-        elsif curr[0] == '-' && curr.size > 2 && @base.has?("-#{curr[1]}")
+        elsif curr[0..0] == '-' && curr.size > 2 && @base.has?("-#{curr[1..1]}")
           currs = curr[1..-1].split('').map {|i| "-#{i}" }
 
           currs.each do |c|

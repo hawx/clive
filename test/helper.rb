@@ -8,6 +8,7 @@ end
 
 require 'lib/clive'
 
+require 'rubygems'
 gem 'minitest'
 
 require 'minitest/unit'

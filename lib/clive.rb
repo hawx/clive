@@ -77,7 +77,7 @@ module Clive
     
     # @see Command#find
     def find(arg)
-      if arg[0] == '-'
+      if arg[0..0] == '-'
         super
       else
         find_command(arg.to_sym)
