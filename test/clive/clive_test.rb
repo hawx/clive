@@ -22,7 +22,7 @@ class CliveTestClass
     n.times { puts message }
   end
   
-  opt :complex, :arg => '[<one>] <two> [<three>]', :match => [ /\d/, /\d\d/, /\d\d\d/ ] do |a,b,c|
+  opt :complex, :arg => '[<one>] <two> [<three>]', :match => [ /^\d$/, /^\d\d$/, /^\d\d\d$/ ] do |a,b,c|
     puts "a: #{a}, b: #{b}, c: #{c}"
   end
   
