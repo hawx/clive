@@ -51,6 +51,14 @@ class TestArgument < MiniTest::Unit::TestCase
     assert a.possible? 1
     refute a.possible? 2
   end
+  
+  def test_constraint_takes_symbol
+    a = Clive::Argument.new(:a, :type => Integer, :constraint => :odd?)
+    assert a.possible? '1'
+    refute a.possible? '2'
+    assert a.possible? 1
+    refute a.possible? 2
+  end
 
   def test_coerce
     m = MiniTest::Mock.new
