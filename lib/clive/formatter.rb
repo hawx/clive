@@ -1,5 +1,7 @@
 module Clive
 
+  # Formats the full help string displayed when the +help+ command is used
+  # or the +--help+ option is invoked.
   class Formatter
   
     def initialize(header, footer, commands, options, padding=2)
@@ -57,14 +59,18 @@ module Clive
       r
     end
     
+    # @return [String] Default padding
     def padding
       ' ' * @padding
     end
     
+    # @return [String] Padding for after the opt's #before_help_string.
+    #  The size returned changes so that the descriptions line up
     def padding_for(opt)
       ' ' * (max - opt.before_help_string.size)
     end
     
+    # @return [Integer] The length of the longest #before_help_string
     def max
       @max ||= (@options + @commands).map {|i| i.before_help_string.size }.max
     end
