@@ -49,8 +49,7 @@ module Clive
     #
     # @param [#before_help_string, #after_help_string]
     def build_option_string(opt)
-      r = ""
-      r << padding * 2 << opt.before_help_string
+      r = padding * 2 << opt.before_help_string
       unless opt.after_help_string.empty?
         r << padding_for(opt) << padding * 2 << "# " << opt.after_help_string
       end
@@ -66,16 +65,8 @@ module Clive
       ' ' * (max - opt.before_help_string.size)
     end
     
-    def command_strings
-      Hash[@commands.map {|i| [i.before_help_string, i.after_help_string] }]
-    end
-    
-    def option_strings
-      Hash[@options.map {|i| [i.before_help_string, i.after_help_string] }]
-    end
-    
     def max
-      (@options + @commands).map {|i| i.before_help_string.size }.max
+      @max ||= (@options + @commands).map {|i| i.before_help_string.size }.max
     end
   
   end
