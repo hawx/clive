@@ -48,8 +48,9 @@ module Clive
       @header = "Usage: #{File.basename($0)} #{@names.join(', ')} [options]"
       @footer = nil
       
+      h = self # bind self so that it can be called in the block
       self.option(:h, :help, "Display this help message", :tail => true) do
-        puts self.help
+        puts h.help
         exit 0
       end
       
@@ -178,7 +179,14 @@ module Clive
     # @see Formatter
     # @return [String]
     def help
-      Formatter.new(@header, @footer, @commands, @options)
+      f = @opts[:formatter]
+      f.header = @header
+      f.footer = @footer
+      # Make sure to sort everything
+      f.commands = @commands.sort if @commands
+      f.options = @options.sort
+      
+      f.to_s
     end    
     
     def set_state(state, args)

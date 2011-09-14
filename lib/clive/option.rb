@@ -273,7 +273,7 @@ module Clive
     # The second half of the help string.
     # @return [String]
     def after_help_string
-      a = @description
+      a = @description.dup
       if args.size == 1
         a << " " << args.first.choice_str
       end

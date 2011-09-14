@@ -22,6 +22,7 @@ class CliveTestClass
     n.times { puts message }
   end
   
+  desc 'A super long description for a super stupid option, this should test the _extreme_ wrapping abilities as it should all be aligned. Maybe I should go for another couple of lines just for good measure. That\'s all'
   opt :complex, :arg => '[<one>] <two> [<three>]', :match => [ /^\d$/, /^\d\d$/, /^\d\d\d$/ ] do |a,b,c|
     puts "a: #{a}, b: #{b}, c: #{c}"
   end
@@ -109,7 +110,12 @@ Usage: clive_test.rb [command] [options]
 
   Options:
     -a, --[no-]auto
-    --complex [<one>] <two> [<three>]
+    --complex [<one>] <two> [<three>]    # A super long description for a super
+                                           stupid option, this should test the
+                                           _extreme_ wrapping abilities as it
+                                           should all be aligned. Maybe I should
+                                           go for another couple of lines just
+                                           for good measure. That's all
     --print <message> <n>                # Print <message> <n> times
     -s, --size <size>                    # Size of thing
     -S, --super-size
@@ -119,7 +125,7 @@ Usage: clive_test.rb [command] [options]
 EOS
 
     assert_output help do
-      CliveTestClass.run %w(help)
+      CliveTestClass.run %w(help), :formatter => Clive::Formatter.new(80, 2)
     end
   end
   

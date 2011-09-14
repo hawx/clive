@@ -4,12 +4,14 @@ module Clive
   # or the +--help+ option is invoked.
   class Formatter
   
-    def initialize(header, footer, commands, options, padding=2)
-      @header   = header
-      @footer   = footer
-      @commands = commands.sort
-      @options  = options.sort
+    attr_writer :header, :footer, :options, :commands
+  
+    def initialize(width=Output.terminal_width, padding=2)
       @padding  = padding
+      @width    = width
+      
+      @header, @footer = "", ""
+      @commands, @options = [], []
     end
     
     # Builds the help string. Formatted like:
@@ -27,20 +29,30 @@ module Clive
     # @return [String]
     def to_s
       r = @header << "\n\n"
-      r << padding << "Commands:\n"
       
-      @commands.each do |command|
-        r << build_option_string(command)
+      unless @commands.empty?
+        r << padding << "Commands:\n"
+        @commands.each do |command|
+          r << build_option_string(command)
+        end
+        r << "\n"
       end
       
-      r << "\n  Options:\n"
-      @options.each do |option|
-        r << build_option_string(option)
+      unless @options.empty?
+        r << padding << "Options:\n"
+        @options.each do |option|
+          r << build_option_string(option)
+        end
+        r << "\n"
       end
       
-      r << "\n" << @footer if @footer
+      r << @footer if @footer
       
       r
+    end
+    
+    def inspect
+      "#<#{self.class.name} @width=#@width @padding=#@padding>"
     end
     
     protected
@@ -53,12 +65,13 @@ module Clive
     def build_option_string(opt)
       r = padding * 2 << opt.before_help_string
       unless opt.after_help_string.empty?
-        r << padding_for(opt) << padding * 2 << "# " << opt.after_help_string
+        r << padding_for(opt) << padding * 2 << "# " 
+        r << Output.wrap_text(opt.after_help_string, max+(@padding*4)+2, @width)
       end
       r << "\n"
       r
     end
-    
+
     # @return [String] Default padding
     def padding
       ' ' * @padding

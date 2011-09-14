@@ -48,6 +48,7 @@ module Clive
       # Create basic header "Usage: filename [command] [options]
       @header = "Usage: #{File.basename($0)} [command] [options]\n\n"
       @footer = nil
+      @opts = {}
       
       self.option(:h, :help, "Display this help message", :tail => true) do
         puts self.help
@@ -59,7 +60,16 @@ module Clive
       current_desc
     end
     
+    DEFAULTS = {
+      :formatter => Formatter.new
+    }
+    
+    # These options should be copied into each command created.
+    GLOBAL_OPTIONS = [:formatter]
+    
     def run(argv, opts={})
+      @opts, _ = do_options(opts)
+      @opts = DEFAULTS.merge(@opts)
       Clive::Parser.new(self).parse(argv, opts)
     end
     
@@ -72,6 +82,7 @@ module Clive
           when Hash   then o = i
         end
       end
+      o = DEFAULTS.merge(Hash[@opts.find_all {|k,v| GLOBAL_OPTIONS.include?(k) }]).merge(o)
       @commands << Command.new(ns, d, o, &block)
     end
     

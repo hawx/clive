@@ -44,6 +44,32 @@ module Clive
         "--#{str}"
       end
     end
+    
+    
+    # @return [Integer,nil] Width of terminal window, or +nil+ if it cannot be determined.
+    # @see https://github.com/cldwalker/hirb/blob/v0.5.0/lib/hirb/util.rb#L61
+    def terminal_width
+      if (ENV['COLUMNS'] =~ /^\d+$/)
+        ENV['COLUMNS'].to_i
+      elsif (RUBY_PLATFORM =~ /java/ || (!STDIN.tty? && ENV['TERM'])) && command_exists?('tput')
+        `tput cols`.to_i
+      elsif STDIN.tty? && command_exists?('stty')
+        # returns 'height width'
+        `stty size`.scan(/\d+/).last.to_i
+      else
+        nil
+      end
+    rescue
+      nil
+    end
+    
+    private
+    
+    # Determines if a shell command exists by searching for it in ENV['PATH'].
+    # @see https://github.com/cldwalker/hirb/blob/v0.5.0/lib/hirb/util.rb#L55
+    def command_exists?(command)
+      ENV['PATH'].split(File::PATH_SEPARATOR).any? {|d| File.exists? File.join(d, command) }
+    end
   
   end
 end

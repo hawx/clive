@@ -16,7 +16,8 @@ module Clive
       
       OPT_KEYS = {
         :head => [:head],
-        :tail => [:tail]
+        :tail => [:tail],
+        :formatter => [:formatter]
       }.flip
       
       PLURAL_KEYS = {
