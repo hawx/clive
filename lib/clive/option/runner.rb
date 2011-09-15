@@ -4,15 +4,20 @@ module Clive
     class Runner
       class << self
   
-        # @param args [Hash{Symbol=>Object}]
+        # @param args [Array[Symbol,Object]]
+        #   An array is used because with 1.8.7 a hash has unpredictable
+        #   ordering of keys, this means an array is the only way I can be
+        #   sure that the arguments are in order.
         # @param state [Hash{Symbol=>Object}]
         # @param fn [Proc]
         def _run(args, state, fn)
-          @args = args
+          # order of this doesn't matter as it will just be accessed by key
+          @args = Hash[args] 
           @state = state
           return unless fn
           if fn.arity > 0
-            instance_exec(*args.values, &fn)
+            # Remember to use the ordered array version
+            instance_exec(*args.map {|i| i.last }, &fn)
           else
             instance_exec(&fn)
           end

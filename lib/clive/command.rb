@@ -39,7 +39,6 @@ module Clive
       @names = names.sort
       @description = description
       @_block = block
-      
       @opts, @args = do_options(opts)
       
       @options = []

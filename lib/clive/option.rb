@@ -188,9 +188,9 @@ module Clive
     #
     def run(state, args=[])
       mapped_args = if boolean?
-         {:truth => args.first}
+        [[:truth, args.first]]
       else
-        Hash[ @args.zip(args).map {|k,v| [k.name, v] } ]
+        @args.zip(args).map {|k,v| [k.name, v] }
       end
       
       if block?
@@ -249,7 +249,13 @@ module Clive
         # It is important that when the arguments are put in the correct place
         # that we check for missing arguments (which have been added as +nil+s)
         # so compact the list _then_ check the size.
-        @args.zip(list).map {|i| i[1] }.compact.size >= min_args && possible?(list)
+        @args.zip(list).map do |a,i| 
+          if a.optional?
+            nil
+          else
+            i
+          end
+        end.compact.size >= min_args && possible?(list)
       end
     end
     

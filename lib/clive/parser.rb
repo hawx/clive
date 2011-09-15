@@ -118,7 +118,7 @@ module Clive
 
           # otherwise it is an option
           else
-            debug "Found option:  #{found}"
+            debug "Found option: #{found}"            
             args = found.max_args > 0 ? do_arguments_for(found) : [true]
             found.run(state, args)
           end
@@ -126,7 +126,6 @@ module Clive
         elsif curr[0..4] == '--no-'
           found = @base.find("--#{curr[5..-1]}")
           debug "Found argument: #{found} (false)"
-          
           found.run(state, [false])
 
         elsif curr[0..0] == '-' && curr.size > 2 && @base.has?("-#{curr[1..1]}")
@@ -166,8 +165,8 @@ module Clive
     def do_arguments_for(opt, buffer=0)
       arg_list = collect_arguments(opt, buffer)
       arg_list = validate_arguments(opt, arg_list)
-
-      debug "  got #{arg_list.size} argument(s): #{arg_list.to_s[1..-2]}"
+      
+      debug "  got #{arg_list.compact.size} argument(s): #{arg_list.inspect}"
 
       arg_list
     end

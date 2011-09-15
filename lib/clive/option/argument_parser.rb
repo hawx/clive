@@ -32,8 +32,9 @@ module Clive
       # @param [Hash]
       def initialize(options)      
         opts, hash = sort_opts(options)
-        args = infer_args(args_to_hash(hash))
-  
+        args = args_to_hash(hash)
+        args = infer_args(args)
+        
         args.map! {|arg| Clive::Argument.new(arg[:name] || 'arg', arg.without(:name)) }
         @opts = opts
         @args = ArgumentList.new(args)
@@ -113,7 +114,7 @@ module Clive
             cancelled_optional = false
           end
   
-          cancelled_optional = true if arg[-1] == ']'
+          cancelled_optional = true if arg[-1..-1] == ']'
   
           if arg[0..0] == '['
             optional = true

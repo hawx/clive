@@ -122,6 +122,7 @@ Usage: clive_test.rb [command] [options]
     -v, --[no-]verbose
     -h, --help                           # Display this help message
     --version
+
 EOS
 
     assert_output help do
