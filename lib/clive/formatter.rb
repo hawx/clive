@@ -1,7 +1,35 @@
 module Clive
 
   # Formats the full help string displayed when the +help+ command is used
-  # or the +--help+ option is invoked.
+  # or the +--help+ option is invoked. This can be replaced by a class of
+  # your own design if necessary. The only requirements are that it must 
+  # respond to #to_s which should return the help string, and respond to
+  # #header=, #footer=, #options= and #commands=.
+  #
+  # Then it is just a case of passing an instance of the new formatter to
+  # {Clive.run}. You can also use a different formatter for commands by 
+  # passing it when creating them.
+  #
+  # @example
+  #
+  #   class MainFormatter
+  #     # ...
+  #   end
+  #
+  #   class CommandFormatter
+  #     # ...
+  #   end
+  #
+  #   class CLI
+  #     # ...
+  #
+  #     command :new, formatter: CommandFormatter.new do
+  #       # ...
+  #     end
+  #   end
+  #
+  #   CLI.run formatter: MainFormatter.new
+  #
   class Formatter
   
     attr_writer :header, :footer, :options, :commands
@@ -10,8 +38,11 @@ module Clive
     #   Total width of screen to use
     # @param padding [Integer] 
     #   Amount of padding to use
-    # @param ratio [Float] 
+    # @param min_ratio [Float] 
+    #   Minimum proportion of screen the left side can use
+    # @param max_ratio [Float]
     #   Maximum proportion of screen the left side can use
+    #
     def initialize(width=Output.terminal_width, padding=2, min_ratio=0.3, max_ratio=0.5)
       @padding   = padding
       @width     = width
@@ -130,7 +161,7 @@ module Clive
     
     # @return [Integer] The length of the longest #before_help_string
     def max
-      @max ||= (@options + @commands).map {|i| before(i).size }.max
+      (@options + @commands).map {|i| before(i).size }.max
     end
   
   end
