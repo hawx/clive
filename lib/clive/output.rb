@@ -6,11 +6,7 @@ module Clive
       str += with * diff unless diff < 0
       str
     end
-    
-    def l_pad(str, margin, with=" ")
-      (with * margin) + str
-    end
-    
+
     # @param str [String] Text to be wrapped
     # @param left_margin [Integer] Width of space at left
     # @param width [Integer] Total width of text
@@ -36,16 +32,6 @@ module Clive
       ([r[0]] + r[1..-1].map {|i| l_pad(i, left_margin) }).join("\n")
     end
     
-    def option_name_to_string(sym)
-      str = sym.to_s
-      if str.size == 1
-        "-#{str}"
-      else
-        "--#{str}"
-      end
-    end
-    
-    
     # @return [Integer,nil] Width of terminal window, or +nil+ if it cannot be determined.
     # @see https://github.com/cldwalker/hirb/blob/v0.5.0/lib/hirb/util.rb#L61
     def terminal_width
@@ -63,12 +49,17 @@ module Clive
       nil
     end
     
+    
     private
     
     # Determines if a shell command exists by searching for it in ENV['PATH'].
     # @see https://github.com/cldwalker/hirb/blob/v0.5.0/lib/hirb/util.rb#L55
     def command_exists?(command)
       ENV['PATH'].split(File::PATH_SEPARATOR).any? {|d| File.exists? File.join(d, command) }
+    end
+  
+    def l_pad(str, margin, with=" ")
+      (with * margin) + str
     end
   
   end

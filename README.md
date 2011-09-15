@@ -195,10 +195,47 @@ prompted, the message `"Creating complex in ~/projects/first"` would be printed 
 state returned would be `{:type => :complex, :force => true}`.
 
 
+### Help Formatters
+
+Although the default format for help will suit most cases occasionally you may want 
+something a bit different. This is possible by creating a formatter, that is an 
+object which responds to `#to_s`, `#header=`, `#footer=`, `#options=` and `#commands=`.
+It is probably going to be easiest to look at the default in `lib/clive/formatter.rb`
+as an example.
+
+To use your new formatter pass it with the key `:formatter` when calling `.run` or
+when creating a command. If a command has not been passed a formatter it uses the
+global one passed to `.run`.
+
+    class MyFormatter
+      # ...
+    end
+    
+    class SpecialFormatter
+      # ...
+    end
+    
+    class CLI
+      
+      # uses MyFormatter
+      command :new do
+        # ...
+      end
+      
+      # uses SpecialFormatter
+      command :different, formatter: SpecialFormatter do
+        # ...
+      end
+    
+    end
+    
+    CLI.run formatter: MyFormatter
+
+
 ## Clive::Output
 
-This is a new bit that allows you to colourise output from the command line, by patching a 
-few methods onto String.
+`clive/output` contains various monkey patches on String that allow you to easily 
+colourise output.
 
     require 'clive/output'
     # or require 'clive'
@@ -228,7 +265,6 @@ Methods available are:
  - + background setters using colour\_bg
  - + light background using l\_colour\_bg
  
-
 
 ## Copyright
 

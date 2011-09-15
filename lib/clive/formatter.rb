@@ -94,6 +94,7 @@ module Clive
       "#<#{self.class.name} @width=#@width @padding=#@padding>"
     end
     
+    
     protected
     
     # Builds a single line for an Option of the form.
