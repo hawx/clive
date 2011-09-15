@@ -19,7 +19,6 @@ class TestArgument < MiniTest::Unit::TestCase
 
   def test_possible_on_type
     a = Clive::Argument.new(:a, :type => Time)
-    p a.possible? 'not-a-time'
     assert a.possible? '12:34'
     assert a.possible? Time.parse('12:34')
     # on 1.8.7 Time.parse parses **anything**, so this breaks. 
