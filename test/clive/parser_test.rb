@@ -1,7 +1,7 @@
 $: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
-class TestParser < MiniTest::Unit::TestCase
+class ParserTest < MiniTest::Unit::TestCase
   extend Clive::Type::Lookup
   # this is a bit of a hack, it seems I can't redefine .const_missing in a block
   # so this is what I have to do.

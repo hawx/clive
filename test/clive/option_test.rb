@@ -1,7 +1,7 @@
 $: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
-class TestOption < MiniTest::Unit::TestCase
+class OptionTest < MiniTest::Unit::TestCase
 
   def test_head
     h = Clive::Option.new([:a],nil,{:head => true})

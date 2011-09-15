@@ -1,7 +1,7 @@
 $: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
-class TestCommand < MiniTest::Unit::TestCase
+class CommandTest < MiniTest::Unit::TestCase
 
   def setup
     @command = Clive::Command.new([:name], "A description", {})

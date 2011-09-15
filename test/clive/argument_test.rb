@@ -1,7 +1,7 @@
 $: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
-class TestArgument < MiniTest::Unit::TestCase
+class ArgumentTest < MiniTest::Unit::TestCase
 
   def test_name_is_symbol
     a = Clive::Argument.new(:a)

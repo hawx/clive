@@ -1,7 +1,7 @@
 $: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
-class TestType < MiniTest::Unit::TestCase
+class TypeTest < MiniTest::Unit::TestCase
 
   def create(&block)
     Class.new(Clive::Type, &block)

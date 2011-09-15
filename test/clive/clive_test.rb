@@ -45,7 +45,7 @@ class CliveTestClass
 end
 
 
-class TestClive < MiniTest::Unit::TestCase
+class CliveTest < MiniTest::Unit::TestCase
 
   def test_boolean_switches
     a,s = CliveTestClass.run s('--no-auto -v')
