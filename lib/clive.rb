@@ -50,8 +50,9 @@ module Clive
       @footer = nil
       @opts = {}
       
+      h = self
       self.option(:h, :help, "Display this help message", :tail => true) do
-        puts self.help
+        puts h.help
         exit 0
       end
       
