@@ -259,27 +259,6 @@ module Clive
       # Use defaults if necessary and coerce
       @args.zip(list).map {|a,r| r ? a.coerce(r) : a.coerce(a.default) }
     end
-
-    # The first half of the help string.
-    # @return [String]
-    def before_help_string
-      b = to_s
-      if @args != [] && !boolean?
-        b << " " << @args.to_s
-      end
-      b
-    end
-    
-    # The second half of the help string.
-    # @return [String]
-    def after_help_string
-      a = @description.dup
-      if args.size == 1
-        a << " " << args.first.choice_str
-      end
-      a.strip!
-      a
-    end
     
     # Compare based on the size of {#name}, makes sure {#tail?}s go to the bottom
     # and {#head?}s go to the top. If both are {#head?} or {#tail?} then sorts
