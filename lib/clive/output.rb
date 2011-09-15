@@ -1,15 +1,37 @@
 module Clive
   module Output extend self
-  
+    
+    # @param str [String] String to pad.
+    # @param len [Integer] Length to pad string to.
+    # @param with [String] String to add to +str+.
     def pad(str, len, with=" ")
       diff = len - str.clear_colours.size
       str += with * diff unless diff < 0
       str
     end
 
+    # Wraps text. Each line is split by word and then a newline is inserted
+    # when the words exceed the allowed width. Lines after the first will
+    # have +left_margin+ spaces inserted.
+    #
+    # @example
+    #
+    #   Clive::Output.wrap_text("Lorem ipsum dolor sit amet, consectetur 
+    #   adipisicing elit, sed do eiusmod tempor incididunt ut labore et 
+    #   dolore magna aliqua.", 3, 23)
+    #   #=> "Lorem ipsum dolor
+    #      sit amet,
+    #      consectetur
+    #      adipisicing elit,
+    #      sed do eiusmod
+    #      tempor incididunt ut
+    #      labore et dolore
+    #      magna aliqua."
+    #
     # @param str [String] Text to be wrapped
     # @param left_margin [Integer] Width of space at left
-    # @param width [Integer] Total width of text
+    # @param width [Integer] Total width of text, ie. from the left 
+    #   of the screen
     def wrap_text(str, left_margin, width)
       text_width = width - left_margin
       
@@ -31,8 +53,9 @@ module Clive
       
       ([r[0]] + r[1..-1].map {|i| l_pad(i, left_margin) }).join("\n")
     end
-    
-    # @return [Integer,nil] Width of terminal window, or +nil+ if it cannot be determined.
+
+    # @return [Integer,nil] Width of terminal window, or +nil+ if it cannot be 
+    #   determined.
     # @see https://github.com/cldwalker/hirb/blob/v0.5.0/lib/hirb/util.rb#L61
     def terminal_width
       if (ENV['COLUMNS'] =~ /^\d+$/)
@@ -57,7 +80,12 @@ module Clive
     def command_exists?(command)
       ENV['PATH'].split(File::PATH_SEPARATOR).any? {|d| File.exists? File.join(d, command) }
     end
-  
+    
+    # Same as #pad but adds to the left of +str+.
+    #
+    # @param str [String] String to pad.
+    # @param margin [Integer] Amount of +with+s to add to the left of +str+.
+    # @param with [String] String to pad with.
     def l_pad(str, margin, with=" ")
       (with * margin) + str
     end
@@ -65,7 +93,6 @@ module Clive
   end
 end
 
-# Monkey patches for colour
 class String
   
   # @example
@@ -84,8 +111,18 @@ class String
   #
   #   puts "combo".blue.bold.underline.blink
   #
+  # @param code
+  #   Colour code, see http://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+  #
   def colour(code)
-    "#{code}#{self}\e[0m"
+    r = "\e[#{code}m#{self}"
+    r << "\e[0m" unless self[-4..-1] == "\e[0m"
+    r
+  end
+  
+  # Like #colour but modifies the string object.
+  def colour!(code)
+    replace self.colour(code)
   end
   
   COLOURS = {
@@ -108,17 +145,17 @@ class String
   
   ATTRIBUTES.each do |name, code|
     define_method name do
-      colour("\e[#{code}m")
+      colour code
     end
   end
   
   COLOURS.each do |name, code|
     define_method name do
-      colour("\e[3#{code}m")
+      colour "3#{code}"
     end
     
     define_method "#{name}_bg" do
-      colour("\e[4#{code}m")
+      colour "4#{code}"
     end
     
     # Change name to grey instead of l_black
@@ -128,19 +165,21 @@ class String
     end
     
     define_method "#{l_name}" do
-      colour("\e[9#{code}m")
+      colour "9#{code}"
     end
     
     define_method "#{l_name}_bg" do
-      colour("\e[10#{code}m")
+      colour "10#{code}"
     end
 
   end
   
+  # Remove any colour codes from a string.
   def clear_colours
     gsub /\e\[?\d\d{0,2}m/, ''
   end
   
+  # Same as #clear_colours, but modifies string.
   def clear_colours!
     gsub! /\e\[?\d\d{0,2}m/, ''
   end
