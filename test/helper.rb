@@ -11,6 +11,12 @@ require 'lib/clive'
 require 'rubygems'
 gem 'minitest'
 
+require 'shellwords'
+
+def s(str)
+  Shellwords.split(str)
+end
+
 require 'minitest/unit'
 require 'minitest/mock'
 require 'minitest/autorun'

@@ -48,12 +48,12 @@ end
 class TestClive < MiniTest::Unit::TestCase
 
   def test_boolean_switches
-    a,s = CliveTestClass.run %w(--no-auto -v)
+    a,s = CliveTestClass.run s('--no-auto -v')
     assert_equal({:auto => false, :verbose => true}, s)
   end
   
   def test_combined_short_switches
-    a,s = CliveTestClass.run %w(-vas 2.45)
+    a,s = CliveTestClass.run s('-vas 2.45')
     assert_equal({:verbose => true, :auto => true, :size => 2.45}, s)
     
     assert_raises Clive::Parser::MissingArgumentError do
@@ -62,13 +62,13 @@ class TestClive < MiniTest::Unit::TestCase
   end
   
   def test_calling_with_long_names
-    a,s = CliveTestClass.run %w(--super-size)
+    a,s = CliveTestClass.run s('--super-size')
     assert_equal({:super_size => true}, s)
   end
   
   def test_commands
     assert_output "Creating post in ~/my_site\n" do
-      a,s = CliveTestClass.run %w(-v new --type post ~/my_site --no-auto arg)
+      a,s = CliveTestClass.run s('-v new --type post ~/my_site --no-auto arg')
       assert_equal %w(arg), a
       assert_equal({:verbose => true, :new => {:type => :post}, :auto => false}, s)
     end
@@ -76,27 +76,27 @@ class TestClive < MiniTest::Unit::TestCase
   
   def test_complex_arguments
     assert_output "a: 1, b: 22, c: 333\n" do
-      CliveTestClass.run %w(--complex 1 22 333)
+      CliveTestClass.run s('--complex 1 22 333')
     end
     
     assert_output "a: 1, b: 22, c: \n" do
-      CliveTestClass.run %w(--complex 1 22)
+      CliveTestClass.run s('--complex 1 22')
     end
     
     assert_output "a: , b: 22, c: 333\n" do
-      CliveTestClass.run %w(--complex 22 333)
+      CliveTestClass.run s('--complex 22 333')
     end
     
     assert_output "a: , b: 22, c: \n" do
-      CliveTestClass.run %w(--complex 22)
+      CliveTestClass.run s('--complex 22')
     end
     
     assert_raises Clive::Parser::MissingArgumentError do
-      CliveTestClass.run %w(--complex 1)
+      CliveTestClass.run s('--complex 1')
     end
     
     assert_raises Clive::Parser::MissingArgumentError do
-      CliveTestClass.run %w(--complex 333)
+      CliveTestClass.run s('--complex 333')
     end
   end
   
@@ -126,7 +126,7 @@ Usage: clive_test.rb [command] [options]
 EOS
 
     assert_output help do
-      CliveTestClass.run %w(help), :formatter => Clive::Formatter.new(80, 2)
+      CliveTestClass.run s('help'), :formatter => Clive::Formatter.new(80, 2)
     end
   end
   

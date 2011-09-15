@@ -13,7 +13,7 @@ class TestParser < MiniTest::Unit::TestCase
         a = "forced"
       end
     }
-    base.run %w(--force)
+    base.run s('--force')
     assert_equal "forced", a
   end
 
@@ -24,14 +24,14 @@ class TestParser < MiniTest::Unit::TestCase
         a = name
       end
     }
-    base.run %w(--name John)
+    base.run s('--name John')
     assert_equal "John", a
   end
 
   def test_parsing_with_automatic_blocks
     base = Class.new { include Clive; opt :force }
 
-    args, state = base.run %w(--force hey)
+    args, state = base.run s('--force hey')
     assert_equal %w(hey), args
     assert_equal({:force => true}, state)
   end
@@ -39,7 +39,7 @@ class TestParser < MiniTest::Unit::TestCase
   def test_parsing_with_automatic_blocks_and_arguments
     base = Class.new { include Clive; opt :name, :arg => '<name>' }
 
-    args, state = base.run %w(--name John)
+    args, state = base.run s('--name John')
     assert_equal [], args
     assert_equal({:name => 'John'}, state)
   end
@@ -54,7 +54,7 @@ class TestParser < MiniTest::Unit::TestCase
       end
     }
 
-    args, state = base.run %w(--no-force --no-auto)
+    args, state = base.run s('--no-force --no-auto')
     assert_equal({:force => false}, state)
     assert_equal false, a
   end
@@ -72,7 +72,7 @@ class TestParser < MiniTest::Unit::TestCase
       end
     }
 
-    args, state = base.run %w(new ~/somewhere --force)
+    args, state = base.run s('new ~/somewhere --force')
     assert_equal({:new => {:force  => true}}, state)
     assert_equal [], args
     assert_equal "~/somewhere", a

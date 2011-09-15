@@ -43,7 +43,7 @@ class TestCommand < MiniTest::Unit::TestCase
     command = Clive::Command.new([:new], "", {:arg => '<dir>'})
     
     state = {}
-    command.run(state, %w(~/somewhere))
+    command.run(state, ['~/somewhere'])
     assert_equal({:args => '~/somewhere'}, state)
   end
 
