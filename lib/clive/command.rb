@@ -35,9 +35,13 @@ module Clive
     # @param opts [Hash] The options available for commands are the same as for Options
     #   see {Option#initialize} for details.
     #
-    def initialize(names, description="", opts={}, &block)
+    # @param group [String]
+    #   Group this command belongs to.
+    #
+    def initialize(names, description="", group=nil, opts={}, &block)
       @names = names.sort
       @description = description
+      @group_name = group
       @_block = block
       @opts, @args = ArgumentParser.new(opts).to_a
       
@@ -45,7 +49,9 @@ module Clive
       
       # Create basic header "Usage: filename commandname(s) [options]
       @header = "Usage: #{File.basename($0)} #{@names.join(', ')} [options]"
-      @footer = nil
+      @footer = ""
+      
+      @_group = nil
       
       add_help_option
       
@@ -98,7 +104,7 @@ module Clive
           when Hash   then o = i
         end
       end
-      @options << Option.new(ns, d, o, &block)
+      @options << Option.new(ns, d, @_group, o, &block)
     end
     alias_method :opt, :option
     
@@ -159,6 +165,16 @@ module Clive
     # @param arg [Symbol]
     def has_option?(arg)
       !!find_option(arg)
+    end
+    
+    # @param name [String]
+    def group(name)
+      @_group = name
+    end
+    
+    # Sugar for +group(nil)+
+    def end_group
+      group nil
     end
     
     # Builds the help string.

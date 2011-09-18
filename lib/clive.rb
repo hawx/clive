@@ -47,8 +47,9 @@ module Clive
       
       # Create basic header "Usage: filename [command] [options]
       @header = "Usage: #{File.basename($0)} [command] [options]\n\n"
-      @footer = nil
+      @footer = ""
       @opts = DEFAULTS
+      @_group = nil
 
       current_desc
     end
@@ -83,7 +84,7 @@ module Clive
       o = DEFAULTS.merge(
         Hash[@opts.find_all {|k,v| GLOBAL_OPTIONS.include?(k) }]
       ).merge(o)
-      @commands << Command.new(ns, d, o, &block)
+      @commands << Command.new(ns, d, @_group, o, &block)
     end
     
     # @see Command#find

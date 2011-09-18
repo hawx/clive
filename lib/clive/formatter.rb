@@ -67,29 +67,48 @@ module Clive
     #
     # @return [String]
     def to_s
-      @commands.sort!
-      @options.sort!
-    
-      # Make sure to #dup or it just appends each time, getting ever longer
-      r = @header.dup << "\n\n"
+      groups = (@options + @commands).group_by {|i| i.group_name }
       
-      unless @commands.empty?
-        r << padding << "Commands:\n"
-        @commands.each do |command|
-          r << build_option_string(command)
+      if groups.size > 1
+        r = @header.dup << "\n\n"
+        
+        groups.each do |name, group|          
+          r << (name ? "#{padding}#{name}:\n" : '')
+          
+          group.sort.each do |opt|
+            r << build_option_string(opt)
+          end
+          
+          r << "\n"
         end
-        r << "\n"
-      end
       
-      unless @options.empty?
-        r << padding << "Options:\n"
-        @options.each do |option|
-          r << build_option_string(option)
+        r << @footer
+      
+      else
+        @commands.sort!
+        @options.sort!
+      
+        # Make sure to #dup or it just appends each time, getting ever longer
+        r = @header.dup << "\n\n"
+        
+        unless @commands.empty?
+          r << padding << "Commands:\n"
+          @commands.each do |command|
+            r << build_option_string(command)
+          end
+          r << "\n"
         end
-        r << "\n"
+        
+        unless @options.empty?
+          r << padding << "Options:\n"
+          @options.each do |option|
+            r << build_option_string(option)
+          end
+          r << "\n"
+        end
+        
+        r << @footer
       end
-      
-      r << @footer if @footer
       
       r
     end
