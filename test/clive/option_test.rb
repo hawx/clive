@@ -110,6 +110,39 @@ class OptionTest < MiniTest::Unit::TestCase
     assert_argument [:arg, true, Clive::Type::Symbol, nil, nil], o.args.first
   end
   
+  def test_comparisons_work
+    a = Clive::Option.new([:a])
+    b = Clive::Option.new([:b])
+    
+    assert a < b
+    assert b > a
+    assert a == a.dup
+    
+    assert_equal [a, b], [b, a].sort
+  end
+  
+  def test_comparison_with_heads_and_tails_work
+    a = Clive::Option.new([:a])
+    a_head = Clive::Option.new([:a], '', {:head => true})
+    a_tail = Clive::Option.new([:a], '', {:tail => true})
+    b = Clive::Option.new([:b], '')
+    b_head = Clive::Option.new([:b], '', {:head => true})
+    b_tail = Clive::Option.new([:b], '', {:tail => true})
+    
+    assert a_head < a
+    assert a_tail > a
+    
+    assert a_head < b
+    assert a_tail > b
+    
+    assert a > b_head
+    assert a < b_tail
+    
+    assert a_head < b_head
+    assert a_tail < b_tail
+    
+    assert_equal [a_head, b_head, a, b, a_tail, b_tail], [a, a_head, a_tail, b, b_head, b_tail].sort
+  end
   
   # TODO
   def test_can_add_infinite_args

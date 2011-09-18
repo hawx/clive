@@ -13,7 +13,7 @@ class ArgumentListTest < MiniTest::Unit::TestCase
     c = Clive::Argument.new :c, :type => Integer, :constraint => :even?
     d = Clive::Argument.new :d, :type => Integer, :constraint => :odd?, :optional => true
     
-    list = Clive::Option::ArgumentList.new([a, b, c, d])
+    list = Clive::ArgumentList.new([a, b, c, d])
     
     # These behaviours are definitely what should happen
     assert_equal [nil, '1', '4', nil], do_zip(list, %w(1 4))
@@ -28,7 +28,7 @@ class ArgumentListTest < MiniTest::Unit::TestCase
   end
   
   def test_returns_nice_string
-    list = Clive::Option::ArgumentList.new( [
+    list = Clive::ArgumentList.new( [
       Clive::Argument.new(:a), 
       Clive::Argument.new(:b, :optional => true),
       Clive::Argument.new(:c, :optional => true),

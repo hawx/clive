@@ -1,6 +1,20 @@
 $: << File.dirname(__FILE__) + '/../..'
 require 'helper'
 
+class Clive::Argument
+  def to_h
+    {
+      :name       => @name,
+      :optional   => @optional,
+      :type       => @type,
+      :match      => @match,
+      :within     => @within,
+      :default    => @default,
+      :constraint => @constraint
+    }
+  end
+end
+
 class ArgumentParserTest < MiniTest::Unit::TestCase
 
   def subject
