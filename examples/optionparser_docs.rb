@@ -9,12 +9,14 @@ class CLI
   
   header 'Usage: example.rb [options]'
   
+  group 'Specific options'
+  
   desc 'Require the LIBRARY before executing your script'
   opt :r, :require, arg: '<LIBRARY>' do |lib|
     set(:library, get(:library) << lib)
   end
   
-  desc 'Edit ARGV files in place (make backup if EXTENSION supplied'
+  desc 'Edit ARGV files in place (make backup if EXTENSION supplied)'
   opt :i, :inplace, arg: '[<EXTENSION>]' do |ext|
     set :inplace, true
     set :extension, (ext || '').sub!(/\A\.?(?=.)/, ".") # Ensure extension begins with dot.
@@ -39,6 +41,8 @@ class CLI
     set :transfer_type, t
   end
   
+  group 'Common options'
+  
   opt :v, :verbose, 'Run verbosely', as: Boolean
   
   opt :version, 'Show version', :tail => true do
@@ -48,7 +52,7 @@ class CLI
 
 end
 
-args, opts = CLI.run(ARGV)
+args, opts = CLI.run(ARGV, :help_command => false)
 p opts
 
 __END__
@@ -56,9 +60,4 @@ __END__
 # Differences
 
 Clive doesn't have:
-- a way of seperating options, groups will be added next
-    group 'name'
-    #...
-    end_group # or start of new group
-
 - completion support, work on that too
