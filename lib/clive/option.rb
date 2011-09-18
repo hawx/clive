@@ -98,7 +98,7 @@ module Clive
       @description  = description
       @block = block
 
-      @opts, @args = do_options(opts)
+      @opts, @args = ArgumentParser.new(opts).to_a
     end
     
     # Short name for the option. (ie. +-a+)
@@ -119,16 +119,7 @@ module Clive
     def name
       names.last
     end
-
-    # @return [Array<Hash,Array>]
-    #  The first is a hash containing options for the Option.
-    #  The second is an array of arguments the option takes.
-    def do_options(opts)
-      a = ArgumentParser.new(opts)
-      return a.opts, a.args
-    end
     
-
     # @return [String]
     def to_s
       r = ""
@@ -150,36 +141,17 @@ module Clive
 
     # @return [true, false] Whether this option should come first in the help
     def head?
-      @opts[:head]
+      @opts[:head] || false
     end
 
     # @return [true, false] Whether this option should come last in the help
     def tail?
-      @opts[:tail]
+      @opts[:tail] || false
     end
 
     # @return [true, false] Whether a block was given.
     def block?
       @block != nil
-    end
-
-    # Puts the arguments in the correct places, with +nil+ where an optional
-    # argument has not been given.
-    def filled_args(args)
-      diff = args.size - @args.reject {|i| i.optional? }.size
-
-      @args.zip(args).map do |arg, real|
-        if arg.optional?
-          if diff > 0
-            diff -= 1
-            real
-          else
-            nil
-          end
-        else
-          real
-        end
-      end
     end
 
     # @param state [Hash] Local state for parser, this may be modified!
@@ -266,13 +238,15 @@ module Clive
       @args.zip(list).map {|a,r| r ? a.coerce(r) : a.coerce(a.default) }
     end
     
+    include Comparable
+    
     # Compare based on the size of {#name}, makes sure {#tail?}s go to the bottom
     # and {#head?}s go to the top. If both are {#head?} or {#tail?} then sorts
     # based on size.
     def <=>(other)
-      if (tail? && !other.tail?) || (head? && !other.head?)
+      if (tail? && !other.tail?) || (other.head? && !head?)
         1
-      elsif (other.tail? && !tail?) || (other.head? && !head?)
+      elsif (other.tail? && !tail?) || (head? && !other.head?)
         -1
       else
         self.name.to_s <=> other.name.to_s

@@ -5,6 +5,8 @@ module Clive
     # @see https://github.com/datamapper/dm-core/blob/master/lib/dm-core/property/lookup.rb
     module Lookup
 
+      protected
+
       # Provides access to Types defined under {Type} as if accessed
       # normally.
       #

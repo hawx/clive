@@ -40,6 +40,10 @@ module Clive
         @args = ArgumentList.new(args)
       end
       
+      def to_a
+        [@opts, @args]
+      end
+      
       protected
       
       # This does two things, it splits the options hash into two hashes as explained

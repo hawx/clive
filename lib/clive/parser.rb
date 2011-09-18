@@ -21,27 +21,7 @@ module Clive
       @base = base
     end
 
-    attr_accessor :i, :state, :arguments, :argv
-
-    def inc
-      @i += 1
-    end
-
-    def dec
-      @i -= 1
-    end
-
-    def curr
-      argv[i]
-    end
-
-    def ended?
-      i >= argv.size
-    end
-
-    def debug(str)
-      puts @debug_padding.to_s + str.l_cyan if @opts[:debug]
-    end
+    
 
     # The parser should work how you expect. It allows you to put global options before and after
     # a command section (if it exists, which it doesn't), so you have something like.
@@ -84,7 +64,7 @@ module Clive
             @debug_padding = "  "
 
             inc
-            state[found.name] = @opts[:state].new
+            @state[found.name] = @opts[:state].new
             command_args = []
 
             until ended?
@@ -95,9 +75,9 @@ module Clive
                 args = opt.max_args > 0 ? do_arguments_for(opt) : [true]
 
                 if opt.block?
-                  opt.run(state[found.name], args)
+                  opt.run(@state[found.name], args)
                 else
-                  state[found.name][opt.name] = (opt.max_args <= 1 ? args[0] : args)
+                  @state[found.name][opt.name] = (opt.max_args <= 1 ? args[0] : args)
                 end
                 
               else
@@ -113,20 +93,20 @@ module Clive
               raise MissingArgumentError.new(found, command_args, found.opts)
             end
 
-            found.run(state[found.name], command_args)
+            found.run(@state[found.name], command_args)
             @debug_padding = ""
 
           # otherwise it is an option
           else
             debug "Found option: #{found}"            
             args = found.max_args > 0 ? do_arguments_for(found) : [true]
-            found.run(state, args)
+            found.run(@state, args)
           end
 
         elsif curr[0..4] == '--no-'
           found = @base.find("--#{curr[5..-1]}")
           debug "Found argument: #{found} (false)"
-          found.run(state, [false])
+          found.run(@state, [false])
 
         elsif curr[0..0] == '-' && curr.size > 2 && @base.has?("-#{curr[1..1]}")
           currs = curr[1..-1].split('').map {|i| "-#{i}" }
@@ -139,26 +119,54 @@ module Clive
             if c == currs.last
               args = opt.max_args > 0 ? do_arguments_for(opt) : [true]
               
-              opt.run(state, args)
+              opt.run(@state, args)
             else # can't take any arguments as an option is next to it
               if opt.max_args > 0
                 raise MissingArgumentError.new(opt, [], opt.args)
               end
               
-              opt.run(state, [true])
+              opt.run(@state, [true])
             end
           end
 
         # otherwise it is an argument
         else
           debug "Found argument: #{curr}"
-          arguments << curr
+          @arguments << curr
         end
 
         inc
       end
 
-      return arguments, state
+      return @arguments, @state
+    end
+    
+
+    private
+    
+    # Increment the index
+    def inc
+      @i += 1
+    end
+
+    # Decrement the index
+    def dec
+      @i -= 1
+    end
+  
+    # @return [String] The current token
+    def curr
+      @argv[@i]
+    end
+
+    # Whether the index is at the end of the argv
+    def ended?
+      @i >= @argv.size
+    end
+
+    # Print a debugging statement if running in debug mode.
+    def debug(str)
+      puts @debug_padding.to_s + str.l_cyan if @opts[:debug]
     end
 
     # Returns the finished argument list for +opt+ which can then be pushed to the state.
@@ -171,10 +179,11 @@ module Clive
       arg_list
     end
 
+    # Collects the arguments for +opt+.
     def collect_arguments(opt, buffer=0)
       inc
       arg_list = []
-      while i < (argv.size - buffer) && arg_list.size < opt.max_args
+      while @i < (@argv.size - buffer) && arg_list.size < opt.max_args
         break unless opt.possible?(arg_list + [curr])
         arg_list << curr
         inc
@@ -182,7 +191,11 @@ module Clive
       dec
       arg_list
     end
-
+    
+    # Makes sure the found list of arguments is valid, if not raises 
+    # MissingArgumentError. Returns the valid argument list with the arguments
+    # as the correct type, in the correct positions and with default values
+    # inserted if necessary.
     def validate_arguments(opt, arg_list)
       # If we don't have enough args
       unless opt.valid?(arg_list)

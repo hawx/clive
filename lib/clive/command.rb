@@ -39,7 +39,7 @@ module Clive
       @names = names.sort
       @description = description
       @_block = block
-      @opts, @args = do_options(opts)
+      @opts, @args = ArgumentParser.new(opts).to_a
       
       @options = []
       
@@ -47,15 +47,11 @@ module Clive
       @header = "Usage: #{File.basename($0)} #{@names.join(', ')} [options]"
       @footer = nil
       
-      h = self # bind self so that it can be called in the block
-      self.option(:h, :help, "Display this help message", :tail => true) do
-        puts h.help
-        exit 0
-      end
+      add_help_option
       
       current_desc
     end
-    
+
     # @return [Symbol] Single name to use when referring specifically to this command.
     def name
       names.first
@@ -70,15 +66,6 @@ module Clive
     # command.
     def run_block
       instance_exec(&@_block) if @_block
-    end
-    
-    # @return [String]
-    #   Returns the last description to be set with {#description}, it then clears the
-    #   stored description so that it is not returned twice.
-    def current_desc
-      r = @_last_desc
-      @_last_desc = ""
-      r
     end
     
     # Set the header for {#help}.
@@ -191,6 +178,27 @@ module Clive
     def set_state(state, args)
       state[:args] = (max_args <= 1 ? args[0] : args)
       state
+    end
+    
+    private
+    
+    def add_help_option
+      if @opts[:help] && !has_option?(:help)
+        h = self # bind self so that it can be called in the block
+        self.option(:h, :help, "Display this help message", :tail => true) do
+          puts h.help
+          exit 0
+        end
+      end
+    end
+    
+    # @return [String]
+    #   Returns the last description to be set with {#description}, it then clears the
+    #   stored description so that it is not returned twice.
+    def current_desc
+      r = @_last_desc
+      @_last_desc = ""
+      r
     end
     
   end

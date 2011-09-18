@@ -38,7 +38,8 @@ module Clive
   # includes {Clive} will delegate methods to an instance of this class.
   class TopCommand < Command
     attr_reader :commands
-  
+    
+    # Never create an instance of this yourself. Extend Clive, then call #run.
     def initialize
       @names    = []
       @options  = []
@@ -47,32 +48,29 @@ module Clive
       # Create basic header "Usage: filename [command] [options]
       @header = "Usage: #{File.basename($0)} [command] [options]\n\n"
       @footer = nil
-      @opts = {}
-      
-      h = self
-      self.option(:h, :help, "Display this help message", :tail => true) do
-        puts h.help
-        exit 0
-      end
-      
-      self.command(:help, 'Display help', :arg => '[<command>]', :tail => true)
-      
+      @opts = DEFAULTS
+
       current_desc
     end
     
+    def run(argv, opts={})
+      opts = ArgumentParser.new(opts).opts
+      @opts = DEFAULTS.merge(opts)
+      
+      add_help_option
+      add_help_command
+      
+      Clive::Parser.new(self).parse(argv, opts)
+    end
+
     DEFAULTS = {
-      :formatter => Formatter.new
+      :formatter => Formatter.new,
+      :help => true
     }
     
     # These options should be copied into each command created.
-    GLOBAL_OPTIONS = [:formatter]
-    
-    def run(argv, opts={})
-      @opts, _ = do_options(opts)
-      @opts = DEFAULTS.merge(@opts)
-      Clive::Parser.new(self).parse(argv, opts)
-    end
-    
+    GLOBAL_OPTIONS = [:formatter, :help]
+
     def command(*args, &block)
       ns, d, o = [], current_desc, {}
       args.each do |i|
@@ -82,7 +80,9 @@ module Clive
           when Hash   then o = i
         end
       end
-      o = DEFAULTS.merge(Hash[@opts.find_all {|k,v| GLOBAL_OPTIONS.include?(k) }]).merge(o)
+      o = DEFAULTS.merge(
+        Hash[@opts.find_all {|k,v| GLOBAL_OPTIONS.include?(k) }]
+      ).merge(o)
       @commands << Command.new(ns, d, o, &block)
     end
     
@@ -104,7 +104,18 @@ module Clive
     def has_command?(arg)
       !!find_command(arg)
     end
+    
+    private
+    
+    def add_help_command
+      if @opts[:help] && !has_command?(:help)
+        self.command(:help, 'Display help', :arg => '[<command>]', :tail => true)
+      end
+    end
+    
   end
+
+
 
   # When included need to create a {TopCommand} instance in the class and
   # save it in an instance variable, then the necessary methods can
