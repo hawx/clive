@@ -100,34 +100,4 @@ class CliveTest < MiniTest::Unit::TestCase
     end
   end
   
-  def test_displays_help
-    help = <<EOS
-Usage: clive_test.rb [command] [options]
-
-  Commands:
-    new <dir>                            # Creates new things
-    help [<command>]                     # Display help
-
-  Options:
-    -a, --[no-]auto
-    --complex [<one>] <two> [<three>]    # A super long description for a super
-                                           stupid option, this should test the
-                                           _extreme_ wrapping abilities as it
-                                           should all be aligned. Maybe I should
-                                           go for another couple of lines just
-                                           for good measure. That's all
-    --print <message> <n>                # Print <message> <n> times
-    -s, --size <size>                    # Size of thing
-    -S, --super-size
-    -v, --[no-]verbose
-    -h, --help                           # Display this help message
-    --version
-
-EOS
-
-    assert_output help do
-      CliveTestClass.run s('help'), :formatter => Clive::Formatter.new(80, 2)
-    end
-  end
-  
 end
