@@ -182,8 +182,8 @@ module Clive
       f.header = @header
       f.footer = @footer
       # Make sure to sort everything
-      f.commands = @commands.sort if @commands
-      f.options = @options.sort
+      f.commands = @commands if @commands
+      f.options  = @options
       
       f.to_s
     end    

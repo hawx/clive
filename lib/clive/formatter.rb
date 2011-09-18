@@ -47,7 +47,7 @@ module Clive
       @padding   = padding
       @width     = width
       @min_ratio = min_ratio
-      @max_ratio = max_ratio
+      @max_ratio = [min_ratio, max_ratio].max # max_ratio can't be smaller than min
       
       @header, @footer = "", ""
       @commands, @options = [], []
@@ -67,7 +67,11 @@ module Clive
     #
     # @return [String]
     def to_s
-      r = @header << "\n\n"
+      @commands.sort!
+      @options.sort!
+    
+      # Make sure to #dup or it just appends each time, getting ever longer
+      r = @header.dup << "\n\n"
       
       unless @commands.empty?
         r << padding << "Commands:\n"
@@ -94,21 +98,20 @@ module Clive
       "#<#{self.class.name} @width=#@width @padding=#@padding>"
     end
     
-    
     protected
     
     # Builds a single line for an Option of the form.
     #
     #  #{before_help_string} #{uniform_padding} #  #{after_help_string}
     #
-    # @param [#before_help_string, #after_help_string]
+    # @param [Option]
     def build_option_string(opt)
-      r = padding * 2 << before(opt)
+      r = before(opt)
       
       unless after(opt).empty?
-        r << padding_for(opt) << padding * 2
+        r << padding_for(opt) << (padding * 2)
         r << "# " 
-        r << Output.wrap_text(after(opt), left_width + 3, @width)
+        r << Output.wrap_text(after(opt), left_width + 4, @width)
       end
       
       r << "\n"
@@ -118,9 +121,14 @@ module Clive
     # @param opt [Option]
     # @return [String] First half of the help string, properly formatted
     def before(opt)
-      b = opt.to_s.dup
+      b = (padding * 2) << opt.to_s.dup
       if opt.args != [] && !opt.boolean?
         b << " " << opt.args.to_s
+      end
+      
+      if b.size > max_left_width
+        # re add padding because .wrap_text removes it
+        b = (padding * 2) << Output.wrap_text(b, (@padding * 2) + 3, max_left_width)
       end
       
       b
@@ -154,10 +162,19 @@ module Clive
       end
     end
     
+    # @return [Integer] The greatest width the left part of the screen
+    #  can be. This allows you to use _a_ max width in calculations 
+    #  without creating a loop.
+    def max_left_width
+      @max_ratio * @width
+    end
+    
+    # @param opt [Option]
     # @return [String] Padding for after the opt's #before_help_string.
-    #  The size returned changes so that the descriptions line up
+    #  The size returned changes so that the descriptions line up.
     def padding_for(opt)
-      ' ' * (max - before(opt).size)
+      width = left_width - @padding - before(opt).split("\n").last.size
+      ' ' * width
     end
     
     # @return [Integer] The length of the longest #before_help_string
