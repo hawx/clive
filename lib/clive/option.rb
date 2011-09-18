@@ -52,7 +52,7 @@ module Clive
 
     extend Type::Lookup
 
-    attr_reader :names, :opts, :args, :description, :group_name
+    attr_reader :names, :opts, :args, :description
     alias_method :desc, :description
 
     # @param short [Symbol]
@@ -63,9 +63,6 @@ module Clive
     #
     # @param description [String]
     #   Description of the option.
-    #
-    # @param group [String,nil]
-    #   Name of the group this option belongs to.
     #
     # @param opts [Hash]
     # @option opts [true, false] :head
@@ -82,6 +79,8 @@ module Clive
     #   Collection that argument(s) must be in
     # @option opts :default
     #   Default value that is used if argument is not given
+    # @option opts :group
+    #   Name of the group this option belongs to
     #
     # @example
     #
@@ -91,7 +90,7 @@ module Clive
     #     {:args => "<dir> [<size>]", :matches => [/^\//], :types => [nil, Integer]}
     #   )
     #
-    def initialize(names=[], description="", group=nil, opts={}, &block)
+    def initialize(names=[], description="", opts={}, &block)
       raise "A name must be given for this Option"   if names.size == 0
       raise "Too many names passed to Option"        if names.size > 2
       raise "An option can only have one long name"  if names.find_all {|i| i.to_s.size > 1 }.size > 1
@@ -99,7 +98,6 @@ module Clive
     
       @names = names.sort_by {|i| i.to_s }
       @description  = description
-      @group_name = group
       @block = block
 
       @opts, @args = ArgumentParser.new(opts).to_a

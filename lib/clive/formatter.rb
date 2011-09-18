@@ -67,7 +67,7 @@ module Clive
     #
     # @return [String]
     def to_s
-      groups = (@options + @commands).group_by {|i| i.group_name }
+      groups = (@options + @commands).group_by {|i| i.opts[:group] }
       
       if groups.size > 1
         r = @header.dup << "\n\n"

@@ -35,13 +35,9 @@ module Clive
     # @param opts [Hash] The options available for commands are the same as for Options
     #   see {Option#initialize} for details.
     #
-    # @param group [String]
-    #   Group this command belongs to.
-    #
-    def initialize(names, description="", group=nil, opts={}, &block)
+    def initialize(names, description="", opts={}, &block)
       @names = names.sort
       @description = description
-      @group_name = group
       @_block = block
       @opts, @args = ArgumentParser.new(opts).to_a
       
@@ -104,7 +100,7 @@ module Clive
           when Hash   then o = i
         end
       end
-      @options << Option.new(ns, d, @_group, o, &block)
+      @options << Option.new(ns, d, o.merge({:group => @_group}), &block)
     end
     alias_method :opt, :option
     

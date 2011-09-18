@@ -84,7 +84,7 @@ module Clive
       o = DEFAULTS.merge(
         Hash[@opts.find_all {|k,v| GLOBAL_OPTIONS.include?(k) }]
       ).merge(o)
-      @commands << Command.new(ns, d, @_group, o, &block)
+      @commands << Command.new(ns, d, o.merge({:group => @_group}), &block)
     end
     
     # @see Command#find

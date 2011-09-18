@@ -21,13 +21,13 @@ class CommandTest < MiniTest::Unit::TestCase
   
   def test_running
     a = nil
-    c = Clive::Command.new([:name], "A description", nil, {}) { a = 5 }
+    c = Clive::Command.new([:name], "A description") { a = 5 }
     c.run_block
     assert_equal 5, a
   end
   
   def test_can_have_arguments
-    command = Clive::Command.new([:new], 'New stuff', nil, {:arg => '<place>'}) do
+    command = Clive::Command.new([:new], 'New stuff', {:arg => '<place>'}) do
       action do |place|
         puts place
       end
@@ -40,7 +40,7 @@ class CommandTest < MiniTest::Unit::TestCase
   end
   
   def test_arguments_work
-    command = Clive::Command.new([:new], "", nil, {:arg => '<dir>'})
+    command = Clive::Command.new([:new], "", {:arg => '<dir>'})
     
     state = {}
     command.run(state, ['~/somewhere'])
