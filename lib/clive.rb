@@ -66,7 +66,8 @@ module Clive
 
     DEFAULTS = {
       :formatter => Formatter.new,
-      :help => true
+      :help => true,
+      :help_command => true
     }
     
     # These options should be copied into each command created.
@@ -109,7 +110,7 @@ module Clive
     private
     
     def add_help_command
-      if @opts[:help] && !has_command?(:help)
+      if @opts[:help] && @opts[:help_command] && !has_command?(:help)
         self.command(:help, 'Display help', :arg => '[<command>]', :tail => true)
       end
     end

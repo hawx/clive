@@ -18,7 +18,10 @@ module Clive
         :head => [:head],
         :tail => [:tail],
         :formatter => [:formatter],
-        :group => [:group]
+        :group => [:group],
+        
+        :help => [:help],
+        :help_command => [:help_command]
       }.flip
       
       PLURAL_KEYS = {
