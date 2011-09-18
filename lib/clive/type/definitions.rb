@@ -90,7 +90,7 @@ module Clive
     # Array accepts a list of arguments separated by a comma, no
     # spaces are allowed. It returns an array of the elements.
     class Array < Object
-      match /^(\w+,)*\w+$/
+      match /^(.+,)*.+[^,]$/
       
       def typecast(arg)
         arg.split(',')
