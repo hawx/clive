@@ -69,46 +69,25 @@ module Clive
     def to_s
       groups = (@options + @commands).group_by {|i| i.opts[:group] }
       
-      if groups.size > 1
-        r = @header.dup << "\n\n"
-        
-        groups.each do |name, group|          
+      # So no groups were created, let's create some nice defaults
+      if groups.size == 1 && groups.keys.first == nil
+        # Use an array so that the order is always correct
+        groups = [['Commands', @commands.sort], ['Options', @options.sort]]
+      end
+
+      r = @header.dup << "\n\n"
+      
+      groups.each do |name, group|
+        unless group.empty?
           r << (name ? "#{padding}#{name}:\n" : '')
-          
           group.sort.each do |opt|
             r << build_option_string(opt)
           end
-          
           r << "\n"
         end
-      
-        r << @footer
-      
-      else
-        @commands.sort!
-        @options.sort!
-      
-        # Make sure to #dup or it just appends each time, getting ever longer
-        r = @header.dup << "\n\n"
-        
-        unless @commands.empty?
-          r << padding << "Commands:\n"
-          @commands.each do |command|
-            r << build_option_string(command)
-          end
-          r << "\n"
-        end
-        
-        unless @options.empty?
-          r << padding << "Options:\n"
-          @options.each do |option|
-            r << build_option_string(option)
-          end
-          r << "\n"
-        end
-        
-        r << @footer
       end
+    
+      r << @footer
       
       r
     end
