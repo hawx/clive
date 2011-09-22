@@ -1,3 +1,7 @@
+# can't autoload time as the constant is already defined
+require 'time'
+autoload :Pathname, 'pathname'
+
 module Clive
   class Type
   
@@ -32,13 +36,24 @@ module Clive
       cast   :to_sym
     end
     
+    # Integer will match anything that float matches, but will
+    # return an integer. If you need something that only matches
+    # integer values properly use {StrictInteger}.
     class Integer < Object
-      match /\d+/
+      match /^[-+]?\d*\.?\d+([eE][-+]?\d+)?$/
+      cast  :to_i
+    end
+    
+    # StrictInteger only matches strings that look like integers,
+    # it returns Integers.
+    # @see Integer
+    class StrictInteger < Object
+      match /^[-+]?\d+([eE][-+]?\d+)?$/
       cast  :to_i
     end
     
     class Float < Object
-      match /^\d+(\.[\d]+){0,1}$/
+      match /^[-+]?\d*\.?\d+([eE][-+]?\d+)?$/
       cast  :to_f
     end
     
@@ -60,10 +75,11 @@ module Clive
       end
     end
     
-    require 'pathname'
     class Pathname < Object
+      refute :nil?
+    
       def typecast(arg)
-        Pathname.new(arg)
+        ::Pathname.new(arg)
       end
     end
     
@@ -97,7 +113,6 @@ module Clive
       end
     end
     
-    require 'time'
     # Time accepts any value which can be parsed by {::Time.parse},
     # it returns the correct {::Time} object.
     class Time < Object
