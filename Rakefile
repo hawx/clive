@@ -1,4 +1,5 @@
 require 'rake/testtask'
+require './lib/clive/output'
 
 Rake::TestTask.new(:test) do |t|
   t.libs << 'lib' << 'test'
@@ -6,23 +7,15 @@ Rake::TestTask.new(:test) do |t|
   t.verbose = true
 end
 
-desc 'Run tests on 1.8.7 and 1.9.2'
-task :test_all do
-  run_tests_for '1.8.7-p334'
-  run_tests_for '1.9.2-p290'
+desc 'Run tests on for all versions of ruby'
+task :test_all do  
+  `rbenv versions --bare`.split("\n").each do |vers|
+    run_for vers, ['bundle install', 'bundle exec rake']
+  end
 end
 
-def run_tests_for(version)
-  system <<-BASH
-    bash -c 'source ~/.rvm/scripts/rvm;
-             rvm #{version};
-             echo;
-             echo "------------------------------------------------";
-             echo "`ruby -v`";
-             echo "------------------------------------------------";
-             echo;
-             RBXOPT="-Xrbc.db" rake 2>&1;'
-  BASH
+def run_for(vers, commands)
+  system "RBENV_VERSION='#{vers}' sh -c '#{commands.map {|i| "rbenv exec #{i}"}.join(' && ')}'"
 end
 
 task :default => :test
