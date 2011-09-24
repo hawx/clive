@@ -62,18 +62,33 @@ argument to `#opt` or can be defined before it using `#desc`.
       # ...
     end
 
-Boolean options can be created by passing `as: Boolean` in the call to `#opt`.
-
-    opt :a, :auto, as: Boolean
-
-This could be called with `-a` or `--auto` returning a state of `{:auto => true}`,
-or `--no-auto` returning a state of `{:auto => false}`.
-
 Longer option names, with `_` are called by replacing the `_` with a `-` so
 
     opt :longer_name_than_expected
 
 Would be called with `--longer-name-than-expected`.
+
+#### Boolean Options
+
+Boolean options are options which can be called with a `no-` prefix, which then
+passes false to the block/state. For example,
+
+    bool :a, :auto
+
+Can be called with `-a` or `--auto` returning a state of `{:auto => true}`,
+or `--no-auto` returning a state of `{:auto => false}`. If a block is given the
+truth can be got by adding block parameters or using the `truth` variable which 
+is set.
+
+    bool :a, :auto do |t|
+      puts t
+    end
+    
+    # OR
+    
+    bool :a, :auto do
+      puts truth
+    end
 
 
 ### Arguments
