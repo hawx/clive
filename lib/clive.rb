@@ -65,7 +65,7 @@ module Clive
     end
 
     DEFAULTS = {
-      :formatter => Formatter.new,
+      :formatter => ColourFormatter.new,
       :help => true,
       :help_command => true
     }
