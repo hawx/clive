@@ -35,6 +35,46 @@ module Clive
           @state[key] = value
         end
         
+        # @overload update(key, method, value)
+        #   @param key [Symbol]
+        #   @param method [Symbol]
+        #   @param value [Object]
+        #
+        # @example With method name
+        #
+        #   opt :add, arg: '<item>' do
+        #     set(:list, []) unless has?(:list)
+        #     update :list, :<<, item
+        #   end
+        #
+        # @overload update(key, &block)
+        #   @param key [Symbol]
+        #
+        # @example With block
+        #
+        #   opt :add, arg: '<item>' do
+        #     update(:list) {|l| (l ||= []) << item }
+        #   end
+        #  
+        def update(*args)
+          if block_given?
+            key = args.first
+            set(key, yield(get(key)))
+          elsif args.size == 3
+            key, method, value = *args
+            r = get(key).send(method, value)
+            set(key, r)
+          else
+            raise ArgumentError, "wrong number of arguments (#{args.size} for 3)"
+          end
+        end
+        
+        # @param key [Symbol]
+        # @return State has key?
+        def has?(key)
+          @state.has_key?(key)
+        end
+        
         def method_missing(sym, *args)
           if @args.has_key?(sym)
             @args[sym]

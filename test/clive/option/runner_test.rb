@@ -25,6 +25,35 @@ class RunnerTest < MiniTest::Unit::TestCase
     assert_equal 1, state[:a]
   end
   
+  def test_allows_updating_items_in_state
+    state = {}
+    subject._run({}, state, proc { 
+      set(:list, []) unless has?(:list)
+      update(:list, :<<, 1) 
+    })
+    assert_equal [1], state[:list]
+  end
+  
+  def test_allows_updating_items_with_block_in_state
+    state = {}
+    subject._run({}, state, proc {
+      update(:list) {|l| (l ||= []) << 1 }
+    })
+    assert_equal [1], state[:list]
+  end
+  
+  def test_update_raises_error_with_missing_arguments
+    assert_raises ArgumentError do
+      subject._run({}, {}, proc { update(:a, :b) })
+    end
+  end
+  
+ # opt :add do |item|
+ #   set :list, [] if has? :list
+ #   update :list, :<<, item
+ #   #update(:list) {|l| (l ||= []) << item }
+ # end
+  
   def test_allows_access_to_arguments_by_name
     assert_output "1\n" do
       subject._run({:a => 1}, {}, proc { puts a })
