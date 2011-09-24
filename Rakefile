@@ -10,6 +10,7 @@ end
 desc 'Run tests on for all versions of ruby'
 task :test_all do  
   `rbenv versions --bare`.split("\n").each do |vers|
+    puts '', vers.bold.underline
     run_for vers, ['bundle install', 'bundle exec rake']
   end
 end
