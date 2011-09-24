@@ -6,31 +6,32 @@ module Clive
       attr_reader :opts, :args
       
       ARG_KEYS = {
-        :args        => [:args, :arg],
-        :types       => [:types, :type, :kind, :as],
-        :matches     => [:matches, :match],
-        :withins     => [:withins, :within, :in],
-        :defaults    => [:defaults, :default],
-        :constraints => [:constraints, :constraint]
+        :args         => [:args, :arg],
+        :types        => [:types, :type, :kind, :as],
+        :matches      => [:matches, :match],
+        :withins      => [:withins, :within, :in],
+        :defaults     => [:defaults, :default],
+        :constraints  => [:constraints, :constraint]
       }.flip
       
       OPT_KEYS = {
-        :head => [:head],
-        :tail => [:tail],
-        :formatter => [:formatter],
-        :group => [:group],
+        :head         => [:head],
+        :tail         => [:tail],
+        :formatter    => [:formatter],
+        :group        => [:group],
+        :boolean      => [:boolean],
         
-        :help => [:help],
+        :help         => [:help],
         :help_command => [:help_command]
       }.flip
       
       PLURAL_KEYS = {
-        :args        => :arg,
-        :types       => :type,
-        :matches     => :match,
-        :withins     => :within,
-        :defaults    => :default,
-        :constraints => :constraint
+        :args         => :arg,
+        :types        => :type,
+        :matches      => :match,
+        :withins      => :within,
+        :defaults     => :default,
+        :constraints  => :constraint
       }
     
       # @param [Hash]

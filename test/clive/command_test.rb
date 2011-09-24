@@ -17,6 +17,11 @@ class CommandTest < MiniTest::Unit::TestCase
     assert @command.has_option?(:n)
     assert @command.has_option?(:next)
     assert_equal 'The description for the next option', @command.find_option(:next).desc
+    
+    @command.bool :verbose, 'Run verbosely'
+    assert @command.has_option?(:verbose)
+    assert @command.find_option(:verbose).boolean?
+    assert_equal 'Run verbosely', @command.find_option(:verbose).desc
   end
   
   def test_running

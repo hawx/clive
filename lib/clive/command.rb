@@ -104,6 +104,28 @@ module Clive
     end
     alias_method :opt, :option
     
+    # Creates a new Option in the Command which responds to calls with a 'no-' prefix.
+    #
+    # @overload boolean(short=nil, long=nil, description=current_desc, opts={}, &block)
+    #   Creates a new Option. Either short or long must be set.
+    #   @param short [Symbol] The short name for the option (:a would become +-a+)
+    #   @param long [Symbol] The long name for the option (:add would become +--add+)
+    #   @param description [String] Description of the option
+    #   @param opts [Hash] Options to create the Option with, see {Option#initialize}
+    #
+    def boolean(*args, &block)
+      ns, d, o = [], current_desc, {}
+      args.each do |i|
+        case i
+          when Symbol then ns << i
+          when String then d = i
+          when Hash   then o = i
+        end
+      end
+      @options << Option.new(ns, d, o.merge({:group => @_group, :boolean => true}), &block)
+    end
+    alias_method :bool, :boolean
+    
     # If an argument is given it will set the description to that, otherwise it will
     # return the description for the command.
     # 

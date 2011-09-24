@@ -141,21 +141,26 @@ module Clive
       "#<#{self.class} #{to_s}>"
     end
 
-    # @return [true, false] Whether this option should come first in the help
+    # @return Whether this option should come first in the help
     def head?
-      @opts[:head] || false
+      @opts[:head] == true
     end
 
-    # @return [true, false] Whether this option should come last in the help
+    # @return Whether this option should come last in the help
     def tail?
-      @opts[:tail] || false
+      @opts[:tail] == true
     end
 
-    # @return [true, false] Whether a block was given.
+    # @return Whether this is a boolean option and can be called with a +no-+ prefix.
+    def boolean?
+      @opts[:boolean] == true
+    end
+
+    # @return Whether a block was given.
     def block?
       @block != nil
     end
-
+    
     # @param state [Hash] Local state for parser, this may be modified!
     # @param args [Array] Arguments for the block which is run
     # @return [Hash] the state which may have been modified!
@@ -181,11 +186,6 @@ module Clive
       state
     end
 
-    # Whether this is a boolean option and can be called with a +--no+ prefix.
-    def boolean?
-      args.size == 1 && args.first.type == Clive::Type::Boolean
-    end
-    
     # @return [Integer] The minimum number of arguments that this option takes.
     def min_args
       if boolean?

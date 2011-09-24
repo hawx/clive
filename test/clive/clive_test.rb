@@ -11,8 +11,8 @@ class CliveTestClass
     puts "Version 1"
   end
   
-  opt :a, :auto, :as => Boolean
-  opt :v, :verbose, :as => Boolean
+  bool :a, :auto
+  bool :v, :verbose
   
   opt :s, :size, 'Size of thing', :arg => '<size>', :as => Float
   opt :S, :super_size

@@ -48,8 +48,8 @@ class ParserTest < MiniTest::Unit::TestCase
     a = nil
 
     base = Class.new { include Clive
-      opt :force, :as => Boolean
-      opt :auto, :as => Boolean do |truth|
+      bool :force
+      bool :auto do |truth|
         a = truth
       end
     }
@@ -64,7 +64,7 @@ class ParserTest < MiniTest::Unit::TestCase
     base = Class.new { include Clive
 
       command :new, :args => '<dir>' do
-        opt :force, :as => Boolean
+        bool :force
 
         action do |dir|
           a = dir

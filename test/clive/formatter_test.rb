@@ -11,7 +11,7 @@ class CliveTestClass2
   opt :version, :tail => true
   
   opt :S, :super_size, :head => true
-  opt :a, :auto, :as => Boolean
+  bool :a, :auto
   opt :s, :size, 'Size of thing', :arg => '<size>'
   
   
