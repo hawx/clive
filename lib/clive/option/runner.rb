@@ -35,10 +35,10 @@ module Clive
           @state[key] = value
         end
         
-        # @overload update(key, method, value)
+        # @overload update(key, method, *args)
         #   @param key [Symbol]
         #   @param method [Symbol]
-        #   @param value [Object]
+        #   @param args [Object]
         #
         # @example With method name
         #
@@ -60,12 +60,12 @@ module Clive
           if block_given?
             key = args.first
             set(key, yield(get(key)))
-          elsif args.size == 3
-            key, method, value = *args
-            r = get(key).send(method, value)
+          elsif args.size > 1
+            key, method = args.shift, args.shift
+            r = get(key).send(method, *args)
             set(key, r)
           else
-            raise ArgumentError, "wrong number of arguments (#{args.size} for 3)"
+            raise ArgumentError, "wrong number of arguments (#{args.size} for 2)"
           end
         end
         
