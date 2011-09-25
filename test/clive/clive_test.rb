@@ -16,6 +16,11 @@ class CliveTestClass
   
   opt :s, :size, 'Size of thing', :arg => '<size>', :as => Float
   opt :S, :super_size
+  
+  opt :name, :arg => '<name>'
+  opt :modify, :arg => '<key> <sym> [<args>]', :as => [Symbol, Symbol, Array] do
+    update key, sym, *args
+  end
     
   desc 'Print <message> <n> times'
   opt :print, :arg => '<message> <n>', :as => [String, Integer] do
@@ -64,6 +69,11 @@ class CliveTest < MiniTest::Unit::TestCase
   def test_calling_with_long_names
     a,s = CliveTestClass.run s('--super-size')
     assert_equal({:super_size => true}, s)
+  end
+  
+  def test_modify
+    a,s = CliveTestClass.run s('--name "John Doe" --modify name count oe,e')
+    assert_equal({:name => 1}, s)
   end
   
   def test_commands

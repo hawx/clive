@@ -1,6 +1,45 @@
 module Clive
   class Option
   
+    # Runner is a class which is used for executing blocks given to Options and
+    # Commands. It allows you to inside blocks;
+    # - reference arguments by name (instead of using block params)
+    # - get values from the state hash
+    # - set value to the state hash
+    # - update values in the state hash
+    #
+    # @example Referencing Arguments by Name
+    #
+    #   opt :size, args: '<height> <width>', as: [Integer, Integer] do # no params!
+    #     puts "Area = #{height * width}"
+    #   end
+    #
+    # @example Getting Values from State Hash
+    #
+    #   command :new, arg: '<dir>' do
+    #
+    #     opt :type, in: %w(post page blog)
+    #
+    #     action do
+    #       type = has?(:type) ? get(:type) : 'page'
+    #       puts "Creating #{type} in #{dir}!"
+    #     end
+    #
+    #   end
+    #
+    # @example Setting Values to State Hash
+    #
+    #   opt :set, arg: '<key> <value>', as: [Symbol, Object] do
+    #     set key, value
+    #   end
+    #
+    # @example Updating Values in State Hash
+    #
+    #   opt :modify, arg: '<key> <sym> [<args>]', as: [Symbol, Symbol, Array] do
+    #     update key, sym, *args
+    #   end
+    #
+    #   
     class Runner
       class << self
   

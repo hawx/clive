@@ -121,7 +121,7 @@ module Clive
 
   # When included need to create a {TopCommand} instance in the class and
   # save it in an instance variable, then the necessary methods can
-  # be aliased to call it. Also adds a reader method for it as {#base}
+  # be aliased to call it. Also adds a reader method for it as #base
   # and extends with {Type::Lookup}.
   def self.extended(other)
     other.instance_variable_set :@base,  Clive::TopCommand.new

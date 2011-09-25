@@ -20,7 +20,7 @@ module Clive
     attr_accessor :args
     
     # @param args
-    #   Arguments that can be accessed with '#n' in {#reason}.
+    #   Arguments that can be accessed with '#n' in {.reason}.
     def initialize(*args)
       @args = args
     end
