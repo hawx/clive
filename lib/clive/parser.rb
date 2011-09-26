@@ -10,18 +10,16 @@ module Clive
       reason 'option could not be found: #0'
     end
 
-    # :state [#[], #[]=] Used to store values from options that do not trigger blocks.
+    # :state [.new, #[], #[]=] Used to store values from options that do not trigger blocks.
     # :debug [Boolean] Whether to print debug messages, useful if parsing oddly.
     DEFAULTS = {
-      :state => Hash,
+      :state => ::Hash,
       :debug => false
     }
 
     def initialize(base)
       @base = base
     end
-
-    
 
     # The parser should work how you expect. It allows you to put global options before and after
     # a command section (if it exists, which it doesn't), so you have something like.

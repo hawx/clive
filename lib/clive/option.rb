@@ -99,7 +99,7 @@ module Clive
       @names = names.sort_by {|i| i.to_s }
       @description  = description
       @block = block
-
+      
       @opts, @args = ArgumentParser.new(opts).to_a
     end
     
@@ -130,7 +130,7 @@ module Clive
         r << ", "              if short
         r << "--"
         r << "[no-]"           if boolean?
-        r << long.dashify
+        r << long.to_s.gsub('_', '-')
       end
       
       r

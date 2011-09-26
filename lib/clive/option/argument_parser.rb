@@ -5,16 +5,16 @@ module Clive
     
       attr_reader :opts, :args
       
-      ARG_KEYS = {
+      ARG_KEYS = Clive::Hash[{
         :args         => [:args, :arg],
         :types        => [:types, :type, :kind, :as],
         :matches      => [:matches, :match],
         :withins      => [:withins, :within, :in],
         :defaults     => [:defaults, :default],
         :constraints  => [:constraints, :constraint]
-      }.flip
+      }].flip
       
-      OPT_KEYS = {
+      OPT_KEYS = Clive::Hash[{
         :head         => [:head],
         :tail         => [:tail],
         :formatter    => [:formatter],
@@ -22,20 +22,21 @@ module Clive
         :boolean      => [:boolean],
         
         :help         => [:help],
-        :help_command => [:help_command]
-      }.flip
+        :help_command => [:help_command],
+        :debug        => [:debug]
+      }].flip
       
-      PLURAL_KEYS = {
+      PLURAL_KEYS = Clive::Hash[{
         :args         => :arg,
         :types        => :type,
         :matches      => :match,
         :withins      => :within,
         :defaults     => :default,
         :constraints  => :constraint
-      }
+      }]
     
       # @param [Hash]
-      def initialize(options)      
+      def initialize(options)
         opts, hash = sort_opts(options)
         args = args_to_hash(hash)
         args = infer_args(args)
@@ -86,6 +87,8 @@ module Clive
       
       # This turns the arguments string and other options into a nicely formatted 
       # hash.
+      #
+      # @return [Clive::Hash]
       def args_to_hash(opts)
         withins = []
         # Normalise withins separately as it will usually be an Array.
@@ -131,7 +134,7 @@ module Clive
             raise InvalidArgumentString
           end
           
-          {:name => clean(arg), :optional => optional}.merge(opts || {})
+          Clive::Hash[{:name => clean(arg), :optional => optional}.merge(opts || {})]
         }
       end
       

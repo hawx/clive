@@ -1,6 +1,6 @@
 $: << File.dirname(__FILE__)
 
-require 'clive/core_ext'
+require 'clive/hash'
 require 'clive/error'
 require 'clive/output'
 require 'clive/version'
@@ -77,9 +77,9 @@ module Clive
       ns, d, o = [], current_desc, {}
       args.each do |i|
         case i
-          when Symbol then ns << i
-          when String then d = i
-          when Hash   then o = i
+          when ::Symbol then ns << i
+          when ::String then d = i
+          when ::Hash   then o = i
         end
       end
       o = DEFAULTS.merge(

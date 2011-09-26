@@ -95,9 +95,9 @@ module Clive
       ns, d, o = [], current_desc, {}
       args.each do |i|
         case i
-          when Symbol then ns << i
-          when String then d = i
-          when Hash   then o = i
+          when ::Symbol then ns << i
+          when ::String then d = i
+          when ::Hash   then o = i
         end
       end
       @options << Option.new(ns, d, o.merge({:group => @_group}), &block)
@@ -117,9 +117,9 @@ module Clive
       ns, d, o = [], current_desc, {}
       args.each do |i|
         case i
-          when Symbol then ns << i
-          when String then d = i
-          when Hash   then o = i
+          when ::Symbol then ns << i
+          when ::String then d = i
+          when ::Hash   then o = i
         end
       end
       @options << Option.new(ns, d, o.merge({:group => @_group, :boolean => true}), &block)
@@ -152,7 +152,7 @@ module Clive
     # @return [Option, nil]
     def find(arg)
       if arg[0..1] == '--'
-        find_option(arg[2..-1].symbolify)
+        find_option(arg[2..-1].gsub('-', '_').to_sym)
       elsif arg[0..0] == '-'
         find_option(arg[1..-1].to_sym)
       end
