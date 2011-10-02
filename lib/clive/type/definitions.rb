@@ -127,6 +127,25 @@ module Clive
         ::Time.parse(arg)
       end
     end
+    
+    class Regexp < Object
+      match /^\/.*?\/[imxou]*$/
+      
+      OPTS = {
+        'x' => ::Regexp::EXTENDED,
+        'i' => ::Regexp::IGNORECASE,
+        'm' => ::Regexp::MULTILINE,
+        'u' => ::Regexp::FIXEDENCODING
+      }
+      
+      def typecast(arg)
+        parts = arg.split('/')
+        mods = parts.pop
+        arg = parts.join('')
+        mods = mods.split('').map {|a| OPTS[a] }.inject{|a,e| a + e }
+        ::Regexp.new(arg, mods)
+      end
+    end
   
   end
 end

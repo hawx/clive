@@ -132,5 +132,16 @@ class DefinitionsTest < MiniTest::Unit::TestCase
     
     assert_kind_of Time, s.typecast('12:50')
   end
+  
+  def test_regexp
+    s = Clive::Type::Regexp
+    
+    %w{/a/ /a[bc](1|2)/ix}.each do |a|
+      assert s.valid?(a)
+    end
+    
+    assert_kind_of Regexp, s.typecast('/a/i')
+    assert_equal '/a/ix', s.typecast('/a/ix').inspect
+  end
 
 end
