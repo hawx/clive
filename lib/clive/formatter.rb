@@ -80,7 +80,7 @@ module Clive
       groups.each do |name, group|
         unless group.empty?
           r << (name ? "#{padding}#{name}:\n" : '')
-          group.sort.each do |opt|
+          group.sort.sort_by {|i| i.instance_of?(Command) ? 0 : 1 }.each do |opt|
             r << build_option_string(opt)
           end
           r << "\n"
