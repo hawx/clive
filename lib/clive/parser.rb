@@ -96,7 +96,7 @@ module Clive
 
           # otherwise it is an option
           else
-            debug "Found option: #{found}"            
+            debug "Found option: #{found}"
             args = found.max_args > 0 ? do_arguments_for(found) : [true]
             found.run(@state, args)
           end

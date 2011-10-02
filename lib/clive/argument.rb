@@ -167,9 +167,7 @@ module Clive
   
   # An Array of {Argument} instances.
   class ArgumentList < Array
-    
-    alias_method :_zip, :zip
-    
+  
     # Zips a list of found arguments to this ArgumentList, but it also takes
     # account of whether the found argument is possible and makes sure that
     # optional Arguments are correctly handled.
