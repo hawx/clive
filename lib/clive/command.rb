@@ -25,6 +25,8 @@ module Clive
   class Command < Option
   
     attr_reader :names, :options
+    
+    OPT_KEYS = Option::OPT_KEYS + [:formatter, :help]
   
     # @param names [Array[Symbol]]
     #   Names that the Command can be ran with.
@@ -39,7 +41,7 @@ module Clive
       @names = names.sort
       @description = description
       @_block = block
-      @opts, @args = ArgumentParser.new(opts).to_a
+      @opts, @args = ArgumentParser.new(OPT_KEYS, ARG_KEYS, opts).to_a
       
       @options = []
       

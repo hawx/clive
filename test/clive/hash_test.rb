@@ -24,5 +24,15 @@ class HashTest < MiniTest::Unit::TestCase
     assert_equal({:c => 1, :d => 2}, hsh.rename({:a => :c, :b => :d}))
   end
   
+  def test_removes_unmapped_keys
+    hsh = Clive::Hash[{:a => 1, :b => 2}]
+    assert_equal({:c => 1}, hsh.rename({:a => :c}))
+  end
+  
+  def test_keeps_keys_in_array
+    hsh = Clive::Hash[{:a => 1, :b => 2}]
+    assert_equal({:a => 1}, hsh.rename([:a]))
+  end
+  
 end
 

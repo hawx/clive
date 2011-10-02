@@ -28,7 +28,7 @@ class ArgumentParserTest < MiniTest::Unit::TestCase
       :in   => 1..5
     }
     
-    s = subject.new(opts)
+    s = subject.new(Clive::Option::OPT_KEYS, Clive::Option::ARG_KEYS, opts)
     
     a = [Clive::Argument::DEFAULTS.merge({:name => :a, :within => 1..5})]
     b = s.args.map {|i| i.to_h }

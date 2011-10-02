@@ -4,39 +4,12 @@ module Clive
     class ArgumentParser
     
       attr_reader :opts, :args
-      
-      ARG_KEYS = Clive::Hash[{
-        :args         => [:args, :arg],
-        :types        => [:types, :type, :kind, :as],
-        :matches      => [:matches, :match],
-        :withins      => [:withins, :within, :in],
-        :defaults     => [:defaults, :default],
-        :constraints  => [:constraints, :constraint]
-      }].flip
-      
-      OPT_KEYS = Clive::Hash[{
-        :head         => [:head],
-        :tail         => [:tail],
-        :formatter    => [:formatter],
-        :group        => [:group],
-        :boolean      => [:boolean],
-        
-        :help         => [:help],
-        :help_command => [:help_command],
-        :debug        => [:debug]
-      }].flip
-      
-      PLURAL_KEYS = Clive::Hash[{
-        :args         => :arg,
-        :types        => :type,
-        :matches      => :match,
-        :withins      => :within,
-        :defaults     => :default,
-        :constraints  => :constraint
-      }]
     
       # @param [Hash]
-      def initialize(options)
+      def initialize(opt_keys, arg_keys, options)
+        @opt_keys = opt_keys
+        @arg_keys = arg_keys
+      
         opts, hash = sort_opts(options)
         args = args_to_hash(hash)
         args = infer_args(args)
@@ -64,7 +37,7 @@ module Clive
       #  Hash keys for the returned hashes will be mapped to standard names from
       #  common variations.
       def sort_opts(hash)
-        [get_and_rename_hash(hash, OPT_KEYS), get_and_rename_hash(hash, ARG_KEYS)]
+        [get_and_rename_hash(hash, @opt_keys), get_and_rename_hash(hash, @arg_keys)]
       end
       
       # @param hash [Hash]
@@ -92,9 +65,9 @@ module Clive
       def args_to_hash(opts)
         withins = []
         # Normalise withins separately as it will usually be an Array.
-        if opts.has_key?(:withins)
-          unless opts[:withins].respond_to?(:[]) && opts[:withins][0].is_a?(Array)
-            opts[:withins] = [opts[:withins]]
+        if opts.has_key?(:within)
+          unless opts[:within].respond_to?(:[]) && opts[:within][0].is_a?(Array)
+            opts[:within] = [opts[:within]]
           end
         end
         
@@ -109,18 +82,17 @@ module Clive
         # ie. go from {:as => [b, c], ...}
         #          to [{:a => b, ...}, {:a => c, ...}, ...]
         #
-        singles = multiple.rename(PLURAL_KEYS).
-                            map {|k, arr| pad(arr, max).map {|i| [k, i] } }.
+        singles = multiple.map {|k, arr| pad(arr, max).map {|i| [k, i] } }.
                             transpose.
                             map {|i| Hash[ i.reject {|a,b| b == nil || a == :arg } ] }
  
         # If no arg string to parse return now.
-        return singles unless opts[:args]
+        return singles unless opts[:arg]
   
         optional = false
         cancelled_optional = false
         # Parse the argument string and merge in previous options from +singles+.
-        opts[:args].split(' ').zip(singles).map {|arg, opts|
+        opts[:arg].split(' ').zip(singles).map {|arg, opts|
           if cancelled_optional
             optional = false
             cancelled_optional = false

@@ -37,7 +37,10 @@ module Clive
   # TopCommand is the top command. It doesn't have a name, the class that
   # includes {Clive} will delegate methods to an instance of this class.
   class TopCommand < Command
+  
     attr_reader :commands
+    
+    OPT_KEYS = Command::OPT_KEYS + [:help_command, :debug]
     
     # Never create an instance of this yourself. Extend Clive, then call #run.
     def initialize
@@ -55,7 +58,7 @@ module Clive
     end
     
     def run(argv, opts={})
-      opts = ArgumentParser.new(opts).opts
+      opts = ArgumentParser.new(OPT_KEYS, ARG_KEYS, opts).opts
       @opts = DEFAULTS.merge(opts)
       
       add_help_option

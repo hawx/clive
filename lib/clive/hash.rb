@@ -42,13 +42,28 @@ module Clive
       res
     end
     
+    # Renames the hash keys based on +new_names+, additionally if a key is present
+    # in the hash but not in +new_names+ the key (and value) are removed.
+    # 
     # @example
     #
-    #   {:a => 1, :b => 2}.rename(:a => :c, :b => :d)
+    #   {:a => 1, :b => 2, :c => 3}.rename(:a => :c, :b => :d)
     #   #=> {:c => 1, :d => 2}
     #
+    #   {:a => 1, :b => 3}.rename([:a])  # same as .rename({:a => :a})
+    #   #=> {:a => 1}
+    #
     def rename(new_names)
-      Hash[ map {|k,v| [new_names[k], v] } ]
+      inject({}) do |hsh, (k,v)|
+        if new_names.include?(k)
+          if new_names.respond_to?(:key?)
+            hsh[new_names[k]] = v
+          else
+            hsh[k] = v
+          end
+        end
+        hsh
+      end
     end
     
   end

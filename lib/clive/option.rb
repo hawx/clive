@@ -54,6 +54,35 @@ module Clive
 
     attr_reader :names, :opts, :args, :description
     alias_method :desc, :description
+    
+    # Valid key names for options passed to Option#initialize.
+    OPT_KEYS = [:head, :tail, :group, :boolean]
+    
+    # Valid key names for creating arguments passed to Option#initialize and 
+    # standard names to map them to.
+    ARG_KEYS = {
+      :args        => :arg,
+      :arg         => :arg,
+      
+      :types       => :type,
+      :type        => :type,
+      :kind        => :type,
+      :as          => :type,
+      
+      :matches     => :match,
+      :match       => :match,
+      
+      :withins     => :within,
+      :within      => :within,
+      :in          => :within,
+      
+      :defaults    => :default,
+      :default     => :default,
+      
+      :constraints => :constraint,
+      :constraint  => :constraint
+    }
+    
 
     # @param short [Symbol]
     #   Short name (single character) for this option.
@@ -100,7 +129,7 @@ module Clive
       @description  = description
       @block = block
       
-      @opts, @args = ArgumentParser.new(opts).to_a
+      @opts, @args = ArgumentParser.new(OPT_KEYS, ARG_KEYS, opts).to_a
     end
     
     # Short name for the option. (ie. +-a+)
