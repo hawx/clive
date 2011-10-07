@@ -60,4 +60,4 @@ __END__
 # Differences
 
 Clive doesn't have:
-- completion support, work on that too
+- completion support
