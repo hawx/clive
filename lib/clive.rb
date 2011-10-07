@@ -53,8 +53,16 @@ module Clive
       @footer = ""
       @opts = DEFAULTS
       @_group = nil
+      
+      # Need to keep a state before #run is called so #set works.
+      @pre_state = {}
 
       current_desc
+    end
+    
+    # @see Option::Runner#set
+    def set(key, value)
+      @pre_state[key] = value
     end
     
     def run(argv, opts={})
@@ -64,7 +72,7 @@ module Clive
       add_help_option
       add_help_command
       
-      Clive::Parser.new(self).parse(argv, opts)
+      Clive::Parser.new(self).parse(argv, @pre_state, opts)
     end
 
     DEFAULTS = {

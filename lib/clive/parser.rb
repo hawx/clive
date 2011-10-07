@@ -29,13 +29,14 @@ module Clive
     #
     # Only one command can be run, if you attempt to use two the other will be caught as an argument.
     #
-    def parse(argv, opts={})
+    def parse(argv, pre_state, opts={})
       @argv = argv
       @opts = DEFAULTS.merge(opts)
       @i = 0
 
       @arguments   = []
       @state       = @opts[:state].new
+      pre_state.each {|k,v| @state[k] = v }
       command_ran  = false # only one command can be ran per parse!
       
       # Pull out 'help' command immediately if found
@@ -56,13 +57,14 @@ module Clive
           # is it a command?
           if found.kind_of?(Command)
             command_ran = true
-            found.run_block
+            @state[found.name] = @opts[:state].new
+            @state[found.name] = found.run_block(@state[found.name])
 
             debug "Found command: #{found}"
             @debug_padding = "  "
 
             inc
-            @state[found.name] = @opts[:state].new
+            
             command_args = []
 
             until ended?

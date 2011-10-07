@@ -11,6 +11,8 @@ class CliveTestClass
     puts "Version 1"
   end
   
+  set :something, []
+  
   bool :a, :auto
   bool :v, :verbose
   
@@ -34,6 +36,8 @@ class CliveTestClass
   
   command :new, 'Creates new things', :arg => '<dir>' do
 
+    set :something, []
+
     # implicit arg as "<choice>", also added default
     opt :type, :in => %w(post page blog), :default => :page, :as => Symbol
     opt :force, 'Force overwrite' do
@@ -54,33 +58,39 @@ class CliveTest < MiniTest::Unit::TestCase
 
   def test_boolean_switches
     a,s = CliveTestClass.run s('--no-auto -v')
-    assert_equal({:auto => false, :verbose => true}, s)
+    assert_equal({:something => [], :auto => false, :verbose => true}, s)
   end
   
   def test_combined_short_switches
     a,s = CliveTestClass.run s('-vas 2.45')
-    assert_equal({:verbose => true, :auto => true, :size => 2.45}, s)
+    assert_equal({:something => [], :verbose => true, :auto => true, :size => 2.45}, s)
     
     assert_raises Clive::Parser::MissingArgumentError do
       CliveTestClass.run %w(-vsa 2.45)
     end
   end
   
+  def test_can_set_in_command_body
+    a,s = CliveTestClass.run s('new dir')
+    assert_equal [], s[:new][:something]
+    assert_equal [], s[:something]
+  end
+  
   def test_calling_with_long_names
     a,s = CliveTestClass.run s('--super-size')
-    assert_equal({:super_size => true}, s)
+    assert_equal({:something => [], :super_size => true}, s)
   end
   
   def test_modify
     a,s = CliveTestClass.run s('--name "John Doe" --modify name count oe,e')
-    assert_equal({:name => 1}, s)
+    assert_equal({:something => [], :name => 1}, s)
   end
   
   def test_commands
     assert_output "Creating post in ~/my_site\n" do
       a,s = CliveTestClass.run s('-v new --type post ~/my_site --no-auto arg')
       assert_equal %w(arg), a
-      assert_equal({:verbose => true, :new => {:type => :post}, :auto => false}, s)
+      assert_equal({:something => [], :verbose => true, :new => {:something => [], :type => :post}, :auto => false}, s)
     end
   end
   

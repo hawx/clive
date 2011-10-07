@@ -68,8 +68,12 @@ module Clive
     
     # Runs the block that was given to {Command#initialize} within the context of the 
     # command.
-    def run_block
-      instance_exec(&@_block) if @_block
+    def run_block(state={})
+      if @_block
+        @state = state
+        instance_exec(&@_block)
+        @state
+      end
     end
     
     # Set the header for {#help}.
@@ -82,6 +86,12 @@ module Clive
     # @param [String]
     def footer(val)
       @footer = val
+    end
+    
+    # @see Option::Runner#set
+    def set(key, value)
+      @state ||= {}
+      @state[key] = value
     end
     
     # Creates a new Option in the Command.
@@ -218,6 +228,7 @@ module Clive
     
     private
     
+    # Adds the '--help' option to the Command instance if it should be added.
     def add_help_option
       if @opts[:help] && !has_option?(:help)
         h = self # bind self so that it can be called in the block
