@@ -14,7 +14,7 @@ module Clive
         args = args_to_hash(hash)
         args = infer_args(args)
         
-        args.map! {|arg| Clive::Argument.new(arg[:name] || 'arg', arg.without(:name)) }
+        args.map! {|arg| Clive::Argument.new(arg[:name] || 'arg', arg.reject {|k,v| k==:name }) }
         @opts = opts
         @args = ArgumentList.new(args)
       end
@@ -43,7 +43,16 @@ module Clive
       # @param hash [Hash]
       # @param keys [Hash]
       def get_and_rename_hash(hash, keys)
-        Hash[ hash.find_all {|k,v| keys.include?(k) } ].rename(keys)
+        Hash[ hash.find_all {|k,v| keys.include?(k) } ].inject({}) do |hsh, (k,v)|
+          if keys.include?(k)
+            if keys.respond_to?(:key?)
+              hsh[keys[k]] = v
+            else
+              hsh[k] = v
+            end
+            hsh
+          end
+        end
       end
       
       
@@ -61,7 +70,7 @@ module Clive
       # This turns the arguments string and other options into a nicely formatted 
       # hash.
       #
-      # @return [Clive::Hash]
+      # @return [Hash]
       def args_to_hash(opts)
         withins = []
         # Normalise withins separately as it will usually be an Array.
@@ -106,7 +115,7 @@ module Clive
             raise InvalidArgumentString
           end
           
-          Clive::Hash[{:name => clean(arg), :optional => optional}.merge(opts || {})]
+          {:name => clean(arg), :optional => optional}.merge(opts || {})
         }
       end
       
@@ -122,7 +131,7 @@ module Clive
           if hash.has_key?(:name)
             hash
           else
-            if hash.has_any_key?(:type, :match, :constraint, :within, :default)
+            if [:type, :match, :constraint, :within, :default].all? {|key| hash.has_key?(key) }
               hash.merge!({:name => 'arg'})
             end
             hash.merge!({:optional => true}) if hash.has_key?(:default) && !hash.has_key?(:optional)

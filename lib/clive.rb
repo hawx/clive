@@ -1,6 +1,5 @@
 $: << File.dirname(__FILE__)
 
-require 'clive/hash'
 require 'clive/error'
 require 'clive/output'
 require 'clive/version'
