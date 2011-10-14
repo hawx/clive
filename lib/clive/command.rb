@@ -68,11 +68,16 @@ module Clive
     
     # Runs the block that was given to {Command#initialize} within the context of the 
     # command.
+    #
+    # @param [Hash] The newly created (usually) state for the command.
+    # @return [Hash] The returned hash is used for the state of the command.
     def run_block(state={})
       if @_block
         @state = state
         instance_exec(&@_block)
         @state
+      else
+        {}
       end
     end
     

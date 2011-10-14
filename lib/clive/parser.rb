@@ -57,8 +57,8 @@ module Clive
           # is it a command?
           if found.kind_of?(Command)
             command_ran = true
-            @state[found.name] = @opts[:state].new
-            @state[found.name] = found.run_block(@state[found.name])
+            
+            @state[found.name] = found.run_block(@opts[:state].new)
 
             debug "Found command: #{found}"
             @debug_padding = "  "
@@ -92,7 +92,7 @@ module Clive
             unless found.valid?(command_args)
               raise MissingArgumentError.new(found, command_args, found.opts)
             end
-
+            
             found.run(@state[found.name], command_args)
             @debug_padding = ""
 
