@@ -1,84 +1,135 @@
 $: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
-class ArgumentTest < MiniTest::Unit::TestCase
-
-  def test_name_is_symbol
-    a = Clive::Argument.new(:a)
-    assert_equal Symbol, a.name.class
-    b = Clive::Argument.new('b')
-    assert_equal Symbol, b.name.class
-  end
-
-  def test_can_be_optional
-    a = Clive::Argument.new(:a, :optional => true)
-    assert a.optional?
-    b = Clive::Argument.new(:b)
-    refute b.optional?
-  end
-
-  def test_possible_on_type
-    a = Clive::Argument.new(:a, :type => Time)
-    assert a.possible? '12:34'
-    assert a.possible? Time.parse('12:34')
-    # on 1.8.7 Time.parse parses **anything**, so this breaks. 
-    unless RUBY_VERSION == '1.8.7' # No big problem so just ignore
-      refute a.possible? 'not-a-time' 
+describe Clive::Argument do
+  subject { Clive::Argument }
+  
+  describe '#initialize' do
+    it 'converts name to Symbol' do
+      subject.new('arg').name.must_be_kind_of Symbol
+    end
+    
+    it 'calls #to_proc on a Symbol constraint' do
+      constraint = MiniTest::Mock.new
+      constraint.expect :respond_to?, true, [:to_proc]
+      constraint.expect :to_proc, nil, []
+      
+      subject.new :a, :constraint => constraint
+      
+      constraint.verify
+    end
+    
+    
+    it 'merges given options with DEFAULTS'
+    
+    it 'finds the correct type class' do
+      subject.new(:a, :type => String).type.must_equal Clive::Type::String
+    end
+    
+    it 'uses the class passed if type cannot be found' do
+      type = Class.new
+      subject.new(:a, :type => type).type.must_equal type
     end
   end
-
-  def test_possible_on_match
-    a = Clive::Argument.new(:a, :match => /^[a-e]+![f-o]+\?\.$/)
-    assert a.possible? 'abe!off?.'
-    refute a.possible? 'off?abe!.'
-  end
-
-  def test_possible_on_within
-    a = Clive::Argument.new(:a, :within => %w(dog cat fish))
-    assert a.possible? 'dog'
-    refute a.possible? 'mouse'
-  end
-
-  def test_possible_with_range
-    a = Clive::Argument.new(:a, :type => Integer, :within => 1..11)
-    assert a.possible? '8'
-    refute a.possible? '100'
-    assert a.possible? 8
-    refute a.possible? 100
+  
+  describe '#optional?' do
+    it 'is true if the argument is optional' do
+      subject.new(:arg, :optional => true).must_be :optional?
+    end
+    
+    it 'is false if the argument is not optional' do
+      subject.new(:arg, :optional => false).wont_be :optional?
+    end
+    
+    it 'is false by default' do
+      subject.new(:arg).wont_be :optional?
+    end
   end
   
-  def test_possible_with_constraint
-    a = Clive::Argument.new(:a, :type => Integer, :constraint => proc {|i| i.to_f % 2 == 1 })
-    assert a.possible? '1'
-    refute a.possible? '2'
-    assert a.possible? 1
-    refute a.possible? 2
+  describe '#to_s' do
+    it 'surrounds the name by < and >' do
+      subject.new(:a).to_s.must_equal '<a>'
+    end
+    
+    it 'surrounds optional arguments with [ and ]' do
+      subject.new(:a, :optional => true).to_s.must_equal '[<a>]'
+    end
   end
   
-  def test_constraint_takes_symbol
-    a = Clive::Argument.new(:a, :type => Integer, :constraint => :odd?)
-    assert a.possible? '1'
-    refute a.possible? '2'
-    assert a.possible? 1
-    refute a.possible? 2
+  describe '#choice_str' do
+    it 'returns the array of values allowed' do
+      subject.new(:a, :within => %w(a b c)).choice_str.must_equal '(a, b, c)'
+    end
+    
+    it 'returns the range of values allowed' do
+      subject.new(:a, :within => 1..5).choice_str.must_equal '(1..5)'
+    end
   end
-
-  def test_coerce
-    m = MiniTest::Mock.new
-    m.expect(:typecast, 5, ["str"])
-
-    a = Clive::Argument.new(:a)
-    a.instance_variable_set(:@type, m)
-    assert_equal 5, a.coerce("str")
-
-    m.verify
+  
+  describe '#possible?' do
+    describe 'for @type' do
+      subject { Clive::Argument.new :a, :type => Clive::Type::Time }
+      
+      it 'is true for correct string values' do
+        subject.must_be :possible?, '12:34'
+      end
+      
+      it 'is true for objects of type' do
+        subject.must_be :possible?, Time.parse('12:34')
+      end
+      
+      unless RUBY_VERSION == '1.8.7' # No big problem so just ignore
+        it 'is false for incorrect values' do
+          subject.wont_be :possible?, 'not-a-time'
+        end
+      end
+    end
+    
+    describe 'for @match' do
+      subject { Clive::Argument.new :a, :match => /^[a-e]+![f-o]+\?.$/ }
+      
+      it 'is true for matching values' do
+        subject.must_be :possible?, 'abe!off?.'
+      end
+      
+      it 'is false for non-matching values' do
+        subject.wont_be :possible?, 'off?abe!.'
+      end
+    end
+    
+    describe 'for @within' do
+      subject { Clive::Argument.new :a, :within => %w(dog cat fish) }
+      
+      it 'is true for elements included in the collection' do
+        subject.must_be :possible?, 'dog'
+      end
+      
+      it 'is false for elements not in the collection' do
+        subject.wont_be :possible?, 'mouse'
+      end
+    end
+    
+    describe 'for @constraint' do
+      subject { Clive::Argument.new :a, :constraint => proc {|i| i.size == 5 } }
+      
+      it 'is true if the proc returns true' do
+        subject.must_be :possible?, 'abcde'
+      end
+      
+      it 'is false if the proc returns false' do
+        subject.wont_be :possible?, 'abcd'
+      end
+    end
   end
-
-  def test_create_string
-    a = Clive::Argument.new(:a, :optional => false)
-    assert_equal "<a>", a.to_s
-    b = Clive::Argument.new(:b, :optional => true)
-    assert_equal "[<b>]", b.to_s
+  
+  describe '#coerce' do
+    it 'uses @type to return the correct object' do
+      type = MiniTest::Mock.new
+      type.expect :typecast, 5, ["str"]
+      
+      subject.new(:a, :type => type).coerce("str").must_equal 5
+      
+      type.verify
+    end
   end
-
 end

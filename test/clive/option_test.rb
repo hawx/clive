@@ -30,7 +30,7 @@ class OptionTest < MiniTest::Unit::TestCase
   end
 
   def test_parsing_invalid_argument_string
-    assert_raises Clive::InvalidArgumentString do
+    assert_raises Clive::Option::InvalidArgumentStringError do
       Clive::Option.new([:a], nil, {:args => 'invalid'})
     end
   end

@@ -1,66 +1,115 @@
 $: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
-class TypeTest < MiniTest::Unit::TestCase
+describe Clive::Type do
 
-  def create(&block)
-    Class.new(Clive::Type, &block)
+  def subject
+    Clive::Type
   end
-  
-  def test_can_match_with_shorthand_regexp
-    type = create { match /yes|no/ }
-    assert type.valid?('yes')
-    refute type.valid?('odd')
-  end
-  
-  def test_can_match_with_shorthand_method
-    type = create { match :five? }
-    String.send(:define_method, :five?) { size == 5 }
-    assert type.valid?('12345')
-    refute type.valid?('1234')
-  end
-  
-  def test_can_refute_with_shorthand_regexp
-    type = create { refute /yes|no/ }
-    refute type.valid?('yes')
-    assert type.valid?('odd')
-  end
-  
-  def test_can_refute_with_shorthand_method
-    type = create { refute :five? }
-    String.send(:define_method, :five?) { size == 5 }
-    refute type.valid?('12345')
-    assert type.valid?('1234')
-  end
-  
-  def test_can_cast_with_shorthand
-    type = create { cast :to_img }
-    obj = MiniTest::Mock.new
-    obj.expect(:send, nil, [:to_img])
-    type.typecast(obj)
-    obj.verify
-  end
-  
-  def test_calls_instance_valid
-    type = create { def valid?(o); puts "Called valid?"; end }
 
-    assert_output "Called valid?\n" do
-      type.valid?('arg')
+  def instance
+    Clive::Type.new
+  end
+  
+  describe '#valid?' do
+    it 'returns false' do
+      instance.valid?('arg').must_be_false
     end
   end
   
-  def test_calls_instance_typecast
-    type = create { def typecast(o); puts "Called typecast"; end }
-  
-    assert_output "Called typecast\n" do
-      type.typecast('arg')
+  describe '#typecast' do
+    it 'returns nil' do
+      instance.typecast('arg').must_be_nil
     end
   end
   
-  def test_finds_type_class
-    assert_equal Clive::Type::String, Clive::Type.find_class('String')
-    assert_equal Clive::Type::Integer, Clive::Type.find_class('Type::Integer')
-    assert_nil Clive::Type.find_class('What')
+  describe '.find_class' do
+    it 'returns the correct Type subclass' do
+      s = Clive::Type::Integer
+      subject.find_class('Integer').must_equal s
+      subject.find_class('Clive::Integer').must_equal s
+      subject.find_class('I::Dont::Exist::Integer').must_equal s
+    end
+    
+    it 'returns nil if it can not be found' do
+      subject.find_class('What::No').must_be_nil
+    end
   end
-
+  
+  describe '.match' do
+    it 'sets a proc given a symbol' do
+      sym, obj = MiniTest::Mock.new, Object.new
+      sym.expect :to_proc, obj, []
+      
+      subject.match sym
+      subject.instance_variable_get(:@valid).must_equal obj
+      sym.verify
+    end
+    
+    it 'sets a proc given a regular expression' do
+      subject.match /a|b|c/
+      subject.instance_variable_get(:@valid).class.must_equal Proc
+    end
+  end
+  
+  describe '.refute' do
+    it 'sets a proc given a symbol' do
+      subject.refute :odd?
+      subject.instance_variable_get(:@valid).class.must_equal Proc
+    end
+    
+    it 'sets a proc given a regular expression' do
+      subject.refute /a|b|c/
+      subject.instance_variable_get(:@valid).class.must_equal Proc
+    end
+  end
+  
+  describe '.cast' do
+    it 'sets a symbol' do
+      subject.cast :to_i
+      subject.instance_variable_get(:@cast).must_equal :to_i
+    end
+  end
+  
+  describe '.valid?' do
+    describe 'if @valid has been set' do
+      it 'calls the block' do
+        sym, prc = MiniTest::Mock.new, MiniTest::Mock.new
+        sym.expect :to_proc, prc, []
+        prc.expect :call, true, ['arg']
+        
+        subject.match sym
+        subject.valid? 'arg'
+        sym.verify; prc.verify
+      end
+    end
+    
+    describe 'if @valid has not been set' do
+      it 'calls #valid?' do
+        subject.must_receive(:valid?).with('arg')
+        subject.valid? 'arg'
+      end
+    end
+  end
+  
+  describe '.typecast' do
+    describe 'if @cast has been set' do
+      it 'uses the method set' do
+        arg = MiniTest::Mock.new
+        arg.expect :send, true, [:to_i]
+        
+        subject.cast :to_i
+        subject.typecast arg
+        arg.verify
+      end
+    end
+    
+    describe 'if @cast has not been set' do
+      it 'calls #typecast' do
+        subject.must_receive(:typecast).with('arg')
+        subject.valid? 'arg'
+      end
+    end
+  end
+  
 end
