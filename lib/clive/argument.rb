@@ -1,26 +1,28 @@
 module Clive
 
   # An Argument represents an argument for an Option or Command, it can be optional
-  # and can also be constricted by various other values.
+  # and can also be constricted by various other values see {#initialize}.
   class Argument
   
-    # A class which always returns true when a method is called on it. It has
-    # {.include?}, {.match} and {.call} because they are the methods used.
-    # So really it isn't __always__ true!
+    # A class which always returns true when a method is called on it. You can
+    # add new methods it will return true for by calling {.for}. This also 
+    # returns a new instance. It is not possible to remove methods. But why 
+    # would you want to?
+    #
+    # @example
+    #   eg = AlwaysTrue.for(:a, :b, :c)
+    #   eg.a          #=> true
+    #   eg.b(1,2,3)   #=> true
+    #   eg.c { 1 }    #=> true
+    #   eg.d          #=> NoMethodError
+    #
     class AlwaysTrue
-      # @return [TrueClass]
-      def self.include?(arg)
-        true
-      end
-      
-      # @return [TrueClass]
-      def self.match(arg)
-        true
-      end
-      
-      # @return [TrueClass]
-      def self.call(arg)
-        true
+      # @param syms [Symbol] Methods which should return true
+      def self.for(*syms)
+        syms.each do |sym|
+          define_method(sym) {|*a| true }
+        end
+        new
       end
     end
 
@@ -28,10 +30,10 @@ module Clive
     DEFAULTS = {
       :optional   => false,
       :type       => Clive::Type::Object,
-      :match      => Clive::Argument::AlwaysTrue,
-      :within     => Clive::Argument::AlwaysTrue,
+      :match      => Clive::Argument::AlwaysTrue.for(:match),
+      :within     => Clive::Argument::AlwaysTrue.for(:include?),
       :default    => nil,
-      :constraint => Clive::Argument::AlwaysTrue
+      :constraint => Clive::Argument::AlwaysTrue.for(:call)
     }
 
     attr_reader :name, :default, :type
@@ -43,29 +45,34 @@ module Clive
     # @option opts [#to_sym] :name
     #   Name of the argument.
     #
-    # @option opts [true, false] :optional
+    # @option opts [Boolean] :optional
     #   Whether this argument is optional. An optional argument does not have 
-    #   to be given and will instead pass +nil+ to the block.
+    #   to be given and will pass +nil+ to the block if not given.
     #
     # @option opts [Type] :type
     #   Type that the matching argument should be cast to. See {Type} and the 
-    #   various subclasses for details.
+    #   various subclasses for details. Each {Type} defines something that the
+    #   argument must match in addition to the +:match+ argument given.
     #
     # @option opts [#match] :match
     #   Regular expression the argument must match.
     #
     # @option opts [#include?] :within
     #   Collection that the matching argument should be in. This will be checked
-    #   against the string argument and the cast object (see +:type+).
+    #   against the string argument and the cast object (see +:type+). So for 
+    #   instance if +:type+ is set to +Integer+ you can set +:within+ to be an array
+    #   of integers, [1,2,3], or an array of strings, %w(1 2 3), and get the
+    #   same result.
     #
     # @option opts :default
-    #   Default value the argument takes.
+    #   Default value the argument takes. This is only set or used if the Option or
+    #   Command is actually called.
     #
     # @option opts [#call, #to_proc] :constraint
     #   Proc which is passed the found argument and should return +true+ if the
     #   value is ok and false if not.
     #   If the object responds to #to_proc this will be called and the resulting
-    #   Proc object saved for later use.
+    #   Proc object saved for later use. This allows you to then pass method symbols.
     #
     # @example
     #
@@ -73,19 +80,19 @@ module Clive
     #
     def initialize(name, opts={})
       @name = name.to_sym
-  
+
       opts[:constraint] = opts[:constraint].to_proc if opts[:constraint].respond_to?(:to_proc)
       opts = DEFAULTS.merge(opts)
 
       @optional   = opts[:optional]
-      @type       = Type.find_class(opts[:type].to_s)
+      @type       = Type.find_class(opts[:type].to_s) rescue opts[:type]
       @match      = opts[:match]
       @within     = opts[:within]
       @default    = opts[:default]
       @constraint = opts[:constraint]
     end
 
-    # Whether the argument is optional.
+    # @return Whether the argument is optional.
     def optional?
       @optional
     end
@@ -123,8 +130,8 @@ module Clive
       "#<#{r.join(' ')}>"
     end
 
-    # Determines whether the object given (see param note), can be this argument.
-    # Checks whether it is valid based on the options passed to Argument#initialize.
+    # Determines whether the object given (see @param note), can be this argument.
+    # Checks whether it is valid based on the options passed to {#initialize}.
     #
     # @param obj [String,Object]
     #   This method will be called at least twice for each argument, the first
@@ -165,7 +172,7 @@ module Clive
     end
   end
   
-  # An Array of {Argument} instances.
+  # An Array of {Clive::Argument} instances.
   class ArgumentList < Array
   
     # Zips a list of found arguments to this ArgumentList, but it also takes
@@ -182,7 +189,7 @@ module Clive
     #   list = ArgumentList.new([a, b, c, d])
     #   found_args = %w(1 2 3)
     #
-    #   # The map at the end just makes it easier to read you will want to
+    #   # The map at the end just makes it easier to read, you will want to
     #   # omit it in real usage.
     #   list.zip(found_args).map {|i| [i[0].to_s, i[1]] }
     #   #=> [['[<a>]', nil], ['<b>', 1], ['<c>', 2], ['[<d>]', 3]]
@@ -213,7 +220,9 @@ module Clive
         end
       end
     end
-
+  
+    # @return Pretty string of arguments joined with superfluous square 
+    #  brackets removed.
     def to_s
       map {|i| i.to_s }.join(' ').gsub('] [', ' ')
     end

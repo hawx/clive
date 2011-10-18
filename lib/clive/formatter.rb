@@ -3,8 +3,8 @@ module Clive
   # Formats the full help string displayed when the +help+ command is used
   # or the +--help+ option is invoked. This can be replaced by a class of
   # your own design if necessary. The only requirements are that it must 
-  # respond to #to_s which should return the help string, and respond to
-  # #header=, #footer=, #options= and #commands=.
+  # respond to {#to_s} which should return the help string, and respond to
+  # {#header=}, {#footer=}, {#options=} and {#commands=}.
   #
   # Then it is just a case of passing an instance of the new formatter to
   # {Clive.run}. You can also use a different formatter for commands by 
@@ -20,10 +20,17 @@ module Clive
   #     # ...
   #   end
   #
+  #   # Uses MainFormatter
   #   class CLI
   #     # ...
   #
+  #     # Uses CommandFormatter
   #     command :new, formatter: CommandFormatter.new do
+  #       # ...
+  #     end
+  #
+  #     # Uses MainFormatter
+  #     command :normal do
   #       # ...
   #     end
   #   end
@@ -147,7 +154,7 @@ module Clive
       ' ' * @padding
     end
     
-    # @return [Integer] Width of the left half, ie. up to #after
+    # @return [Integer] Width of the left half, ie. up to {#after}
     def left_width
       # (padding*2) longest before string (padding*2)
       w = max + (@padding * 4)
@@ -168,20 +175,21 @@ module Clive
     end
     
     # @param opt [Option]
-    # @return [String] Padding for after the opt's #before_help_string.
+    # @return [String] Padding for after the opt's {#before}.
     #  The size returned changes so that the descriptions line up.
     def padding_for(opt)
       width = left_width - @padding - before(opt).clear_colours.split("\n").last.size
       ' ' * width
     end
     
-    # @return [Integer] The length of the longest #before_help_string
+    # @return [Integer] The length of the longest {#before}
     def max
       (@options + @commands).map {|i| before(i).size }.max
     end
   
   end
   
+  # Provides help formatter exactly like {Formatter} but with colour!
   class ColourFormatter < Formatter
   
     # Builds a single line for an Option of the form.

@@ -80,7 +80,7 @@ module Clive
       #   end
       #
       def cast(sym)
-        @cast = proc {|arg| arg.send(sym) }
+        @cast = sym
       end
       
       # Checks whether the +arg+ passed is valid, if {.match} or {.refute}
@@ -102,7 +102,7 @@ module Clive
       # @param arg [::String]
       def typecast(arg)
         if @cast
-          @cast.call(arg)
+          arg.send(@cast)
         else
           new.typecast(arg)
         end

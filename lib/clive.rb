@@ -14,7 +14,7 @@ require 'clive/command'
 require 'clive/parser'
 
 # Clive is a DSL for creating command line interfaces. Extend a class with it
-# (or include it) to use.
+# to use.
 #
 # @example
 #
@@ -41,6 +41,15 @@ module Clive
     
     OPT_KEYS = Command::OPT_KEYS + [:help_command, :debug]
     
+    DEFAULTS = {
+      :formatter => ColourFormatter.new,
+      :help => true,
+      :help_command => true
+    }
+    
+    # These options should be copied into each command that is created.
+    GLOBAL_OPTIONS = [:formatter, :help]
+    
     # Never create an instance of this yourself. Extend Clive, then call #run.
     def initialize
       @names    = []
@@ -59,6 +68,7 @@ module Clive
       current_desc
     end
     
+    # Need to define #set here for the class that extends Clive.
     # @see Option::Runner#set
     def set(key, value)
       @pre_state[key] = value
@@ -74,15 +84,14 @@ module Clive
       Clive::Parser.new(self).parse(argv, @pre_state, opts)
     end
 
-    DEFAULTS = {
-      :formatter => ColourFormatter.new,
-      :help => true,
-      :help_command => true
-    }
-    
-    # These options should be copied into each command created.
-    GLOBAL_OPTIONS = [:formatter, :help]
-
+    # Creates a new Command.
+    #
+    # @overload option(names=[], description=current_desc, opts={}, &block)
+    #   Creates a new Command.
+    #   @param names [Array<Symbol>] Names that the command can be called with.
+    #   @param description [String] Description of the command.
+    #   @param opts [Hash] Options to be passed to the new Command, see {Command#initialize}.
+    #
     def command(*args, &block)
       ns, d, o = [], current_desc, {}
       args.each do |i|
@@ -119,6 +128,8 @@ module Clive
     
     private
     
+    # Adds the help command, which accepts the name of a command to display help
+    # for, to this if it is wanted.
     def add_help_command
       if @opts[:help] && @opts[:help_command] && !has_command?(:help)
         self.command(:help, 'Display help', :arg => '[<command>]', :tail => true)

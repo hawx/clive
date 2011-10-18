@@ -1,7 +1,4 @@
 module Clive
-  
-  # Raised when the argument string passed to {Option} is wrong.
-  class InvalidArgumentString < RuntimeError; end
 
   # An option is called using either a long form +--opt+ or a short form +-o+
   # they can take arguments and these arguments can be restricted using various
@@ -14,10 +11,14 @@ module Clive
   #   #  --name John Doe          to set; f='John', m=nil,      s='Doe'
   #   #  --name John Thomas Doe   to set; f='John', m='Thomas', s='Doe'
   #
-  #   opt :F, :force, as: Boolean
+  #   opt :F, :force, boolean: true
   #   # call with
   #   #   -F or --force  to set to true
   #   #   --no-force     to set to false
+  #
+  #   # OR
+  #   bool :F, :force
+  #   # which is equivelent to the above
   #
   #   opt :email, arg: '<a@b.c>', match: /\w+@\w+\.\w+/
   #   # call with
@@ -31,7 +32,7 @@ module Clive
   #
   #   opt :start, arg: '<date>', as: Date
   #   # here any argument which can't be parsed as a Date will raise an error,
-  #   # the argument is saved into the state hash as a Date object.
+  #   # the argument is saved into the state as a Date object.
   #
   #   opt :five_letter_word, arg: '<word>', constraint: -> i { i.size == 5 }
   #   # this only accepts words of five letters by calling the proc given.
@@ -42,13 +43,19 @@ module Clive
   #   opt :worked, arg: '<from> [<to>]', as: [Date, Date]
   #   # This makes both <from> and <to> a Date
   #
-  #   opt :fruits, arg: '<choice> <number>', in: [%w(apple pear banana), nil], as: [nil, Integer]
+  #   opt :fruits, arg: '<choice> <number>', 
+  #                in: [%w(apple pear banana), nil], 
+  #                as: [nil, Integer]
   #   # Here we extend the :fruit example from above to allow a number of fruit
   #   # to be picked. Note the use of nil in places where we want the default to
   #   # be used. Also for :in I didn't have to put the second nil as that is 
   #   # implied but it does make it clearer.
   #
   class Option
+  
+    class InvalidNamesError < Error
+      reason '#1'
+    end
 
     extend Type::Lookup
 
@@ -120,26 +127,34 @@ module Clive
     #   )
     #
     def initialize(names=[], description="", opts={}, &block)
-      raise "A name must be given for this Option"   if names.size == 0
-      raise "Too many names passed to Option"        if names.size > 2
-      raise "An option can only have one long name"  if names.find_all {|i| i.to_s.size > 1 }.size > 1
-      raise "An option can only have one short name" if names.find_all {|i| i.to_s.size == 1 }.size > 1
-    
-      @names = names.sort_by {|i| i.to_s }
+      case names.size
+      when 0
+        raise InvalidNamesError, "A name must be given for this Option"
+      when 1, 2
+        if names.find_all {|i| i.to_s.size > 1 }.size > 1
+          raise InvalidNamesError, "An option can only have one long name"
+        elsif names.find_all {|i| i.to_s.size == 1 }.size > 1
+          raise InvalidNamesError, "An option can only have one short name"
+        end
+      else # > 2
+        raise InvalidNamesError, "Too many names passed to Option"
+      end
+      
+      @names = names.sort_by {|i| i.to_s.size }
       @description  = description
       @block = block
       
       @opts, @args = ArgumentParser.new(OPT_KEYS, ARG_KEYS, opts).to_a
     end
     
-    # Short name for the option. (ie. +-a+)
-    # @return [Symbol]
+    # Short name for the option. (ie. +:a+)
+    # @return [Symbol, nil]
     def short
       @names.find {|i| i.to_s.size == 1 }
     end
     
-    # Long name for the option. (ie. +--abc+)
-    # @return [Symbol]
+    # Long name for the option. (ie. +:abc+)
+    # @return [Symbol, nil]
     def long
       @names.find {|i| i.to_s.size > 1 }
     end
@@ -154,11 +169,11 @@ module Clive
     # @return [String]
     def to_s
       r = ""
-      r << "-#{short}"         if short
+      r << "-#{short}" if short
       if long
-        r << ", "              if short
+        r << ", " if short
         r << "--"
-        r << "[no-]"           if boolean?
+        r << "[no-]" if boolean?
         r << long.to_s.gsub('_', '-')
       end
       
@@ -210,11 +225,6 @@ module Clive
       state
     end
     
-    def set_state(state, args)
-      state[name] = (max_args <= 1 ? args[0] : args)
-      state
-    end
-
     # @return [Integer] The minimum number of arguments that this option takes.
     def min_args
       if boolean?
@@ -282,6 +292,14 @@ module Clive
       else
         self.name.to_s <=> other.name.to_s
       end
+    end
+    
+    
+    private
+    
+    def set_state(state, args)
+      state[name] = (max_args <= 1 ? args[0] : args)
+      state
     end
     
   end

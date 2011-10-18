@@ -1,5 +1,11 @@
 module Clive
+
   class Option
+  
+    # Raised when the argument string passed to {Option} is wrong.
+    class InvalidArgumentStringError < Error
+      reason 'Invalid argument string format: #1'
+    end
   
     class ArgumentParser
     
@@ -112,7 +118,7 @@ module Clive
           if arg[0..0] == '['
             optional = true
           elsif arg[0..0] != '<'
-            raise InvalidArgumentString
+            raise InvalidArgumentStringError.new(opts[:arg])
           end
           
           {:name => clean(arg), :optional => optional}.merge(opts || {})

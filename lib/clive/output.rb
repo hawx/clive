@@ -1,5 +1,8 @@
 module Clive
   module Output extend self
+  
+    # If the terminal width can't be determined use a sensible default value
+    TERMINAL_WIDTH = 80
     
     # @param str [String] String to pad.
     # @param len [Integer] Length to pad string to.
@@ -66,10 +69,10 @@ module Clive
         # returns 'height width'
         `stty size`.scan(/\d+/).last.to_i
       else
-        nil
+        TERMINAL_WIDTH
       end
     rescue
-      nil
+      TERMINAL_WIDTH
     end
     
     
@@ -125,6 +128,16 @@ class String
     replace self.colour(code)
   end
   
+  # Remove any colour codes from a string.
+  def clear_colours
+    gsub /\e\[?\d\d{0,2}m/, ''
+  end
+  
+  # Same as #clear_colours, but modifies string.
+  def clear_colours!
+    gsub! /\e\[?\d\d{0,2}m/, ''
+  end
+  
   COLOURS = {
     "black"   => 0,
     "red"     => 1,
@@ -172,16 +185,6 @@ class String
       colour "10#{code}"
     end
 
-  end
-  
-  # Remove any colour codes from a string.
-  def clear_colours
-    gsub /\e\[?\d\d{0,2}m/, ''
-  end
-  
-  # Same as #clear_colours, but modifies string.
-  def clear_colours!
-    gsub! /\e\[?\d\d{0,2}m/, ''
   end
   
 end

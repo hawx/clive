@@ -1,8 +1,9 @@
 module Clive
 
-  # A command is a subcommand that allows you to separate options under it's 
-  # namespace, it can also take arguments but does not execute the block with
-  # their values but instead another block defined with #action.
+  # A command allows you to separate groups of commands under their own
+  # namespace. But it can also take arguments like an Option, though 
+  # instead of executing the block passed to it executes the block passed
+  # to {#action}.
   #
   # @example
   #
@@ -10,8 +11,8 @@ module Clive
   #     include Clive
   #
   #     command :new, arg: '<dir>' do
-  #       # opt definitions
-  #       opt :force, as: Boolean
+  #       # definitions
+  #       bool :force
   #
   #       action do |dir|
   #         # code
@@ -20,7 +21,9 @@ module Clive
   #   end
   #
   #   # call with
-  #   #   file.rb new ~/somewhere --force
+  #   #   ./file.rb new ~/somewhere --force
+  #   # or
+  #   #   ./file.rb new --force ~/somewhere
   #
   class Command < Option
   
@@ -34,10 +37,39 @@ module Clive
     # @param desc [String]
     #   Description of the Command, this is shown in help and will be wrapped properly.
     #
-    # @param opts [Hash] The options available for commands are the same as for Options
-    #   see {Option#initialize} for details.
+    # @param opts [Hash]
+    # @option opts [Boolean] :head
+    #   If option should be at top of help list.
     #
-    def initialize(names, description="", opts={}, &block)
+    # @option opts [Boolean] :tail
+    #   If option should be at bottom of help list.
+    #
+    # @option opts [String] :args
+    #   Arguments that the option takes. See {Argument}.
+    #
+    # @option opts [Type, Array[Type]] :as
+    #   The class the argument(s) should be cast to. See {Type}.
+    #
+    # @option opts [#match, Array[#match]] :match
+    #   Regular expression that the argument(s) must match.
+    #
+    # @option opts [#include?, Array[#include?]] :in
+    #   Collection that argument(s) must be in.
+    #
+    # @option opts :default
+    #   Default value that is used if argument is not given.
+    #
+    # @option opts :group
+    #   Name of the group this option belongs to. This is actually set when 
+    #   {Command#group} is used.
+    #
+    # @option opts [#to_s, #header=, #footer=, #options=, #commands=] :formatter
+    #   Help formatter to use for this command, defaults to top-level formatter.
+    #
+    # @option opts [Boolean] :help
+    #   Whether to add a '-h, --help' option to this command which displays help.
+    #   
+    def initialize(names=[], description="", opts={}, &block)
       @names = names.sort
       @description = description
       @_block = block
@@ -46,7 +78,7 @@ module Clive
       @options = []
       
       # Create basic header "Usage: filename commandname(s) [options]
-      @header = "Usage: #{File.basename($0)} #{@names.join(', ')} [options]"
+      @header = "Usage: #{File.basename($0)} #{to_s} [options]"
       @footer = ""
       
       @_group = nil
@@ -63,13 +95,14 @@ module Clive
     
     # @return [String]
     def to_s
-      names.join(', ')
+      names.join(',')
     end
     
     # Runs the block that was given to {Command#initialize} within the context of the 
-    # command.
+    # command. The state hash is passed (and returned) so that {#set} works outside
+    # of {Runner} allowing default values to be set.
     #
-    # @param [Hash] The newly created (usually) state for the command.
+    # @param state [Hash] The newly created (usually) state for the command.
     # @return [Hash] The returned hash is used for the state of the command.
     def run_block(state={})
       if @_block
@@ -93,16 +126,13 @@ module Clive
       @footer = val
     end
     
-    # @see Option::Runner#set
+    # @see Clive::Option::Runner.set
     def set(key, value)
-      @state ||= {}
       @state[key] = value
     end
     
-    # Creates a new Option in the Command.
-    #
     # @overload option(short=nil, long=nil, description=current_desc, opts={}, &block)
-    #   Creates a new Option. Either short or long must be set.
+    #   Creates a new Option in the Command. Either +short+ or +long+ must be set.
     #   @param short [Symbol] The short name for the option (:a would become +-a+)
     #   @param long [Symbol] The long name for the option (:add would become +--add+)
     #   @param description [String] Description of the option
@@ -117,14 +147,13 @@ module Clive
           when ::Hash   then o = i
         end
       end
-      @options << Option.new(ns, d, o.merge({:group => @_group}), &block)
+      @options << Option.new(ns, d, ({:group => @_group}).merge(o), &block)
     end
     alias_method :opt, :option
     
-    # Creates a new Option in the Command which responds to calls with a 'no-' prefix.
-    #
     # @overload boolean(short=nil, long=nil, description=current_desc, opts={}, &block)
-    #   Creates a new Option. Either short or long must be set.
+    #   Creates a new Option in the Command which responds to calls with a 'no-' prefix.
+    #   +long+ must be set.
     #   @param short [Symbol] The short name for the option (:a would become +-a+)
     #   @param long [Symbol] The long name for the option (:add would become +--add+)
     #   @param description [String] Description of the option
@@ -139,7 +168,7 @@ module Clive
           when ::Hash   then o = i
         end
       end
-      @options << Option.new(ns, d, o.merge({:group => @_group, :boolean => true}), &block)
+      @options << Option.new(ns, d, ({:group => @_group, :boolean => true}).merge(o), &block)
     end
     alias_method :bool, :boolean
     
@@ -180,6 +209,17 @@ module Clive
     # it exists and false if not.
     #
     # @param arg [String]
+    # @example
+    #   
+    #   a = Command.new [:command] do
+    #     bool :force
+    #     bool :auto
+    #   end
+    #  
+    #   a.has?('--force')    #=> true
+    #   a.has?('--no-auto')  #=> true
+    #   a.has?('--not-real') #=> false
+    #   
     def has?(arg)
       !!find(arg)
     end
@@ -191,7 +231,15 @@ module Clive
     # @param arg [Symbol]
     # @return [Option, nil]
     def find_option(arg)
-      @options.find {|opt| opt.names.include?(arg) }
+      @options.find do |opt| 
+        if opt.names.include?(arg)
+          true
+        elsif opt.boolean? && arg.to_s[0..2] == 'no_' && arg.to_s.size > 4
+          opt.names.include?(arg.to_s[3..-1].to_sym)
+        else
+          false
+        end
+      end
     end
     
     # Attempts to find the option with the Symbol name given, returns true if the option
@@ -202,7 +250,20 @@ module Clive
       !!find_option(arg)
     end
     
+    # Set the group name for all options defined after it.
+    #
     # @param name [String]
+    # @example
+    #
+    #   group 'Files'
+    #   opt :move,   'Moves a file',   args: '<from> <to>'
+    #   opt :delete, 'Deletes a file', arg:  '<file>'
+    #   opt :create, 'Creates a file', arg:  '<name>'
+    #
+    #   group 'Network'
+    #   opt :upload,   'Uploads everything'
+    #   opt :download, 'Downloads everyhting'
+    #
     def group(name)
       @_group = name
     end
@@ -212,26 +273,24 @@ module Clive
       group nil
     end
     
-    # Builds the help string.
     # @see Formatter
-    # @return [String]
+    # @return [String] Help string for this command.
     def help
       f = @opts[:formatter]
-      f.header = @header
-      f.footer = @footer
-      # Make sure to sort everything
+      f.header   = @header
+      f.footer   = @footer
       f.commands = @commands if @commands
       f.options  = @options
       
       f.to_s
     end    
+
+    private
     
     def set_state(state, args)
       state[:args] = (max_args <= 1 ? args[0] : args)
       state
     end
-    
-    private
     
     # Adds the '--help' option to the Command instance if it should be added.
     def add_help_option

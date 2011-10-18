@@ -10,8 +10,8 @@ module Clive
     #
     # @example Referencing Arguments by Name
     #
-    #   opt :size, args: '<height> <width>', as: [Integer, Integer] do # no params!
-    #     puts "Area = #{height * width}"
+    #   opt :size, args: '<height> <width>', as: [Float, Float] do # no params!
+    #     puts "Area = #{height} * #{width} = #{height * width}"
     #   end
     #
     # @example Getting Values from State Hash
@@ -64,36 +64,50 @@ module Clive
         end
         
         # @param key [Symbol]
+        #
+        # @example
+        #   set :some_key, 1
+        #   opt :get_some_key do
+        #     puts get(:some_key)   #=> 1
+        #   end
+        #
         def get(key)
           @state[key]
         end
         
         # @param key [Symbol]
         # @param value [Object]
+        #
+        # @example
+        #   opt :set_some_key do
+        #     set :some_key, 1
+        #   end
+        #
         def set(key, value)
           @state[key] = value
         end
         
         # @overload update(key, method, *args)
+        #   Update the value for +key+ using the +method+ which is passed +args+
         #   @param key [Symbol]
         #   @param method [Symbol]
         #   @param args [Object]
         #
-        # @example With method name
-        #
-        #   opt :add, arg: '<item>' do
-        #     set(:list, []) unless has?(:list)
-        #     update :list, :<<, item
-        #   end
+        #   @example
+        #     set :list, []
+        #     opt :add, arg: '<item>' do
+        #       update :list, :<<, item
+        #     end
         #
         # @overload update(key, &block)
+        #   Update the value for +key+ with a block
         #   @param key [Symbol]
         #
-        # @example With block
-        #
-        #   opt :add, arg: '<item>' do
-        #     update(:list) {|l| (l ||= []) << item }
-        #   end
+        #   @example
+        #     set :list, []
+        #     opt :add, arg: '<item>' do
+        #       update(:list) {|l| l << item }
+        #     end
         #  
         def update(*args)
           if block_given?
@@ -109,7 +123,17 @@ module Clive
         end
         
         # @param key [Symbol]
-        # @return State has key?
+        # @return State has +key+?
+        # 
+        # @example
+        #   # test.rb
+        #   set :some_key, 1
+        #   opt(:has_some_key)  { puts has?(:some_key) }
+        #   opt(:has_other_key) { puts has?(:other_key) }
+        #
+        #   # ./test.rb --has-some-key   #=> true
+        #   # ./test.rb --has-other-key  #=> false
+        #
         def has?(key)
           @state.has_key?(key)
         end
