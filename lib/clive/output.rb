@@ -160,6 +160,10 @@ class String
     define_method name do
       colour code
     end
+    
+    define_method "#{name}!" do
+      colour! code
+    end
   end
   
   COLOURS.each do |name, code|
@@ -167,9 +171,18 @@ class String
       colour "3#{code}"
     end
     
+    define_method "#{name}!" do
+      colour! "3#{code}"
+    end
+    
     define_method "#{name}_bg" do
       colour "4#{code}"
     end
+    
+    define_method "#{name}_bg!" do
+      colour! "4#{code}"
+    end
+    
     
     # Change name to grey instead of l_black
     l_name = "l_#{name}"
@@ -181,8 +194,16 @@ class String
       colour "9#{code}"
     end
     
+    define_method "#{l_name}!" do
+      colour! "9#{code}"
+    end
+    
     define_method "#{l_name}_bg" do
       colour "10#{code}"
+    end
+    
+    define_method "#{l_name}_bg!" do
+      colour! "10#{code}"
     end
 
   end
