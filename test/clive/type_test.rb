@@ -3,13 +3,8 @@ require 'helper'
 
 describe Clive::Type do
 
-  def subject
-    Clive::Type
-  end
-
-  def instance
-    Clive::Type.new
-  end
+  subject { Clive::Type }
+  let(:instance) { Clive::Type.new }
   
   describe '#valid?' do
     it 'returns false' do

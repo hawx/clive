@@ -1,79 +1,86 @@
 $: << File.dirname(__FILE__) + '/../..'
 require 'helper'
 
-class RunnerTest < MiniTest::Unit::TestCase
-
-  def subject
-    Clive::Option::Runner
-  end
-
-  def test_runs_function_within_class
-    assert_output "Clive::Option::Runner\n" do
-      subject._run({}, {}, proc { puts self.name })
+describe Clive::Option::Runner do
+  subject { Clive::Option::Runner }
+  
+  describe '#_run' do
+    it 'executes the function passed within it' do
+      assert_output "Clive::Option::Runner\n" do
+        subject._run({}, {}, proc { puts self.name })
+      end
     end
   end
   
-  def test_allows_getting_items_from_state
-    assert_output "1\n" do
-      subject._run({}, {:a => 1}, proc { puts get(:a) })
+  describe '#get' do
+    it 'gets a value from state' do
+      this {
+        subject._run({}, {:a => 1}, proc { puts get(:a) })
+      }.must_output "1\n"
     end
   end
   
-  def test_allows_setting_items_in_state
-    state = {}
-    subject._run({}, state, proc { set(:a, 1) })
-    assert_equal 1, state[:a]
+  describe '#set' do
+    it 'sets a value to state' do
+      state = {}
+      subject._run({}, state, proc { set(:a, 1) })
+      state[:a].must_equal 1
+    end
   end
   
-  def test_allows_updating_items_in_state
-    state = {}
-    subject._run({}, state, proc { 
-      set(:name, "John Doe") unless has?(:name)
-      update(:name, :upcase) 
-    })
-    assert_equal "JOHN DOE", state[:name]
-  end
-  
-  def test_allows_updating_items_in_state_with_value
-    state = {}
-    subject._run({}, state, proc { 
-      set(:list, []) unless has?(:list)
-      update(:list, :<<, 1) 
-    })
-    assert_equal [1], state[:list]
+  describe '#update' do
+    it 'updates a state value using a method' do
+      state = {:name => 'John Doe'}
+      subject._run({}, state, proc { 
+        update :name, :upcase
+      })
+      state[:name].must_equal "JOHN DOE"
+    end
     
-    state = {}
-    subject._run({}, state, proc {
-      set(:line, "A man a plan a canal") unless has?(:line)
-      update :line, :gsub, /[Aa]/, 'i'
-    })
-    assert_equal "i min i plin i cinil", state[:line]
-  end
-  
-  def test_allows_updating_items_with_block_in_state
-    state = {}
-    subject._run({}, state, proc {
-      update(:list) {|l| (l ||= []) << 1 }
-    })
-    assert_equal [1], state[:list]
-  end
-  
-  def test_update_raises_error_with_missing_arguments
-    assert_raises ArgumentError do
-      subject._run({}, {}, proc { update(:a) })
+    it 'updates a state value using a method with arguments' do
+      state = {:line => "A man a plan a canal"}
+      subject._run({}, state, proc {
+        update :line, :gsub, /[Aa]/, 'i'
+      })
+      state[:line].must_equal "i min i plin i cinil"
+    end
+    
+    it 'updates a state value using a block' do
+      state = {:list => []}
+      subject._run({}, state, proc {
+        update(:list) {|l| l << 1 }
+      })
+      state[:list].must_equal [1]
+    end
+    
+    it 'raises an exception if arguments are missing' do
+      this {
+        subject._run({}, {}, proc { update(:a) })
+      }.must_raise ArgumentError
     end
   end
   
- # opt :add do |item|
- #   set :list, [] if has? :list
- #   update :list, :<<, item
- #   #update(:list) {|l| (l ||= []) << item }
- # end
+  describe '#has?' do
+    it 'is true if the state contains the key' do
+      this {
+        subject._run({}, {:key => nil}, proc { puts has?(:key) })
+      }.must_output "true\n"
+    end
+    
+    it 'is false if the state does not have the key' do
+      this {
+        subject._run({}, {}, proc { puts has?(:key) })
+      }.must_output "false\n"
+    end
+    
+  end
   
-  def test_allows_access_to_arguments_by_name
-    assert_output "1\n" do
-      subject._run({:a => 1}, {}, proc { puts a })
+  describe '#method_missing' do
+    it 'makes the arguments available by name' do
+      this {
+        subject._run({:a => 1}, {}, proc { puts a })
+      }.must_output "1\n"
     end
   end
-
+  
 end

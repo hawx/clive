@@ -36,6 +36,12 @@ module MiniTest::Expectations
   
   infect_an_assertion :refute, :must_be_false
   alias_method :wont_be_true, :must_be_false
+  
+  def must_be_argument(opts)
+    opts.each do |k,v|
+      self.instance_variable_get("@#{k}").must_equal v
+    end
+  end
 end
 
 
