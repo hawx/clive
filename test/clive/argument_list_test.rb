@@ -1,10 +1,10 @@
 $: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
-describe Clive::ArgumentList do
+describe Clive::Arguments do
 
   subject {
-    Clive::ArgumentList.create :args => '[<a>] <b> <c> [<d>]', 
+    Clive::Arguments.create :args => '[<a>] <b> <c> [<d>]', 
                                :type => [Integer] * 4,
                                :constraint => [:even?, :odd?] * 2
   }
@@ -30,7 +30,7 @@ describe Clive::ArgumentList do
   
   describe '#to_s' do
     subject {
-     Clive::ArgumentList.new( [
+     Clive::Arguments.new( [
        Clive::Argument.new(:a), 
        Clive::Argument.new(:b, :optional => true),
        Clive::Argument.new(:c, :optional => true),
@@ -93,19 +93,19 @@ describe Clive::ArgumentList do
   
   describe '#create_valid' do
     it 'returns the correct arguments' do
-      a = Clive::ArgumentList.create :args => '[<a>] <b> [<c>]'
+      a = Clive::Arguments.create :args => '[<a>] <b> [<c>]'
       a.create_valid(%w(a b c)).must_equal ['a', 'b', 'c']
       a.create_valid(%w(a b)).must_equal ['a', 'b', nil]
       a.create_valid(%w(a)).must_equal [nil, 'a', nil]
     end
     
     it 'coerces the arguments' do
-      a = Clive::ArgumentList.create :args => '<a> <b>', :as => [Integer, Float]
+      a = Clive::Arguments.create :args => '<a> <b>', :as => [Integer, Float]
       a.create_valid(%w(50.55 50.55)).must_equal [50, 50.55]
     end
     
     it 'uses defaults where needed' do
-      a = Clive::ArgumentList.create :args => '[<a>] <b> [<c>]', :defaults => ['y', nil, 'y']
+      a = Clive::Arguments.create :args => '[<a>] <b> [<c>]', :defaults => ['y', nil, 'y']
       a.create_valid(%w(n)).must_equal %w(y n y)
     end
   end

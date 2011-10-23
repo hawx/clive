@@ -2,11 +2,6 @@ module Clive
 
   class Option
   
-    # Raised when the argument string passed to {Option} is wrong.
-    class InvalidArgumentStringError < Error
-      reason 'Invalid argument string format: #1'
-    end
-  
     class ArgumentParser
     
       attr_reader :opts, :args
@@ -14,10 +9,10 @@ module Clive
       # @param [Hash]
       def initialize(options, opt_keys)      
         @opt_keys = opt_keys
-        @arg_keys = Clive::ArgumentList::ArgumentParser::ARG_KEYS
+        @arg_keys = Clive::Arguments::Parser::KEYS
       
         @opts, hash = sort_opts(options)
-        @args = ArgumentList.create(hash)
+        @args = Arguments.create(hash)
       end
       
       def to_a
