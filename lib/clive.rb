@@ -75,7 +75,7 @@ module Clive
     end
     
     def run(argv, opts={})
-      opts = ArgumentParser.new(OPT_KEYS, ARG_KEYS, opts).opts
+      opts = ArgumentParser.new(opts, OPT_KEYS).opts
       @opts = DEFAULTS.merge(opts)
       
       add_help_option

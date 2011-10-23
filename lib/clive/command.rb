@@ -73,7 +73,7 @@ module Clive
       @names = names.sort
       @description = description
       @_block = block
-      @opts, @args = ArgumentParser.new(OPT_KEYS, ARG_KEYS, opts).to_a
+      @opts, @args = ArgumentParser.new(opts, OPT_KEYS).to_a
       
       @options = []
       

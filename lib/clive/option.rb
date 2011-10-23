@@ -63,33 +63,11 @@ module Clive
     alias_method :desc, :description
     
     # Valid key names for options passed to Option#initialize.
-    OPT_KEYS = [:head, :tail, :group, :boolean]
+    OPT_KEYS = [:head, :tail, :group, :boolean, :runner]
     
-    # Valid key names for creating arguments passed to Option#initialize and 
-    # standard names to map them to.
-    ARG_KEYS = {
-      :args        => :arg,
-      :arg         => :arg,
-      
-      :types       => :type,
-      :type        => :type,
-      :kind        => :type,
-      :as          => :type,
-      
-      :matches     => :match,
-      :match       => :match,
-      
-      :withins     => :within,
-      :within      => :within,
-      :in          => :within,
-      
-      :defaults    => :default,
-      :default     => :default,
-      
-      :constraints => :constraint,
-      :constraint  => :constraint
+    DEFAULTS = {
+      :runner => Clive::Option::Runner
     }
-    
 
     # @param short [Symbol]
     #   Short name (single character) for this option.
@@ -127,24 +105,12 @@ module Clive
     #   )
     #
     def initialize(names=[], description="", opts={}, &block)
-      case names.size
-      when 0
-        raise InvalidNamesError, "A name must be given for this Option"
-      when 1, 2
-        if names.find_all {|i| i.to_s.size > 1 }.size > 1
-          raise InvalidNamesError, "An option can only have one long name"
-        elsif names.find_all {|i| i.to_s.size == 1 }.size > 1
-          raise InvalidNamesError, "An option can only have one short name"
-        end
-      else # > 2
-        raise InvalidNamesError, "Too many names passed to Option"
-      end
-      
       @names = names.sort_by {|i| i.to_s.size }
       @description  = description
       @block = block
       
-      @opts, @args = ArgumentParser.new(OPT_KEYS, ARG_KEYS, opts).to_a
+      @opts, @args = ArgumentParser.new(opts, OPT_KEYS).to_a
+      @opts = DEFAULTS.merge(@opts)
     end
     
     # Short name for the option. (ie. +:a+)
@@ -217,7 +183,7 @@ module Clive
       end
       
       if block?
-        Runner._run(mapped_args, state, @block)
+        @opts[:runner]._run(mapped_args, state, @block)
       else
         state = set_state(state, args)
       end
@@ -226,20 +192,22 @@ module Clive
     end
     
     # @return [Integer] The minimum number of arguments that this option takes.
+    # @todo Remove
     def min_args
       if boolean?
         0
       else
-        @args.reject {|i| i.optional? }.size
+        @args.min
       end
     end
 
     # @return [Integer] The maximum number of arguments that this option takes.
+    # @todo Remove
     def max_args
       if boolean?
         0
       else
-        @args.size
+        @args.max
       end
     end
 
@@ -247,9 +215,7 @@ module Clive
     # this option. This does not need to check the minimum length as the list
     # may not be completely built, this just checks it hasn't failed completely.
     def possible?(list)
-      @args.zip(list).all? do |arg,item|
-        item ? arg.possible?(item) : true 
-      end && list.size <= max_args
+      @args.possible?(list)
     end
 
     # Whether the +list+ of found arguments is valid to be the arguments for this
@@ -259,24 +225,13 @@ module Clive
       if boolean?
         list == [true] || list == [false]
       else
-        # It is important that when the arguments are put in the correct place
-        # that we check for missing arguments (which have been added as +nil+s)
-        # so compact the list _then_ check the size.
-        @args.zip(list).map do |a,i| 
-          if a.optional?
-            nil
-          else
-            i
-          end
-        end.compact.size >= min_args && possible?(list)
+        @args.valid?(list)
       end
     end
     
-    # Given +list+ will fill blank spaces with +nil+ where appropriate then
-    # coerces each argument and uses default values if necessary.
+    # @todo Remove
     def valid_arg_list(list)
-      # Use defaults if necessary and coerce
-      @args.zip(list).map {|a,r| r ? a.coerce(r) : a.coerce(a.default) }
+      @args.create_valid(list)
     end
     
     include Comparable

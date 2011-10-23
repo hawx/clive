@@ -175,6 +175,157 @@ module Clive
   # An Array of {Clive::Argument} instances.
   class ArgumentList < Array
   
+    class ArgumentParser
+      
+      # Valid key names for creating arguments passed to Option#initialize and 
+      # standard names to map them to.
+      ARG_KEYS = {
+        :args        => :arg,
+        :arg         => :arg,
+        
+        :types       => :type,
+        :type        => :type,
+        :kind        => :type,
+        :as          => :type,
+        
+        :matches     => :match,
+        :match       => :match,
+        
+        :withins     => :within,
+        :within      => :within,
+        :in          => :within,
+        
+        :defaults    => :default,
+        :default     => :default,
+        
+        :constraints => :constraint,
+        :constraint  => :constraint
+      }
+    
+      def initialize(opts)
+        @opts = opts || {}
+      end
+      
+      # This turns the arguments string and other options into a nicely formatted 
+      # hash.
+      #
+      # @return [Array<Hash>]
+      def to_hash
+        opts = normalise_key_names(@opts, ARG_KEYS)
+      
+        withins = []
+        # Normalise withins separately as it will usually be an Array.
+        if opts.has_key?(:within)
+          unless opts[:within].respond_to?(:[]) && opts[:within][0].is_a?(Array)
+            opts[:within] = [opts[:within]]
+          end
+        end
+        
+        # Make everything an Array
+        multiple = Hash[ opts.map {|k,v| [k, Array(v)] } ]
+        
+        # Find the largest Array...
+        max = multiple.values.map(&:size).max || 0
+        
+        # Split into an array of hashes, with each hash for each item of the previous
+        # Arrays.
+        # ie. go from {:as => [b, c], ...}
+        #          to [{:a => b, ...}, {:a => c, ...}, ...]
+        #
+        singles = multiple.map {|k, arr| pad(arr, max).map {|i| [k, i] } }.
+                           transpose.
+                           map {|i| Hash[ i.reject {|a,b| b == nil || a == :arg } ] }
+        
+        # If no arg string to parse return now.
+        return infer_args(singles) unless opts[:arg]
+        
+        optional = false
+        cancelled_optional = false
+        # Parse the argument string and merge in previous options from +singles+.
+        args = opts[:arg].split(' ').zip(singles).map do |arg, opts|
+          if cancelled_optional
+            optional = false
+            cancelled_optional = false
+          end
+        
+          cancelled_optional = true if arg[-1..-1] == ']'
+        
+          if arg[0..0] == '['
+            optional = true
+          elsif arg[0..0] != '<'
+            raise InvalidArgumentStringError.new(opts[:arg])
+          end
+        
+          {:name => clean(arg), :optional => optional}.merge(opts || {})
+        end
+        
+        infer_args(args)
+      end
+      
+      # @return [Array<Argument>]
+      def to_args
+        to_hash.map! do |arg|
+          Clive::Argument.new(arg[:name], arg.reject {|k,v| k == :name })
+        end
+      end
+      
+      private
+      
+      # Infer arguments that haven't been explicitly defined by name. This allows you
+      # to just say "it" should be within the range +1..5+ and have an argument 
+      # created without having to pass +:arg => '<choice>'+.
+      def infer_args(opts)
+        opts.map do |hash|
+          if hash.has_key?(:name)
+            hash
+          else
+            if [:type, :match, :constraint, :within, :default].any? {|key| hash.has_key?(key) }
+              hash.merge!({:name => 'arg'})
+            end
+            hash.merge!({:optional => true}) if hash.has_key?(:default) && !hash.has_key?(:optional)
+          
+            hash
+          end
+        end
+      end
+      
+      def normalise_key_names(opts, keys)
+        opts.inject({}) do |hsh, (k,v)|
+          if keys.include?(k)
+            if keys.respond_to?(:key?)
+              hsh[keys[k]] = v
+            else
+              hsh[k] = v
+            end
+            hsh
+          end
+        end
+      end
+      
+      def pad(obj, max, pd=nil)
+        if obj.size < max
+          (max - obj.size).times { obj << pd }
+        end
+        obj
+      end
+      
+      def clean(name)
+        name.gsub(/^\[?\<|\>\]?$/, '')
+      end
+    end
+    
+    # @todo Move some code around. Could probably move a lot of ArugmentParser into 
+    #  here, then just give that the task of splitting, and normalising key names?
+    #
+    # @example
+    #
+    #   ArgumentList.create :args => '<a> [<b>]', :as => [Integer, String]
+    #   #=> #<ArgumentList ...>
+    #
+    def self.create(opts)
+      new ArgumentParser.new(opts).to_args
+    end
+    
     # Zips a list of found arguments to this ArgumentList, but it also takes
     # account of whether the found argument is possible and makes sure that
     # optional Arguments are correctly handled.
@@ -225,6 +376,48 @@ module Clive
     #  brackets removed.
     def to_s
       map {|i| i.to_s }.join(' ').gsub('] [', ' ')
+    end
+    
+    # @return [Integer] The minimum number of arguments that __must__ be given.
+    def min
+      reject {|i| i.optional? }.size
+    end
+    
+    # @return [Integer] The maximum number of arguments that can be given.
+    def max
+      size
+    end
+    
+    # Whether the +list+ of found arguments could possibly be the arguments for
+    # this option. This does not need to check the minimum length as the list
+    # may not be completely built, this just checks it hasn't failed completely.
+    def possible?(list)
+      zip(list).all? do |arg, item|
+        item ? arg.possible?(item) : true 
+      end && list.size <= max
+    end
+    
+    # Whether the +list+ of found arguments is valid to be the arguments for this
+    # option. Here length is checked as we need to make sure enough arguments are
+    # present.
+    #
+    # It is important that when the arguments are put in the correct place
+    # that we check for missing arguments (which have been added as +nil+s)
+    # so compact the list _then_ check the size.
+    def valid?(list)
+      zip(list).map do |a,i| 
+        if a.optional?
+          nil
+        else
+          i
+        end
+      end.compact.size >= min && possible?(list)
+    end
+    
+    # Given +list+, will fill blank spaces with +nil+ where appropriate then
+    # coerces each argument and uses default values if necessary.
+    def create_valid(list)
+      zip(list).map {|a,r| r ? a.coerce(r) : a.coerce(a.default) }
     end
     
   end
