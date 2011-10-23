@@ -2,17 +2,16 @@ $: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
 describe Clive::ArgumentList do
+
+  subject {
+    Clive::ArgumentList.create :args => '[<a>] <b> <c> [<d>]', 
+                               :type => [Integer] * 4,
+                               :constraint => [:even?, :odd?] * 2
+  }
+
   describe '#zip' do
-    subject {
-      a = Clive::Argument.new :a, :type => Integer, :constraint => :even?, :optional => true
-      b = Clive::Argument.new :b, :type => Integer, :constraint => :odd?
-      c = Clive::Argument.new :c, :type => Integer, :constraint => :even?
-      d = Clive::Argument.new :d, :type => Integer, :constraint => :odd?, :optional => true
-      
-      list = Clive::ArgumentList.new([a, b, c, d])
-      
-      def list.simple_zip(other); zip(other).map {|i| i[1] }; end
-      list
+    before {
+      def subject.simple_zip(other); zip(other).map {|i| i[1] }; end
     }
   
     it 'zips arguments properly' do
@@ -43,4 +42,72 @@ describe Clive::ArgumentList do
       subject.to_s.must_equal "<a> [<b> <c>] <d>"
     end
   end
+  
+  describe '#min' do
+    it 'returns the number of non-optional arguments' do
+      subject.min.must_equal 2
+    end
+  end
+  
+  describe '#max' do
+    it 'returns the total number of arguments' do
+      subject.max.must_equal 4
+    end
+  end
+  
+  describe '#possible?' do
+    it 'is true if each argument is possible and list is not too long' do
+      subject.must_be :possible?, [2]
+      subject.must_be :possible?, [2, 3]
+      subject.must_be :possible?, [2, 3, 4]
+      subject.must_be :possible?, [2, 3, 4, 5]
+    end
+    
+    it 'is false if the list is too long' do
+      subject.wont_be :possible?, [2, 3, 4, 5, 6]
+    end
+    
+    it 'is false if an argument is not possible' do
+      subject.wont_be :possible?, ['hello']
+    end
+  end
+  
+  describe '#valid?' do
+    it 'is false if the list is not #possible' do
+      subject.stub :possible?, false
+      subject.wont_be :valid?, [1, 2]
+    end
+    
+    it 'is false if the list is too short' do
+      subject.stub :possible?, true
+      subject.wont_be :valid?, [1]
+    end
+    
+    it 'is true if the list is #possible? and not too short' do
+      subject.stub :possible?, true
+      subject.must_be :valid?, [1, 2]
+      subject.must_be :valid?, [1, 2, 3]
+      subject.must_be :valid?, [0, 1, 2, 3]
+    end
+  end
+  
+  describe '#create_valid' do
+    it 'returns the correct arguments' do
+      a = Clive::ArgumentList.create :args => '[<a>] <b> [<c>]'
+      a.create_valid(%w(a b c)).must_equal ['a', 'b', 'c']
+      a.create_valid(%w(a b)).must_equal ['a', 'b', nil]
+      a.create_valid(%w(a)).must_equal [nil, 'a', nil]
+    end
+    
+    it 'coerces the arguments' do
+      a = Clive::ArgumentList.create :args => '<a> <b>', :as => [Integer, Float]
+      a.create_valid(%w(50.55 50.55)).must_equal [50, 50.55]
+    end
+    
+    it 'uses defaults where needed' do
+      a = Clive::ArgumentList.create :args => '[<a>] <b> [<c>]', :defaults => ['y', nil, 'y']
+      a.create_valid(%w(n)).must_equal %w(y n y)
+    end
+  end
+
 end

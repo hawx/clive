@@ -45,7 +45,7 @@ describe Clive::Command do
     end
     
     it 'sets a default header' do
-      File.stub(:basename).and_return('file.rb')
+      # File.stub(:basename, '"file.rb"')
       @command.instance_variable_get(:@header).must_equal 'Usage: file.rb a,b,c [options]'
     end
     
@@ -267,21 +267,27 @@ describe Clive::Command do
   
   describe '#end_group' do
     it 'calls #group with nil' do
-      command = Clive::Command.new
-      command.expects(:group).with(nil)
-      command.end_group
+      command = Clive::Command.new do
+        group 'Testing'
+        option :test
+        end_group
+        option :none
+      end
+      command.run_block
+      
+      command.find_option(:none).opts[:group].must_be_nil
     end
   end
   
   describe '#help' do
     it 'builds a help string using the defined formatter' do
-      f = Mock.new(Clive::Formatter)
-      f.expects(:header).with('Top')
-      f.expects(:footer).with('Bottom')
-      f.expects(:options).with([])
-      f.expects(:to_s)
+      f = MiniTest::Mock.new
+      f.expect :header=, nil, ['Top']
+      f.expect :footer=, nil, ['Bottom']
+      f.expect :options, nil, []
+      f.expect :to_s, nil, []
       
-      command = Clive::Command.new do
+      command = Clive::Command.new :formatter => f do
         header 'Top'
         footer 'Bottom'
       end

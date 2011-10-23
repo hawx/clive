@@ -6,7 +6,7 @@ describe Clive::Option::ArgumentParser do
   subject { Clive::Option::ArgumentParser }
 
   def args_for(opts)
-    subject.new Clive::Option::OPT_KEYS, Clive::Option::ARG_KEYS, opts
+    subject.new opts, Clive::Option::OPT_KEYS
   end
   
   def defaults_and(opts)
