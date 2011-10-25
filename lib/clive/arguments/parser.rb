@@ -13,7 +13,7 @@ module Clive
         :arg        => [:args],
         :type       => [:types, :kind, :as],
         :match      => [:matches],
-        :within     => [:withins],
+        :within     => [:withins, :in],
         :default    => [:defaults],
         :constraint => [:constraints]
       }.inject({}) {|hsh, (k,v)|
@@ -34,13 +34,38 @@ module Clive
       # @return [Array<Hash>]
       def to_hash
         opts = normalise_key_names(@opts, KEYS)
-      
-        withins = []
-        # Normalise withins separately as it will usually be an Array.
-        if opts.has_key?(:within)
-          unless opts[:within].respond_to?(:[]) && opts[:within][0].is_a?(Array)
-            opts[:within] = [opts[:within]]
+        
+        # :within is weird. You will generally set it to an Array, but can use
+        # anything which responds to #include?. Unfortunately that includes String
+        # which for many reasons should be checked against. So new rules...
+        #
+        # opts[:within] = %w(a b c)
+        # #=> opts[:within] = [%w(a b c)]
+        #
+        # opts[:within] = ['a', 'b', 'c']
+        # #=> opts[:within] = [['a', 'b', 'c']]
+        #
+        # opts[:within] = <#include?>
+        # #=> opts[:within] = [<#include?>]
+        #
+        # opts[:within] = [<#include?>]
+        # #=> opts[:within] = [<#include?>]
+        #
+        # opts[:within] = 1..5
+        # #=> opts[:within] = [1..5]
+        #
+        if opts[:within].respond_to?(:[])
+          if opts[:within].respond_to?(:include?)
+            if opts[:within].all? {|i| i.is_a?(String) }
+              opts[:within] = [opts[:within]].compact
+            elsif opts[:within].all? {|i| i.respond_to?(:include?) }
+              opts[:within] = opts[:within]
+            else
+              opts[:within] = [opts[:within]].compact
+            end            
           end
+        else
+          opts[:within] = [opts[:within]].compact
         end
         
         # Make everything an Array
@@ -87,7 +112,7 @@ module Clive
       # @return [Array<Argument>]
       def to_args
         to_hash.map! do |arg|
-          Clive::Argument.new(arg[:name], arg.reject {|k,v| k == :name })
+          Clive::Argument.new arg.delete(:name) || 'arg', arg
         end
       end
       
@@ -113,14 +138,8 @@ module Clive
       
       def normalise_key_names(opts, keys)
         opts.inject({}) do |hsh, (k,v)|
-          if keys.include?(k)
-            if keys.respond_to?(:key?)
-              hsh[keys[k]] = v
-            else
-              hsh[k] = v
-            end
-            hsh
-          end
+          hsh[keys[k]] = v if keys.has_key?(k)
+          hsh
         end
       end
       

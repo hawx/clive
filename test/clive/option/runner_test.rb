@@ -6,9 +6,9 @@ describe Clive::Option::Runner do
   
   describe '#_run' do
     it 'executes the function passed within it' do
-      assert_output "Clive::Option::Runner\n" do
+      this {
         subject._run({}, {}, proc { puts self.name })
-      end
+      }.must_output "Clive::Option::Runner\n" 
     end
   end
   

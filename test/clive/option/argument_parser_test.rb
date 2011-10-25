@@ -24,7 +24,7 @@ describe Clive::Option::ArgumentParser do
   end
   
   it 'normalises names' do
-    s = args_for :name => :arg, :as => Integer, :in => 1..5, :defaults => 3
+    s = args_for :args => '<arg>', :as => Integer, :in => 1..5, :defaults => 3
     s.args.first.must_be_argument :name => :arg, :type => Clive::Type::Integer, 
                                   :within => 1..5, :default => 3
   end

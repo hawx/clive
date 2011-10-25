@@ -56,10 +56,12 @@ end
 
 class Object
   # Very stupid stub implementation, don't use for anything too complex
-  def stub(method, result)
-    instance_eval "def self.#{method}(*args); #{result}; end"
-  end
+  #def stub(method, result)
+  #  instance_eval "def self.#{method}(*args); #{result}; end"
+  #end
 end
+
+require 'mocha'
 
 Dir['test/extras/**/*'].reject {|i| File.directory?(i) }.each do |l|
   require l

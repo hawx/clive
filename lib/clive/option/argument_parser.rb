@@ -46,8 +46,8 @@ module Clive
             else
               hsh[k] = v
             end
-            hsh
           end
+          hsh
         end
       end
       

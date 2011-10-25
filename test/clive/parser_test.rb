@@ -1,81 +1,185 @@
 $: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
-class ParserTest < MiniTest::Unit::TestCase
-  extend Clive::Type::Lookup
-  # this is a bit of a hack, it seems I can't redefine .const_missing in a block
-  # so this is what I have to do.
-
-  def test_parsing_with_normal_blocks
-    a = nil
-    base = Class.new { include Clive
-      opt :force do
-        a = "forced"
-      end
+describe Clive::Parser do
+  
+  describe 'single option' do
+    subject {
+      Class.new { extend Clive
+        opt :force
+      }
     }
-    base.run s('--force')
-    assert_equal "forced", a
+    
+    it 'runs the option' do
+      p subject.find('--force').args
+      a,s = subject.run s '--force'
+      s[:force].must_be_true
+    end
   end
-
-  def test_parsing_with_arguments_for_options
-    a = nil
-    base = Class.new { include Clive
-      opt :name, :arg => '<name>' do |name|
-        a = name
-      end
+  
+  describe 'single option with block' do
+    subject {
+      Class.new { extend Clive
+        opt(:force) { print "forced" }
+      }
     }
-    base.run s('--name John')
-    assert_equal "John", a
+    
+    it 'runs the option' do
+      this {
+        subject.run s '--force'
+      }.must_output "forced"
+    end
   end
-
-  def test_parsing_with_automatic_blocks
-    base = Class.new { include Clive; opt :force }
-
-    args, state = base.run s('--force hey')
-    assert_equal %w(hey), args
-    assert_equal({:force => true}, state)
-  end
-
-  def test_parsing_with_automatic_blocks_and_arguments
-    base = Class.new { include Clive; opt :name, :arg => '<name>' }
-
-    args, state = base.run s('--name John')
-    assert_equal [], args
-    assert_equal({:name => 'John'}, state)
-  end
-
-  def test_no_parsing
-    a = nil
-
-    base = Class.new { include Clive
-      bool :force
-      bool :auto do |truth|
-        a = truth
-      end
+  
+  describe 'single option with argument' do
+    subject {
+      Class.new { extend Clive
+        opt :name, :arg => '<name>'
+      }
     }
-
-    args, state = base.run s('--no-force --no-auto')
-    assert_equal({:force => false}, state)
-    assert_equal false, a
+    
+    it 'runs the option' do
+      a,s = subject.run s '--name "John Doe"'
+      s[:name].must_equal 'John Doe'
+    end
   end
-
-  def test_parsing_command_with_opts_after_args
-    a = nil
-    base = Class.new { include Clive
-
-      command :new, :args => '<dir>' do
+  
+  describe 'single option with argument with block' do
+    subject {
+      Class.new { extend Clive
+        opt(:name, :arg => '<name>') {|name| print "I am #{name}" }
+      }
+    }
+    
+    it 'runs the option' do
+      this {
+        subject.run s '--name "John Doe"'
+      }.must_output "I am John Doe"
+    end
+  end
+  
+  describe 'single option with arguments' do
+    subject {
+      Class.new { extend Clive
+        opt :name, :arg => '<first> <last>'
+      }
+    }
+    
+    it 'runs the option' do
+      a,s = subject.run s '--name John Doe'
+      s[:name].must_equal ['John', 'Doe']
+    end
+  end
+  
+  describe 'single option with arguments with block' do
+    subject {
+      Class.new { extend Clive
+        opt(:name, :arg => '<first> <last>') { print "I am #{first} #{last}" }
+      }
+    }
+    
+    it 'runs the option' do
+      this {
+        subject.run s '--name John Doe'
+      }.must_output "I am John Doe"
+    end
+  end
+  
+  describe 'Boolean options' do
+    subject {
+      Class.new { extend Clive
         bool :force
-
-        action do |dir|
-          a = dir
-        end
-      end
+        bool :auto
+      }
     }
-
-    args, state = base.run s('new ~/somewhere --force')
-    assert_equal({:new => {:force  => true}}, state)
-    assert_equal [], args
-    assert_equal "~/somewhere", a
+    
+    it 'runs the options' do
+      a,s = subject.run s '--no-force --auto'
+      s[:force].must_be_false
+      s[:auto].must_be_true
+    end
   end
+  
+  describe 'Commands' do  
+    describe 'with options and arguments' do
+      subject {
+        Class.new { extend Clive
+          command :new, :args => '<dir>' do
+            bool :force
+            opt :name, :arg => '<name>'
+          end
+        }
+      }
+      
+      let(:result) { {:new => {:args => '~/somewhere', :force => true, :name => 'New'}} }
+      
+      it 'runs properly with arguments after options' do
+        a,s = subject.run s 'new --force --name New ~/somewhere'
+        s.must_equal result
+      end
+      
+      it 'runs properly with options after arguments' do
+        a,s = subject.run s 'new ~/somewhere --force --name New'
+        s.must_equal result
+      end
+      
+      it 'runs properly with arguments between options' do
+        a,s = subject.run s 'new --force ~/somewhere --name New'
+        a2,s2 = subject.run s 'new --name New ~/somewhere --force'
+        a2.must_equal a
+        s2.must_equal s
+        s.must_equal result
+      end
+      
+      it 'runs properly with excessive arguemnts' do
+        a,s = subject.run s 'new ~/somewhere Hello Other'
+        s[:new][:args].must_equal '~/somewhere'
+        a.must_equal ['Hello', 'Other']
+      end
+    end
+    
+    describe 'with options and optional arguments' do
+      subject {
+        Class.new { extend Clive
+          command :new, :args => '[<dir>]' do
+            bool :force
+            opt :name, :arg => '<name>'
+          end
+        }
+      }
+      
+      let(:result) { {:new => {:force => true, :name => 'New', :args => nil}} }
+      let(:with_argument) { {:new => {:force => true, :name => 'New', :args => '~/somewhere'}} }
+      
+      it 'runs properly with just options' do
+        a,s = subject.run s 'new --force --name New'
+        s.must_equal result
+      end
+      
+      it 'runs properly with arguments after options' do
+        a,s = subject.run s 'new --force --name New ~/somewhere'
+        s.must_equal with_argument
+      end
 
+      it 'runs properly with options after arguments' do
+        a,s = subject.run s 'new ~/somewhere --force --name New'
+        s.must_equal with_argument
+      end
+      
+      it 'runs properly with arguments between options' do
+        a,s = subject.run s 'new --force ~/somewhere --name New'
+        a2,s2 = subject.run s 'new --name New ~/somewhere --force'
+        a2.must_equal a
+        s2.must_equal s
+        s.must_equal with_argument
+      end
+      
+      it 'runs properly with excessive arguemnts' do
+        a,s = subject.run s 'new ~/somewhere Hello Other'
+        s[:new][:args].must_equal '~/somewhere'
+        a.must_equal ['Hello', 'Other']
+      end
+    end
+  end
+  
 end

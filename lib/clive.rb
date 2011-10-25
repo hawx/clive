@@ -183,8 +183,8 @@ module Clive
   
   # {#method_missing} responds to all methods that the base instance of 
   # {TopCommand} responds to.
-  def respond_to_missing?(sym)
-    @base.respond_to?(sym)
-  end
+  #def respond_to_missing?(sym)
+  #  @base.respond_to?(sym)
+  #end
 
 end

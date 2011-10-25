@@ -3,7 +3,7 @@ require 'helper'
 
 describe Clive::Type do
 
-  subject { Clive::Type }
+  subject { Class.new(Clive::Type) }
   let(:instance) { Clive::Type.new }
   
   describe '#valid?' do
@@ -33,12 +33,11 @@ describe Clive::Type do
   
   describe '.match' do
     it 'sets a proc given a symbol' do
-      sym, obj = MiniTest::Mock.new, Object.new
-      sym.expect :to_proc, obj, []
+      sym, obj = mock, Object.new
+      sym.expects(:to_proc).with().returns(obj)
       
       subject.match sym
       subject.instance_variable_get(:@valid).must_equal obj
-      sym.verify
     end
     
     it 'sets a proc given a regular expression' do
@@ -69,19 +68,18 @@ describe Clive::Type do
   describe '.valid?' do
     describe 'if @valid has been set' do
       it 'calls the block' do
-        sym, prc = MiniTest::Mock.new, MiniTest::Mock.new
-        sym.expect :to_proc, prc, []
-        prc.expect :call, true, ['arg']
+        sym, prc = mock, mock
+        sym.expects(:to_proc).with().returns(prc)
+        prc.expects(:call).with('arg').returns(true)
         
         subject.match sym
         subject.valid? 'arg'
-        sym.verify; prc.verify
       end
     end
     
     describe 'if @valid has not been set' do
       it 'calls #valid?' do
-        subject.must_receive(:valid?).with('arg')
+        subject.any_instance.expects(:valid?).with('arg')
         subject.valid? 'arg'
       end
     end
@@ -90,19 +88,18 @@ describe Clive::Type do
   describe '.typecast' do
     describe 'if @cast has been set' do
       it 'uses the method set' do
-        arg = MiniTest::Mock.new
-        arg.expect :send, true, [:to_i]
+        arg = mock
+        arg.expects(:send).with(:to_i).returns(true)
         
         subject.cast :to_i
         subject.typecast arg
-        arg.verify
       end
     end
     
     describe 'if @cast has not been set' do
       it 'calls #typecast' do
-        subject.must_receive(:typecast).with('arg')
-        subject.valid? 'arg'
+        subject.any_instance.expects(:typecast).with('arg')
+        subject.typecast 'arg'
       end
     end
   end

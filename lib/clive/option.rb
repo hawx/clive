@@ -110,7 +110,7 @@ module Clive
       @block = block
       
       @opts, @args = ArgumentParser.new(opts, OPT_KEYS).to_a
-      @opts = DEFAULTS.merge(@opts)
+      @opts = DEFAULTS.merge(@opts || {})
     end
     
     # Short name for the option. (ie. +:a+)

@@ -4,8 +4,7 @@ require 'helper'
 describe Clive::Command do
 
   it 'can take arguments' do
-    command = Clive::Command.new([], '', :arg => '<dir>')
-    command.run_block
+    command = Clive::Command.create([], '', :arg => '<dir>')
     
     state = {}
     command.run(state, ['~/somewhere'])
@@ -13,53 +12,53 @@ describe Clive::Command do
   end
   
   it 'can run a block with arguments' do
-    command = Clive::Command.new([], '', :arg => '<dir>') do
+    command = Clive::Command.create [], '', :arg => '<dir>' do
       action { puts dir }
     end
-    command.run_block
     
     this { command.run({}, ['~/somewhere']) }.must_output "~/somewhere\n"
   end
 
   describe '#initialize' do
-    before { 
-      @command = Clive::Command.new([:c,:b,:a], 'A command', :head => true,
-                                                             :args => '<a> [<b>]',
-                                                             :as => [Integer, nil]) }
+    subject {
+      Clive::Command.new [:c,:b,:a], 'A command', :head => true,
+                                                  :args => '<a> [<b>]',
+                                                  :as => [Integer, nil]
+    }
   
     it 'sets the names' do
-      @command.names.must_equal [:a,:b,:c]
+      subject.names.must_equal [:a,:b,:c]
     end
     
     it 'sets the description' do
-      @command.description.must_equal 'A command'
+      subject.description.must_equal 'A command'
     end
     
     it 'sets the options' do
-      @command.opts.must_equal({:head => true})
+      subject.opts.must_equal({:head => true, :runner => Clive::Option::Runner})
     end
     
     it 'sets the arguments' do
-      @command.args.size.must_equal 2
-      @command.args.map(&:name).must_equal [:a, :b]
+      subject.args.size.must_equal 2
+      subject.args.map(&:name).must_equal [:a, :b]
     end
     
     it 'sets a default header' do
-      # File.stub(:basename, '"file.rb"')
-      @command.instance_variable_get(:@header).must_equal 'Usage: file.rb a,b,c [options]'
+      File.stubs(:basename).returns('file.rb')
+      subject.instance_variable_get(:@header).must_equal 'Usage: file.rb a,b,c [options]'
     end
     
     it 'sets a default footer' do
-      @command.instance_variable_get(:@footer).must_equal ''
+      subject.instance_variable_get(:@footer).must_equal ''
     end
     
     it 'adds the help option' do
-      @command.must_be :has?, '--help'
-      @command.must_be :has?, '-h'
+      subject.must_be :has?, '--help'
+      subject.must_be :has?, '-h'
     end
     
     it 'resets the current description' do
-      @command.instance_variable_get(:@_last_desc).must_equal ''
+      subject.instance_variable_get(:@_last_desc).must_equal ''
     end
   end
 
@@ -167,97 +166,94 @@ describe Clive::Command do
   end
 
   describe '#find' do
-    before do
-      @command = Clive::Command.new [:command] do
+    subject {
+      Clive::Command.create [:command] do
         bool :F, :force
         opt :auto_build
       end
-      @command.run_block
-    end
-  
+    }
+
     it 'finds boolean options' do
-      @command.find('--force').name.must_equal :force
+      subject.find('--force').name.must_equal :force
     end
     
     it 'finds short options' do
-      @command.find('-F').name.must_equal :force
+      subject.find('-F').name.must_equal :force
     end
     
     it 'does not find short negative boolean options' do
-      @command.find('--no-F').must_be_nil
+      subject.find('--no-F').must_be_nil
     end
     
     it 'finds negative boolean options' do
-      @command.find('--no-force').name.must_equal :force
+      subject.find('--no-force').name.must_equal :force
     end
     
     it 'finds options with multiple words in name' do
-      @command.find('--auto_build').name.must_equal :auto_build
+      subject.find('--auto_build').name.must_equal :auto_build
     end
     
     it 'finds options with dashes in name' do
-      @command.find('--auto-build').name.must_equal :auto_build
+      subject.find('--auto-build').name.must_equal :auto_build
     end
     
     it 'does not find non existent options' do
-      @command.find('--no-auto-build').must_be_nil
-      @command.find('--unreal').must_be_nil
+      subject.find('--no-auto-build').must_be_nil
+      subject.find('--unreal').must_be_nil
     end
   end
   
   describe '#find_option' do
-    before do
-      @command = Clive::Command.new do
+    subject {
+      Clive::Command.create do
         bool :F, :force
         opt :auto_build
       end
-      @command.run_block
-    end
-  
+    }
+    
     it 'finds boolean options' do
-      @command.find_option(:force).name.must_equal :force
+      subject.find_option(:force).name.must_equal :force
     end
     
     it 'finds short options' do
-      @command.find_option(:F).name.must_equal :force
+      subject.find_option(:F).name.must_equal :force
     end
     
     it 'does not find short negative boolean options' do
-      @command.find_option(:no_F).must_be_nil
+      subject.find_option(:no_F).must_be_nil
     end
     
     it 'finds negative boolean options' do
-      @command.find_option(:no_force).name.must_equal :force
+      subject.find_option(:no_force).name.must_equal :force
     end
     
     it 'finds options with multiple words in name' do
-      @command.find_option(:auto_build).name.must_equal :auto_build
+      subject.find_option(:auto_build).name.must_equal :auto_build
     end
     
     it 'does not find non existent options' do
-      @command.find_option(:no_auto_build).must_be_nil
-      @command.find_option(:unreal).must_be_nil
+      subject.find_option(:no_auto_build).must_be_nil
+      subject.find_option(:unreal).must_be_nil
     end
   end
   
   describe '#has?' do
     it 'tries to find the option' do
       command = Clive::Command.new
-      command.must_receive(:find).with('--option').and_return(Clive::Option.new)
+      command.expects(:find).with('--option').returns(Clive::Option.new)
       command.has?('--option').must_be_true
     end
   end
   
   describe '#group' do
     it 'sets the group for options created' do
-      command = Clive::Command.new do
+      command = Clive::Command.create do
         group 'Testing'
         opt :test
         group 'Changed'
         opt :change
         opt :manual, :group => 'Set'
       end
-      command.run_block
       
       command.find_option(:test).opts[:group].must_equal   'Testing'
       command.find_option(:change).opts[:group].must_equal 'Changed'
@@ -267,13 +263,12 @@ describe Clive::Command do
   
   describe '#end_group' do
     it 'calls #group with nil' do
-      command = Clive::Command.new do
+      command = Clive::Command.create do
         group 'Testing'
         option :test
         end_group
         option :none
       end
-      command.run_block
       
       command.find_option(:none).opts[:group].must_be_nil
     end
@@ -281,16 +276,17 @@ describe Clive::Command do
   
   describe '#help' do
     it 'builds a help string using the defined formatter' do
-      f = MiniTest::Mock.new
-      f.expect :header=, nil, ['Top']
-      f.expect :footer=, nil, ['Bottom']
-      f.expect :options, nil, []
-      f.expect :to_s, nil, []
+      f = mock
+      f.expects(:header=).with('Top')
+      f.expects(:footer=).with('Bottom')
+      f.expects(:options).with()
+      f.expects(:to_s).with()
       
-      command = Clive::Command.new :formatter => f do
+      command = Clive::Command.create :formatter => f do
         header 'Top'
         footer 'Bottom'
       end
+      
       command.help
     end
   end

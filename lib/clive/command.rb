@@ -30,6 +30,12 @@ module Clive
     attr_reader :names, :options
     
     OPT_KEYS = Option::OPT_KEYS + [:formatter, :help]
+    
+    def self.create(*args, &block)
+      instance = new(*args, &block)
+      instance.run_block
+      instance
+    end
   
     # @param names [Array[Symbol]]
     #   Names that the Command can be ran with.
@@ -74,6 +80,7 @@ module Clive
       @description = description
       @_block = block
       @opts, @args = ArgumentParser.new(opts, OPT_KEYS).to_a
+      @opts = DEFAULTS.merge(@opts)
       
       @options = []
       
@@ -217,7 +224,8 @@ module Clive
     #   end
     #  
     #   a.has?('--force')    #=> true
-    #   a.has?('--no-auto')  #=> true
+    #   a.has?('--auto')     #=> true
+    #   a.has?('--no-auto')  #=> false
     #   a.has?('--not-real') #=> false
     #   
     def has?(arg)
@@ -234,8 +242,6 @@ module Clive
       @options.find do |opt| 
         if opt.names.include?(arg)
           true
-        elsif opt.boolean? && arg.to_s[0..2] == 'no_' && arg.to_s.size > 4
-          opt.names.include?(arg.to_s[3..-1].to_sym)
         else
           false
         end

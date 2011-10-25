@@ -15,9 +15,10 @@ describe Clive::Option do
     end
     
     it 'uses ArgumentParser to set opts and args' do
-      Clive::Option::ArgumentParser.expects(:new).with Clive::Option::OPT_KEYS, 
-                                        Clive::Option::ARG_KEYS,
-                                        :head => true, :args => '<a> <b>'
+      Clive::Option::ArgumentParser.expects(:new).with(
+        {:head => true, :args => '<a> <b>'},
+        Clive::Option::OPT_KEYS
+      )
       option_with :head => true, :args => '<a> <b>'
     end
   end
@@ -109,27 +110,24 @@ describe Clive::Option do
     let(:block) { proc {} }
     
     it 'calls Runner#_run with true if #boolean?' do
-      t = MiniTest::Mock.new
-      t.expect :_run, nil, [[[:truth, true]], {}, block]
+      t = mock
+      t.expects(:_run).with([[:truth, true]], {}, block)
       ot = option_with :boolean => true, :runner => t, &block
       ot.run({}, [true])
-      t.verify
     end
     
     it 'calls Runner#_run with false if #boolean?' do
-      f = MiniTest::Mock.new
-      f.expect :_run, nil, [[[:truth, false]], {}, block]
+      f = mock
+      f.expects(:_run).with([[:truth, false]], {}, block)
       of = option_with :boolean => true, :runner => f, &block
       of.run({}, [false])
-      f.verify
     end
   
     it 'calls Runner#_run with mapped args' do
-      r = MiniTest::Mock.new
-      r.expect :_run, nil, [[[:a, 'a'], [:b, 'b']], {}, block]
+      r = mock
+      r.expects(:_run).with([[:a, 'a'], [:b, 'b']], {}, block)
       o = option_with :args => '<a> <b>', :runner => r, &block
       o.run({}, ['a', 'b'])
-      r.verify
     end
     
     it 'sets state if no block exists' do
@@ -181,17 +179,17 @@ describe Clive::Option do
     subject { option_with :args => '<a> <b> [<c>]' }
   
     it 'is false if the list is not #possible?' do
-      subject.stub(:possible?, false)
+      subject.stubs(:possible?).returns(false)
       subject.wont_be :valid?, %w(a b)
     end
     
     it 'is false if the list is too short' do
-      subject.stub(:possible?, true)
+      subject.stubs(:possible?).returns(true)
       subject.wont_be :valid?, %w(a)
     end
     
     it 'is true if the list is #possible? and not too short' do
-      subject.stub(:possible?, true)
+      subject.stubs(:possible?).returns(true)
       subject.must_be :valid?, %w(a b)
       subject.must_be :valid?, %w(a b c)
     end

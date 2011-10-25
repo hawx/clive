@@ -10,17 +10,18 @@ describe Clive::Argument do
     end
     
     it 'calls #to_proc on a Symbol constraint' do
-      constraint = MiniTest::Mock.new
-      constraint.expect :respond_to?, true, [:to_proc]
-      constraint.expect :to_proc, nil, []
+      c = mock
+      c.expects(:respond_to?).with(:to_proc).returns(true)
+      c.expects(:to_proc)
       
-      subject.new :a, :constraint => constraint
-      
-      constraint.verify
+      subject.new :a, :constraint => c
     end
     
-    
-    it 'merges given options with DEFAULTS'
+    it 'merges given options with DEFAULTS' do
+      opts = {:optional => true}
+      Clive::Argument::DEFAULTS.expects(:merge).with(opts).returns({})
+      subject.new('arg', opts)
+    end
     
     it 'finds the correct type class' do
       subject.new(:a, :type => String).type.must_equal Clive::Type::String
@@ -124,12 +125,9 @@ describe Clive::Argument do
   
   describe '#coerce' do
     it 'uses @type to return the correct object' do
-      type = MiniTest::Mock.new
-      type.expect :typecast, 5, ["str"]
-      
+      type = mock
+      type.expects(:typecast).with('str').returns(5)
       subject.new(:a, :type => type).coerce("str").must_equal 5
-      
-      type.verify
     end
   end
 end
