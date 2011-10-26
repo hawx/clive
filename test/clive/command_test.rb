@@ -223,12 +223,12 @@ describe Clive::Command do
       subject.find_option(:no_F).must_be_nil
     end
     
-    it 'finds negative boolean options' do
-      subject.find_option(:no_force).name.must_equal :force
+    it 'does not find negative boolean options' do
+      subject.find_option(:no_force).must_be_nil
     end
     
     it 'finds options with multiple words in name' do
-      subject.find_option(:auto_build).name.must_equal :auto_build
+      subject.find_option(:auto_build).must_have :name, :auto_build
     end
     
     it 'does not find non existent options' do

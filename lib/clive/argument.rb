@@ -135,9 +135,9 @@ module Clive
     #
     # @param obj [String,Object]
     #   This method will be called at least twice for each argument, the first
-    #   time when testing for {Option#possible?} and then for {Option#valid?}.
-    #   When called in {Option#possible?} +obj+ will be passed as a string,
-    #   for {Option#valid?} though +obj+ will have been cast using {#coerce}
+    #   time when testing for {Arguments#possible?} and then for {Argument#valid?}.
+    #   When called in {Arguments#possible?} +obj+ will be passed as a string,
+    #   for {Argument#valid?} though +obj+ will have been cast using {#coerce}
     #   to the correct type meaning this method must deal with both cases.
     #
     # @return Whether +obj+ could be this argument.

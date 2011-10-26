@@ -193,44 +193,32 @@ module Clive
     
     # @return [Integer] The minimum number of arguments that this option takes.
     # @todo Remove
-    def min_args
-      if boolean?
-        0
-      else
-        @args.min
-      end
+    def __min_args
+      @args.min
     end
 
     # @return [Integer] The maximum number of arguments that this option takes.
     # @todo Remove
-    def max_args
-      if boolean?
-        0
-      else
-        @args.max
-      end
+    def __max_args
+      @args.max
     end
 
     # Whether the +list+ of found arguments could possibly be the arguments for
     # this option. This does not need to check the minimum length as the list
     # may not be completely built, this just checks it hasn't failed completely.
-    def possible?(list)
+    def __possible?(list)
       @args.possible?(list)
     end
 
     # Whether the +list+ of found arguments is valid to be the arguments for this
     # option. Here length is checked as we need to make sure enough arguments are
     # present.
-    def valid?(list)
-      if boolean?
-        list == [true] || list == [false]
-      else
-        @args.valid?(list)
-      end
+    def __valid?(list)
+      @args.valid?(list)
     end
     
     # @todo Remove
-    def valid_arg_list(list)
+    def __valid_arg_list(list)
       @args.create_valid(list)
     end
     
@@ -253,7 +241,7 @@ module Clive
     private
     
     def set_state(state, args)
-      state[name] = (max_args <= 1 ? args[0] : args)
+      state[name] = (@args.max <= 1 ? args[0] : args)
       state
     end
     

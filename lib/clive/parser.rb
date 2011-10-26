@@ -72,16 +72,16 @@ module Clive
                 opt = found.find(curr)
                 debug "Found option: #{opt}"
                 
-                args = opt.max_args > 0 ? do_arguments_for(opt) : [true]
+                args = opt.args.max > 0 ? do_arguments_for(opt) : [true]
 
                 if opt.block?
                   opt.run(@state[found.name], args)
                 else
-                  @state[found.name][opt.name] = (opt.max_args <= 1 ? args[0] : args)
+                  @state[found.name][opt.name] = (opt.args.max <= 1 ? args[0] : args)
                 end
                 
               else
-                break unless found.possible?(command_args + [curr])
+                break unless found.args.possible?(command_args + [curr])
                 command_args << curr
               end
 
@@ -89,7 +89,7 @@ module Clive
             end
             dec
 
-            unless found.valid?(command_args)
+            unless found.args.valid?(command_args)
               raise MissingArgumentError.new(found, command_args, found.opts)
             end
             
@@ -99,7 +99,7 @@ module Clive
           # otherwise it is an option
           else
             debug "Found option: #{found}"
-            args = found.max_args > 0 ? do_arguments_for(found) : [true]
+            args = found.args.max > 0 ? do_arguments_for(found) : [true]
             found.run(@state, args)
           end
 
@@ -117,11 +117,11 @@ module Clive
             debug "Found option: #{opt}"
 
             if c == currs.last
-              args = opt.max_args > 0 ? do_arguments_for(opt) : [true]
+              args = opt.args.max > 0 ? do_arguments_for(opt) : [true]
               
               opt.run(@state, args)
             else # can't take any arguments as an option is next to it
-              if opt.max_args > 0
+              if opt.args.max > 0
                 raise MissingArgumentError.new(opt, [], opt.args)
               end
               
@@ -183,8 +183,8 @@ module Clive
     def collect_arguments(opt, buffer=0)
       inc
       arg_list = []
-      while @i < (@argv.size - buffer) && arg_list.size < opt.max_args
-        break unless opt.possible?(arg_list + [curr])
+      while @i < (@argv.size - buffer) && arg_list.size < opt.args.max
+        break unless opt.args.possible?(arg_list + [curr])
         arg_list << curr
         inc
       end
@@ -198,11 +198,11 @@ module Clive
     # inserted if necessary.
     def validate_arguments(opt, arg_list)
       # If we don't have enough args
-      unless opt.valid?(arg_list)
+      unless opt.args.valid?(arg_list)
         raise MissingArgumentError.new(opt, arg_list, opt.args.to_s)
       end
 
-      opt.valid_arg_list(arg_list)
+      opt.args.create_valid(arg_list)
     end
 
   end

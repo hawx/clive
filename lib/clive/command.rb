@@ -294,7 +294,7 @@ module Clive
     private
     
     def set_state(state, args)
-      state[:args] = (max_args <= 1 ? args[0] : args)
+      state[:args] = (@args.max <= 1 ? args[0] : args)
       state
     end
     

@@ -11,7 +11,6 @@ describe Clive::Parser do
     }
     
     it 'runs the option' do
-      p subject.find('--force').args
       a,s = subject.run s '--force'
       s[:force].must_be_true
     end

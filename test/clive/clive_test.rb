@@ -1,60 +1,58 @@
 $: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
-
-class CliveTestClass
-  extend Clive
-  
-  header 'Usage: clive_test.rb [command] [options]'
-  
-  opt :version, :tail => true do
-    puts "Version 1"
-  end
-  
-  set :something, []
-  
-  bool :v, :verbose
-  bool :a, :auto
-  
-  opt :s, :size, 'Size of thing', :arg => '<size>', :as => Float
-  opt :S, :super_size
-  
-  opt :name, :args => '<name>'
-  opt :modify, :arg => '<key> <sym> [<args>]', :as => [Symbol, Symbol, Array] do
-    update key, sym, *args
-  end
+describe 'A CLI' do
+  subject { 
+    Class.new {
+      extend Clive
+      
+      header 'Usage: clive_test.rb [command] [options]'
+      
+      opt :version, :tail => true do
+        puts "Version 1"
+      end
+      
+      set :something, []
+      
+      bool :v, :verbose
+      bool :a, :auto
+      
+      opt :s, :size, 'Size of thing', :arg => '<size>', :as => Float
+      opt :S, :super_size
+      
+      opt :name, :args => '<name>'
+      opt :modify, :arg => '<key> <sym> [<args>]', :as => [Symbol, Symbol, Array] do
+        update key, sym, *args
+      end
+        
+      desc 'Print <message> <n> times'
+      opt :print, :arg => '<message> <n>', :as => [String, Integer] do
+        n.times { puts message }
+      end
+      
+      desc 'A super long description for a super stupid option, this should test the _extreme_ wrapping abilities as it should all be aligned. Maybe I should go for another couple of lines just for good measure. That\'s all'
+      opt :complex, :arg => '[<one>] <two> [<three>]', :match => [ /^\d$/, /^\d\d$/, /^\d\d\d$/ ] do |a,b,c|
+        puts "a: #{a}, b: #{b}, c: #{c}"
+      end
+      
+      command :new, 'Creates new things', :arg => '[<dir>]' do
     
-  desc 'Print <message> <n> times'
-  opt :print, :arg => '<message> <n>', :as => [String, Integer] do
-    n.times { puts message }
-  end
-  
-  desc 'A super long description for a super stupid option, this should test the _extreme_ wrapping abilities as it should all be aligned. Maybe I should go for another couple of lines just for good measure. That\'s all'
-  opt :complex, :arg => '[<one>] <two> [<three>]', :match => [ /^\d$/, /^\d\d$/, /^\d\d\d$/ ] do |a,b,c|
-    puts "a: #{a}, b: #{b}, c: #{c}"
-  end
-  
-  command :new, 'Creates new things', :arg => '[<dir>]' do
-
-    set :something, []
-
-    # implicit arg as "<choice>", also added default
-    opt :type, :in => %w(post page blog), :default => :page, :as => Symbol
-    opt :force, 'Force overwrite' do
-      require 'highline/import'
-      answer = ask("Are you sure, this could delete stuff? [y/n]\n")
-      set :force, true if answer == "y"
-    end
-  
-    action do |dir|
-      puts "Creating #{get :type} in #{dir}" if dir
-    end
-  end
-
-end
-
-describe CliveTestClass do
-  subject { CliveTestClass }
+        set :something, []
+    
+        # implicit arg as "<choice>", also added default
+        opt :type, :in => %w(post page blog), :default => :page, :as => Symbol
+        opt :force, 'Force overwrite' do
+          require 'highline/import'
+          answer = ask("Are you sure, this could delete stuff? [y/n]\n")
+          set :force, true if answer == "y"
+        end
+      
+        action do |dir|
+          puts "Creating #{get :type} in #{dir}" if dir
+        end
+      end
+    }
+  }
   
   describe '--version' do
     it 'prints version string' do
@@ -225,7 +223,7 @@ describe CliveTestClass do
     s.must_equal({:something => [], :verbose => true, :auto => true, :size => 2.45})
     
     this {
-      CliveTestClass.run %w(-vsa 2.45)
+      subject.run %w(-vsa 2.45)
     }.must_raise Clive::Parser::MissingArgumentError
   end
 end
