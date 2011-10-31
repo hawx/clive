@@ -12,10 +12,15 @@ class RedGreenIO
 
   def print(o)
     case o
-      when '.' then io.print("\e[32m#{o}\e[0m")
-      when 'E', 'F' then io.print("\e[31m#{o}\e[0m")
+      when '.' then print_colour(o, 2)
+      when 'S' then print_colour(o, 3)
+      when 'E', 'F' then print_colour(o, 1)
       else io.print(o)
     end
+  end
+  
+  def print_colour(str, code)
+    io.print "\e[3#{code}m#{str}\e[0m"
   end
 
   def method_missing(msg, *args)
