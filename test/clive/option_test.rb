@@ -174,14 +174,3 @@ describe Clive::Option do
     end
   end
 end
-
-class OptionTest < MiniTest::Unit::TestCase
-  
-  # TODO
-  def test_can_add_infinite_args
-    o = Clive::Option.new([:add], "", {:args => "<item>..."})
-    assert_equal Infinite, o.args.size
-    assert_argument [:arg1, false, nil, nil, nil], o.args.first
-  end
-
-end

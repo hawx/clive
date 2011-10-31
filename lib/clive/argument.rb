@@ -122,10 +122,11 @@ module Clive
     def inspect
       r = [self.class, to_s]
 
-      r << "type=#@type"       if @type
-      r << "match=#@match"     if @match
-      r << "within=#@within"   if @within
-      r << "default=#@default" if @default
+      r << "type=#@type"             if @type
+      r << "match=#@match"           if @match
+      r << "within=#@within"         if @within
+      r << "default=#@default"       if @default
+      r << "constraint=#@constraint" if @constraint
 
       "#<#{r.join(' ')}>"
     end

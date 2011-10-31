@@ -62,7 +62,7 @@ module Clive
 
             debug "Found command: #{found}"
             @debug_padding = "  "
-
+            
             inc
             
             command_args = []
@@ -88,9 +88,9 @@ module Clive
               inc
             end
             dec
-
+            
             unless found.args.valid?(command_args)
-              raise MissingArgumentError.new(found, command_args, found.opts)
+              raise MissingArgumentError.new(found, command_args, found.args)
             end
             
             found.run(@state[found.name], command_args)

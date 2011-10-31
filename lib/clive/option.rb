@@ -191,37 +191,6 @@ module Clive
       state
     end
     
-    # @return [Integer] The minimum number of arguments that this option takes.
-    # @todo Remove
-    def __min_args
-      @args.min
-    end
-
-    # @return [Integer] The maximum number of arguments that this option takes.
-    # @todo Remove
-    def __max_args
-      @args.max
-    end
-
-    # Whether the +list+ of found arguments could possibly be the arguments for
-    # this option. This does not need to check the minimum length as the list
-    # may not be completely built, this just checks it hasn't failed completely.
-    def __possible?(list)
-      @args.possible?(list)
-    end
-
-    # Whether the +list+ of found arguments is valid to be the arguments for this
-    # option. Here length is checked as we need to make sure enough arguments are
-    # present.
-    def __valid?(list)
-      @args.valid?(list)
-    end
-    
-    # @todo Remove
-    def __valid_arg_list(list)
-      @args.create_valid(list)
-    end
-    
     include Comparable
     
     # Compare based on the size of {#name}, makes sure {#tail?}s go to the bottom

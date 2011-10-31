@@ -35,7 +35,7 @@ describe 'A CLI' do
         puts "a: #{a}, b: #{b}, c: #{c}"
       end
       
-      command :new, 'Creates new things', :arg => '[<dir>]' do
+      command :new, 'Creates new things', :arg => '[<dir>]', :match => /\// do
     
         set :something, []
     
@@ -187,10 +187,10 @@ describe 'A CLI' do
         s[:new][:type].must_equal :page
       end
       
-      it 'raises error if not in list' do
-        this {
-          subject.run s 'new --type crazy'
-        }.must_raise
+      it 'ignores non valid options' do
+        a,s = subject.run s 'new --type crazy'
+        s[:new][:type].must_equal :page
+        a.must_equal ['crazy']
       end
     end
     
@@ -207,20 +207,27 @@ describe 'A CLI' do
           subject.run s 'new --type ~/dir'
         }.must_output "Creating page in ~/dir\n"
       end
+      
+      it 'only accepts directories' do
+        this {
+          subject.run s 'new not-a-dir'
+        }.must_output ""
+      end
     end
   end
   
   it 'should be able to do this' do
     this {
-      a,s = subject.run s('-v new --type post ~/my_site --no-auto arg')
-      a.must_equal %w(arg)
-      s.must_equal({:something => [], :verbose => true, :new => {:something => [], :type => :post}, :auto => false})
+      a,s = subject.run s('-v new --type post ~/my_site --no-auto arg arg2')
+      a.must_equal %w(arg arg2)
+      s.must_equal :something => [], :verbose => true, 
+                   :new => {:something => [], :type => :post}, :auto => false
     }.must_output "Creating post in ~/my_site\n"
   end
   
   it 'should be able to do combined short switches' do
     a,s = subject.run s '-vas 2.45'
-    s.must_equal({:something => [], :verbose => true, :auto => true, :size => 2.45})
+    s.must_equal :something => [], :verbose => true, :auto => true, :size => 2.45
     
     this {
       subject.run %w(-vsa 2.45)

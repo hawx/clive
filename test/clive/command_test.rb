@@ -23,7 +23,8 @@ describe Clive::Command do
     subject {
       Clive::Command.new [:c,:b,:a], 'A command', :head => true,
                                                   :args => '<a> [<b>]',
-                                                  :as => [Integer, nil]
+                                                  :as => [Integer, nil],
+                                                  :help => true
     }
   
     it 'sets the names' do
@@ -35,7 +36,8 @@ describe Clive::Command do
     end
     
     it 'sets the options' do
-      subject.opts.must_equal({:head => true, :runner => Clive::Option::Runner})
+      subject.opts.must_equal :head => true, :runner => Clive::Option::Runner, 
+                              :help => true
     end
     
     it 'sets the arguments' do
@@ -114,7 +116,7 @@ describe Clive::Command do
       command = Clive::Command.new
       command.instance_variable_set :@state, {}
       command.set :a, true
-      command.instance_variable_get(:@state).must_equal({:a => true})
+      command.instance_variable_get(:@state).must_equal :a => true
     end
   end
 
@@ -185,8 +187,8 @@ describe Clive::Command do
       subject.find('--no-F').must_be_nil
     end
     
-    it 'finds negative boolean options' do
-      subject.find('--no-force').name.must_equal :force
+    it 'does not find negative boolean options' do
+      subject.find('--no-force').must_be_nil
     end
     
     it 'finds options with multiple words in name' do
@@ -228,7 +230,7 @@ describe Clive::Command do
     end
     
     it 'finds options with multiple words in name' do
-      subject.find_option(:auto_build).must_have :name, :auto_build
+      subject.find_option(:auto_build).name.must_equal :auto_build
     end
     
     it 'does not find non existent options' do
@@ -279,10 +281,10 @@ describe Clive::Command do
       f = mock
       f.expects(:header=).with('Top')
       f.expects(:footer=).with('Bottom')
-      f.expects(:options).with()
+      f.expects(:options=).with([])
       f.expects(:to_s).with()
       
-      command = Clive::Command.create :formatter => f do
+      command = Clive::Command.create [], "", :formatter => f do
         header 'Top'
         footer 'Bottom'
       end

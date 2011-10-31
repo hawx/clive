@@ -1,6 +1,14 @@
 $: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
+describe Clive::Argument::AlwaysTrue do
+  subject { Clive::Argument::AlwaysTrue } 
+  it 'is always true' do
+    subject.for(:hey).hey.must_be_true
+    subject.for(:yeah).yeah.must_be_true
+  end
+end
+
 describe Clive::Argument do
   subject { Clive::Argument }
   

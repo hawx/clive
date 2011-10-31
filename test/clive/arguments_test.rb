@@ -17,9 +17,10 @@ describe Clive::Arguments do
       Clive::Arguments.create opts
     end
     it 'returns a list of Argument instances' do
-      a = Clive::Arguments.create :args => '[<a>] <b>', :as => [nil, Integer], :in => [1..5, nil]
-      a[0].must_be_argument :name => :a, :optional => true, :within => 1..5
-      a[1].must_be_argument :name => :b, :optional => false, :type => Clive::Type::Integer
+      a = Clive::Arguments.create :args => '[<a>] <b>', :as => [Integer, nil], :in => [1..5, nil]
+      a[0].must_be_argument :name => :a, :optional => true, :within => 1..5, 
+                            :type => Clive::Type::Integer
+      a[1].must_be_argument :name => :b, :optional => false
     end
   end
 
@@ -81,8 +82,73 @@ describe Clive::Arguments do
       subject.wont_be :possible?, [2, 3, 4, 5, 6]
     end
     
-    it 'is false if an argument is not possible' do
-      subject.wont_be :possible?, ['hello']
+    it 'is true even if an argument is not possible' do
+      subject.must_be :possible?, ['hello']
+    end
+    
+    it 'single' do
+      subject = Clive::Arguments.create :arg => '<name>'
+      subject.must_be :possible?, []
+      subject.must_be :possible?, %w(John)
+      subject.wont_be :possible?, %w(John Doe)
+    end
+    
+    it 'single optional' do
+      subject = Clive::Arguments.create :arg => '[<name>]'
+      subject.must_be :possible?, []
+      subject.must_be :possible?, %w(John)
+      subject.wont_be :possible?, %w(John Doe)
+    end
+    
+    it 'single with constraint' do
+      subject = Clive::Arguments.create :arg => '<name>', :constraint => proc {|i| i.size == 4 }
+      subject.must_be :possible?, []
+      subject.must_be :possible?, %w(John)
+      subject.wont_be :possible?, %w(James)
+      subject.wont_be :possible?, %w(John Doe)
+    end
+    
+    it 'single optional with constraint' do
+      subject = Clive::Arguments.create :arg => '[<name>]', :constraint => proc {|i| i.size == 4 }
+      subject.must_be :possible?, []
+      subject.must_be :possible?, %w(John)
+      subject.wont_be :possible?, %w(James)
+      subject.wont_be :possible?, %w(John Doe)
+    end
+  
+    it 'multiple surrounding' do
+      subject = Clive::Arguments.create :args => '<first> [<middle>] <last>'
+      subject.must_be :possible?, []
+      subject.must_be :possible?, %w(John)
+      subject.must_be :possible?, %w(John Doe)
+      subject.must_be :possible?, %w(John David Doe)
+      subject.wont_be :possible?, %w(John David James Doe)
+    end
+    
+    it 'multiple middle' do
+      subject = Clive::Arguments.create :args => '[<first>] <middle> [<last>]'
+      subject.must_be :possible?, []
+      subject.must_be :possible?, %w(John)
+      subject.must_be :possible?, %w(John Doe)
+      subject.must_be :possible?, %w(John David Doe)
+      subject.wont_be :possible?, %w(John David James Doe)
+    end
+    
+    it 'multiple surrounding with constraints' do
+      subject = Clive::Arguments.create :args => '<first> [<middle>] <last>',
+        :constraint => [proc {|i| i.size == 3 }, proc {|i| i.size == 4 }, proc {|i| i.size == 5 }]
+      subject.must_be :possible?, []
+      
+      subject.must_be :possible?, %w(Joe)   # [Joe, ..., ...]
+      subject.wont_be :possible?, %w(Gary)  # [!!!, Gary, ...]
+      subject.wont_be :possible?, %w(David) # [!!!, nil, David]
+      
+      subject.must_be :possible?, %w(Joe Gary)   # [Joe, Gary, ...]
+      subject.must_be :possible?, %w(Joe David)  # [Joe, ..., David]
+      subject.wont_be :possible?, %w(Gary David) # [!!!, Gary, David]
+      
+      subject.must_be :possible?, %w(Joe Gary David)     # [Joe, Gary, David]
+      subject.wont_be :possible?, %w(Joe Gary David Doe) # [Joe, Gary, David] Doe
     end
   end
   

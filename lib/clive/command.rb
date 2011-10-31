@@ -239,13 +239,7 @@ module Clive
     # @param arg [Symbol]
     # @return [Option, nil]
     def find_option(arg)
-      @options.find do |opt| 
-        if opt.names.include?(arg)
-          true
-        else
-          false
-        end
-      end
+      @options.find {|opt| opt.names.include?(arg) }
     end
     
     # Attempts to find the option with the Symbol name given, returns true if the option

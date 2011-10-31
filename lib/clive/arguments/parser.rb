@@ -25,15 +25,15 @@ module Clive
       
     
       def initialize(opts)
-        @opts = opts || {}
+        @opts = normalise_key_names(opts, KEYS) || {}
       end
       
       # This turns the arguments string and other options into a nicely formatted 
       # hash.
       #
       # @return [Array<Hash>]
-      def to_hash
-        opts = normalise_key_names(@opts, KEYS)
+      def to_a
+        opts = @opts
         
         # :within is weird. You will generally set it to an Array, but can use
         # anything which responds to #include?. Unfortunately that includes String
@@ -51,14 +51,22 @@ module Clive
         # opts[:within] = [<#include?>]
         # #=> opts[:within] = [<#include?>]
         #
+        # opts[:within] = '1'..'5'
+        # #=> opts[:within] = ['1'..'5']
+        #
+        # opts[:type] = Integer
         # opts[:within] = 1..5
         # #=> opts[:within] = [1..5]
         #
+        # opts[:type] = Integer
+        # opts[:within] = [1..5, nil]
+        # #=> opts[:within] = [1..5, nil]
+        #
         if opts[:within].respond_to?(:[])
           if opts[:within].respond_to?(:include?)
-            if opts[:within].all? {|i| i.is_a?(String) }
+            if opts[:within].all? {|o| ([String] << opts[:type]).flatten.uniq.compact.any? {|t| o.is_a?(t) } }
               opts[:within] = [opts[:within]].compact
-            elsif opts[:within].all? {|i| i.respond_to?(:include?) }
+            elsif opts[:within].any? {|o| o.respond_to?(:include?) }
               opts[:within] = opts[:within]
             else
               opts[:within] = [opts[:within]].compact
@@ -111,7 +119,7 @@ module Clive
       
       # @return [Array<Argument>]
       def to_args
-        to_hash.map! do |arg|
+        to_a.map! do |arg|
           Clive::Argument.new arg.delete(:name) || 'arg', arg
         end
       end

@@ -80,9 +80,37 @@ module Clive
     # this option. This does not need to check the minimum length as the list
     # may not be completely built, this just checks it hasn't failed completely.
     def possible?(list)
-      zip(list).all? do |arg, item|
-        item ? arg.possible?(item) : true 
-      end && list.size <= max
+      return true if list.empty?
+      oops = false
+      i = 0
+      optionals = []
+
+      list.each do |item|
+        break if i >= size
+        
+        # Either, +item+ is self[i]
+        if self[i].possible?(item)
+          i += 1
+        
+        # Or, the argument is optional and there is another argument to move to
+        # meaning it can be skipped
+        elsif self[i].optional? && (i < size - 1)
+          i += 1
+          optionals << item
+        
+        # Or, an optional argument has been skipped and this could be it so bring
+        # it back from the dead and check, if it is remove it and move on
+        elsif optionals.size > 0 && self[i].possible?(optionals.first)
+          i += 1
+          optionals.shift
+          
+        # Problem
+        else
+          oops = true
+        end
+      end
+      
+      !oops && list.size <= max
     end
     
     # Whether the +list+ of found arguments is valid to be the arguments for this
@@ -93,8 +121,8 @@ module Clive
     # that we check for missing arguments (which have been added as +nil+s)
     # so compact the list _then_ check the size.
     def valid?(list)
-      zip(list).map do |a,i| 
-        if a.optional?
+      zip(list).map do |a,i|
+        if a.optional? 
           nil
         else
           i
