@@ -134,8 +134,7 @@ module Clive
       OPTS = {
         'x' => ::Regexp::EXTENDED,
         'i' => ::Regexp::IGNORECASE,
-        'm' => ::Regexp::MULTILINE,
-        'u' => ::Regexp::FIXEDENCODING
+        'm' => ::Regexp::MULTILINE
       }
       
       def typecast(arg)

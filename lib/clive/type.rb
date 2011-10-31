@@ -17,7 +17,7 @@ module Clive
       # @param name [::String]
       def find_class(name)
         name = name.split('::').last
-        const_get(name) if const_defined?(name)
+        Clive::Type.const_get(name) if Clive::Type.const_defined?(name)
       end
     
       # Shorthand to define #valid? for subclasses of {Type}, pass a

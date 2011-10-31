@@ -1,5 +1,14 @@
 $: << File.dirname(__FILE__)
 
+# ie Ruby 1.8.7
+unless :a_symbol.respond_to?(:<=>)
+  class Symbol
+    def <=>(other)
+      self.to_s <=> other.to_s
+    end
+  end
+end
+
 require 'clive/error'
 require 'clive/output'
 require 'clive/version'

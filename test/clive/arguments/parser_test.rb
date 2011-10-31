@@ -11,7 +11,7 @@ describe Clive::Arguments::Parser do
 
   describe '#initialize' do
     it 'normalises key names' do
-      subject.new(:kind => String, :in => %w(a b c)).opts.keys.must_equal [:type, :within]
+      subject.new(:kind => String, :in => %w(a b c)).opts.keys.must_include :type, :within
     end
   end
   
