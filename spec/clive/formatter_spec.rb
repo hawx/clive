@@ -27,11 +27,13 @@ describe Clive::Formatter do
     }
   end
   
+  subject { Clive::Formatter::Plain }
+  
   describe '#to_s' do
     
     it 'builds the help string' do
       this {
-        clive.run s('help'), :formatter => Clive::Formatter.new(80)
+        clive.run s('help'), :formatter => subject.new(:width => 80)
       }.must_output <<EOS
 Usage: clive_test.rb [command] [options]
 
@@ -59,7 +61,7 @@ EOS
     
     it 'obeys minimum ratio' do
       this {
-        clive.run s('help'), :formatter => Clive::Formatter.new(80, 2, 0.7)
+        clive.run s('help'), :formatter => subject.new(:width => 80, :min_ratio => 0.7)
       }.must_output r = <<EOS
 Usage: clive_test.rb [command] [options]
 
@@ -97,7 +99,7 @@ EOS
     
     it 'obeys the maximum ratio' do
       this {
-        clive.run s('help'), :formatter => Clive::Formatter.new(80, 2, 0, 0.3)
+        clive.run s('help'), :formatter => subject.new(:width => 80, :min_ratio => 0, :max_ratio => 0.3)
       }.must_output <<EOS
 Usage: clive_test.rb [command] [options]
 

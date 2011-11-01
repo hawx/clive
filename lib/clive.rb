@@ -14,6 +14,8 @@ require 'clive/output'
 require 'clive/version'
 
 require 'clive/formatter'
+require 'clive/formatter/plain'
+require 'clive/formatter/colour'
 require 'clive/type'
 require 'clive/argument'
 require 'clive/arguments'
@@ -53,7 +55,7 @@ module Clive
     OPT_KEYS = Command::OPT_KEYS + [:help_command, :debug]
     
     DEFAULTS = {
-      :formatter => ColourFormatter.new,
+      :formatter => Formatter::Colour.new,
       :help => true,
       :help_command => true
     }
