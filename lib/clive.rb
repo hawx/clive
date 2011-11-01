@@ -70,7 +70,7 @@ module Clive
       @commands = []
       
       # Create basic header "Usage: filename [command] [options]
-      @header = "Usage: #{File.basename($0)} [command] [options]\n\n"
+      @header = "Usage: #{File.basename($0)} [command] [options]"
       @footer = ""
       @opts = DEFAULTS
       @_group = nil

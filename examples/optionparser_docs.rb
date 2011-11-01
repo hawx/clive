@@ -26,7 +26,7 @@ class CLI
   opt :delay, arg: '<N>', as: Float
   
   desc 'Begin executaion at given time'
-  opt :t, :time, arg: '<Time>', as: Time
+  opt :t, :time, arg: '<TIME>', as: Time
   
   desc 'Example "list" of arguments'
   opt :list, arg: '<list>', as: Array
@@ -43,7 +43,7 @@ class CLI
   
   group 'Common options'
   
-  opt :v, :verbose, 'Run verbosely', as: Boolean
+  bool :v, :verbose, 'Run verbosely'
   
   opt :version, 'Show version', :tail => true do
     puts Clive::VERSION
@@ -54,10 +54,3 @@ end
 
 args, opts = CLI.run(ARGV, :help_command => false)
 p opts
-
-__END__
-
-# Differences
-
-Clive doesn't have:
-- completion support
