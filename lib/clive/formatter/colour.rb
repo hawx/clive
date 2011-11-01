@@ -41,7 +41,7 @@ module Clive
       # @return [String] Second half of the help string, properly formatted
       def after(opt)
         a = opt.description.dup.grey
-        if opt.args.size == 1
+        if opt.args.size == 1 && !opt.args.first.choice_str.empty?
           a << " " << opt.args.first.choice_str.blue.bold
         end
         a.strip

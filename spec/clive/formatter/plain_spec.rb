@@ -1,7 +1,7 @@
 $: << File.dirname(__FILE__) + '/..'
 require 'helper'
 
-describe Clive::Formatter do
+describe Clive::Formatter::Plain do
 
   let :clive do
     Class.new {
