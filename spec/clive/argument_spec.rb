@@ -3,9 +3,16 @@ require 'helper'
 
 describe Clive::Argument::AlwaysTrue do
   subject { Clive::Argument::AlwaysTrue } 
-  it 'is always true' do
+  
+  it 'is always true for the method given' do
     subject.for(:hey).hey.must_be_true
-    subject.for(:yeah).yeah.must_be_true
+  end
+  
+  it 'is always true for the methods given' do
+    a = subject.for(:one, :two, :three)
+    a.one.must_be_true
+    a.two.must_be_true
+    a.three.must_be_true
   end
 end
 

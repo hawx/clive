@@ -19,10 +19,12 @@ module Clive
     class AlwaysTrue
       # @param syms [Symbol] Methods which should return true
       def self.for(*syms)
+        c = Class.new
         syms.each do |sym|
-          define_method(sym) {|*a| true }
+          c.send(:define_method, sym) {|*a| true }
         end
-        new
+        c.send(:define_method, :inspect) { "#<AlwaysTrue #{syms.map {|i| ":#{i}" }.join(', ') }>" }
+        c.new
       end
     end
 
