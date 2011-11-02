@@ -151,30 +151,24 @@ module Clive
     
   end
 
-
+  # Pretend to be a class as well
+  def self.new
+    TopCommand.new
+  end
 
   # When included need to create a {TopCommand} instance in the class and
   # save it in an instance variable, then the necessary methods can
   # be aliased to call it. Also adds a reader method for it as #base
   # and extends with {Type::Lookup}.
   def self.extended(other)
-    other.instance_variable_set :@base,  Clive::TopCommand.new
-    other.class.send :attr_reader, :base
+    other.instance_variable_set :@top,  Clive::TopCommand.new
+    other.class.send :attr_reader, :top
     other.extend Type::Lookup
     
-    # List of common command methods that should be defined for performance
-    common_methods = [:opt, :option, :desc, :description, :command, 
-                      :run, :has?, :find, :[]]
-    
-    str = common_methods.map do |meth|
-      <<-EOS
-        def #{meth}(*args, &block)
-          @base.#{meth}(*args, &block)
-        end
-      EOS
-    end.join("\n")
-
-    other.instance_eval str
+    # Define .desc or Rake will give errors
+    other.class.send(:define_method, :desc) do |arg|
+      @top.desc arg
+    end
   end
 
   # If included act as though it was extended.
@@ -185,17 +179,15 @@ module Clive
   # Delegate all method calls to the base instance of {TopCommand} if it
   # responds to it, otherwise raise the usual exception.
   def method_missing(sym, *args, &block)
-    if @base.respond_to?(sym)
-      @base.send(sym, *args, &block)
+    if @top.respond_to?(sym)
+      @top.send(sym, *args, &block)
     else
       super
     end
   end
   
-  # {#method_missing} responds to all methods that the base instance of 
-  # {TopCommand} responds to.
-  #def respond_to_missing?(sym)
-  #  @base.respond_to?(sym)
-  #end
+  def respond_to_missing?(sym, include_private)
+    @top.respond_to?(sym, include_private)
+  end
 
 end
