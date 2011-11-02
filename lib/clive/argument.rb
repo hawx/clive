@@ -144,15 +144,15 @@ module Clive
     # @return Whether +obj+ could be this argument.
     #
     def possible?(obj)  
-      if !@type.valid?(obj.to_s)
+      unless @type.valid?(obj.to_s)
         return false
       end
 
-      if !@match.match(obj.to_s)
+      unless @match.match(obj.to_s)
         return false
       end
       
-      if !(@within.include?(obj.to_s) || @within.include?(coerce(obj)))
+      unless @within.include?(obj.to_s) || @within.include?(coerce(obj))
         return false
       end
       
