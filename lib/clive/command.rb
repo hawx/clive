@@ -190,7 +190,10 @@ module Clive
         @description
       end
     end
-    alias_method :desc, :description
+    
+    def desc(arg)
+      @_last_desc = arg
+    end
     
     # The action block is the block which will be executed with any arguments that
     # are found for it. It sets +@block+ so that {Option#run} does not have to be redefined.

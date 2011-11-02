@@ -9,7 +9,7 @@ module Clive
       # @param [Hash]
       def initialize(options, opt_keys)      
         @opt_keys = opt_keys
-        @arg_keys = Clive::Arguments::Parser::KEYS
+        @arg_keys = Arguments::Parser::KEYS
       
         @opts, hash = sort_opts(options)
         @args = Arguments.create(hash)

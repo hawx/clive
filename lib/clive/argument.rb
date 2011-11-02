@@ -31,11 +31,11 @@ module Clive
     # An Argument will have these traits by default.
     DEFAULTS = {
       :optional   => false,
-      :type       => Clive::Type::Object,
-      :match      => Clive::Argument::AlwaysTrue.for(:match),
-      :within     => Clive::Argument::AlwaysTrue.for(:include?),
+      :type       => Type::Object,
+      :match      => AlwaysTrue.for(:match),
+      :within     => AlwaysTrue.for(:include?),
       :default    => nil,
-      :constraint => Clive::Argument::AlwaysTrue.for(:call)
+      :constraint => AlwaysTrue.for(:call)
     }
 
     attr_reader :name, :default, :type
@@ -122,15 +122,7 @@ module Clive
     end
 
     def inspect
-      r = [self.class, to_s]
-
-      r << "type=#@type"             if @type
-      r << "match=#@match"           if @match
-      r << "within=#@within"         if @within
-      r << "default=#@default"       if @default
-      r << "constraint=#@constraint" if @constraint
-
-      "#<#{r.join(' ')}>"
+      "#<#{self.class} #{to_s}>"
     end
 
     # Determines whether the object given (see @param note), can be this argument.
@@ -146,13 +138,8 @@ module Clive
     # @return Whether +obj+ could be this argument.
     #
     def possible?(obj)  
-      unless @type.valid?(obj.to_s)
-        return false
-      end
-
-      unless @match.match(obj.to_s)
-        return false
-      end
+      return false unless @type.valid?(obj.to_s)
+      return false unless @match.match(obj.to_s)
       
       unless @within.include?(obj.to_s) || @within.include?(coerce(obj))
         return false

@@ -120,7 +120,7 @@ module Clive
       # @return [Array<Argument>]
       def to_args
         to_a.map! do |arg|
-          Clive::Argument.new arg.delete(:name) || 'arg', arg
+          Argument.new arg.delete(:name) || 'arg', arg
         end
       end
       
@@ -161,6 +161,7 @@ module Clive
       def clean(name)
         name.gsub(/^\[?\<|\>\]?$/, '')
       end
+      
     end
   end
 end

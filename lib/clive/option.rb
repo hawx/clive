@@ -60,7 +60,6 @@ module Clive
     extend Type::Lookup
 
     attr_reader :names, :opts, :args, :description
-    alias_method :desc, :description
     
     # Valid key names for options passed to Option#initialize.
     OPT_KEYS = [:head, :tail, :group, :boolean, :runner]

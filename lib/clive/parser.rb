@@ -113,7 +113,7 @@ module Clive
 
           currs.each do |c|
             opt = @base.find(c)
-            raise Parser::MissingOptionError.new(name) unless opt
+            raise MissingOptionError.new(name) unless opt
             debug "Found option: #{opt}"
 
             if c == currs.last
