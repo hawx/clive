@@ -23,7 +23,7 @@ module Clive
         hsh
       }
       
-    
+      # @param opts [Hash]
       def initialize(opts)
         @opts = normalise_key_names(opts, KEYS) || {}
       end
@@ -144,6 +144,14 @@ module Clive
         end
       end
       
+      # @param opts [Hash] Hash to rename keys in
+      # @param keys [Hash] Map of key names to desired key names
+      #
+      # @example
+      #   
+      #   normalise_key_names({:a => 1, :b => 2}, {:a => :b, :b => :c})
+      #   #=> {:b => 1, :c => 2}
+      #
       def normalise_key_names(opts, keys)
         opts.inject({}) do |hsh, (k,v)|
           hsh[keys[k]] = v if keys.has_key?(k)
@@ -158,6 +166,8 @@ module Clive
         obj
       end
       
+      # @param name [String]
+      # @return [String] Argument name without sqaure or angle brackets
       def clean(name)
         name.gsub(/^\[?\<|\>\]?$/, '')
       end

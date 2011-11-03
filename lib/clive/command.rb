@@ -1,9 +1,9 @@
 module Clive
 
   # A command allows you to separate groups of commands under their own
-  # namespace. But it can also take arguments like an Option, though 
-  # instead of executing the block passed to it executes the block passed
-  # to {#action}.
+  # namespace. But it can also take arguments like an Option. Instead of 
+  # of executing the block passed to it executes the block passed to 
+  # {#action}.
   #
   # @example
   #
@@ -22,20 +22,12 @@ module Clive
   #
   #   # call with
   #   #   ./file.rb new ~/somewhere --force
-  #   # or
-  #   #   ./file.rb new --force ~/somewhere
   #
   class Command < Option
   
     attr_reader :names, :options
     
     OPT_KEYS = Option::OPT_KEYS + [:formatter, :help]
-    
-    def self.create(*args, &block)
-      instance = new(*args, &block)
-      instance.run_block
-      instance
-    end
   
     # @param names [Array[Symbol]]
     #   Names that the Command can be ran with.

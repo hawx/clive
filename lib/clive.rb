@@ -1,6 +1,6 @@
 $: << File.dirname(__FILE__)
 
-# ie Ruby 1.8.7
+# Ruby 1.8.7 and others
 unless :a_symbol.respond_to?(:<=>)
   class Symbol
     def <=>(other)
@@ -151,27 +151,22 @@ module Clive
     
   end
 
-  # Pretend to be a class as well
-  def self.new
-    TopCommand.new
-  end
-
-  # When included need to create a {TopCommand} instance in the class and
-  # save it in an instance variable, then the necessary methods can
-  # be aliased to call it. Also adds a reader method for it as #base
-  # and extends with {Type::Lookup}.
+  # This sets up a {TopCommand} instance in +other+ which method calls
+  # are then forwarded to. It also defines a +#top+ method which will
+  # return this instance.
   def self.extended(other)
     other.instance_variable_set :@top,  Clive::TopCommand.new
     other.class.send :attr_reader, :top
     other.extend Type::Lookup
     
-    # Define .desc or Rake will give errors
+    # Need to define .desc or Rake will give errors
     other.class.send(:define_method, :desc) do |arg|
       @top.desc arg
     end
   end
 
   # If included act as though it was extended.
+  # @see .extended
   def self.included(other)
     other.extend(self)
   end
@@ -186,6 +181,7 @@ module Clive
     end
   end
   
+  # Responds to all methods {TopCommand} responds to.
   def respond_to_missing?(sym, include_private)
     @top.respond_to?(sym, include_private)
   end

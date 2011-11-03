@@ -21,15 +21,15 @@ module Clive
     #
     #   Clive::Output.wrap_text("Lorem ipsum dolor sit amet, consectetur 
     #   adipisicing elit, sed do eiusmod tempor incididunt ut labore et 
-    #   dolore magna aliqua.", 3, 23)
+    #   dolore magna aliqua.", 4, 24)
     #   #=> "Lorem ipsum dolor
-    #      sit amet,
-    #      consectetur
-    #      adipisicing elit,
-    #      sed do eiusmod
-    #      tempor incididunt ut
-    #      labore et dolore
-    #      magna aliqua."
+    #   #    sit amet,
+    #   #    consectetur
+    #   #    adipisicing elit,
+    #   #    sed do eiusmod
+    #   #    tempor incididunt ut
+    #   #    labore et dolore
+    #   #    magna aliqua."
     #
     # @param str [String] Text to be wrapped
     # @param left_margin [Integer] Width of space at left

@@ -11,21 +11,17 @@ module Clive
   #   #  --name John Doe          to set; f='John', m=nil,      s='Doe'
   #   #  --name John Thomas Doe   to set; f='John', m='Thomas', s='Doe'
   #
-  #   opt :F, :force, boolean: true
+  #   bool :F, :force     # OR  opt :F, :force, boolean: true
   #   # call with
   #   #   -F or --force  to set to true
   #   #   --no-force     to set to false
-  #
-  #   # OR
-  #   bool :F, :force
-  #   # which is equivelent to the above
   #
   #   opt :email, arg: '<a@b.c>', match: /\w+@\w+\.\w+/
   #   # call with
   #   #   --email john@doe.com
   #   # but not
   #   #   --email not-an-email-address
-  #   # which gives raises Clive::Parser::MissingArgumentError
+  #   # which raises Clive::Parser::MissingArgumentError
   #
   #   opt :fruit, arg: '<choice>', in: %w(apple pear banana)
   #   # here any argument not in the array passed with :in will raise an error
@@ -37,7 +33,7 @@ module Clive
   #   opt :five_letter_word, arg: '<word>', constraint: -> i { i.size == 5 }
   #   # this only accepts words of five letters by calling the proc given.
   #
-  # Since options can take multiple arguments (+<a> <b> <c>+) it is possible to
+  # Since options can take multiple arguments (<a> <b> <c>) it is possible to
   # use each of the constraints above for each argument. 
   #
   #   opt :worked, arg: '<from> [<to>]', as: [Date, Date]
@@ -48,8 +44,7 @@ module Clive
   #                as: [nil, Integer]
   #   # Here we extend the :fruit example from above to allow a number of fruit
   #   # to be picked. Note the use of nil in places where we want the default to
-  #   # be used. Also for :in I didn't have to put the second nil as that is 
-  #   # implied but it does make it clearer.
+  #   # be used.
   #
   class Option
   
@@ -68,11 +63,7 @@ module Clive
       :runner => Clive::Option::Runner
     }
 
-    # @param short [Symbol]
-    #   Short name (single character) for this option.
-    #
-    # @param long [Symbol]
-    #   Long name (multiple characters) for this option.
+    # @param names [Array<Symbol>] Names for this option
     #
     # @param description [String]
     #   Description of the option.
@@ -194,7 +185,7 @@ module Clive
     
     # Compare based on the size of {#name}, makes sure {#tail?}s go to the bottom
     # and {#head?}s go to the top. If both are {#head?} or {#tail?} then sorts
-    # based on size.
+    # based on the names.
     def <=>(other)
       if (tail? && !other.tail?) || (other.head? && !head?)
         1

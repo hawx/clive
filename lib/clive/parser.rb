@@ -10,8 +10,6 @@ module Clive
       reason 'option could not be found: #0'
     end
 
-    # :state [.new, #[], #[]=] Used to store values from options that do not trigger blocks.
-    # :debug [Boolean] Whether to print debug messages, useful if parsing oddly.
     DEFAULTS = {
       :state => ::Hash,
       :debug => false
@@ -28,6 +26,18 @@ module Clive
     #            |  global section  |    command section       |      global section
     #
     # Only one command can be run, if you attempt to use two the other will be caught as an argument.
+    #
+    # @param argv [Array]
+    #   The input to parse from the command line, usually ARGV.
+    #
+    # @param pre_state [Hash]
+    #   A pre-populated state to be used.
+    #
+    # @param opts [Hash]
+    # @option opts [.new, #[], #[]=] :state
+    #   What class the state should be
+    # @option opts [Boolean] :debug
+    #   Whether to print debugging statements
     #
     def parse(argv, pre_state, opts={})
       @argv = argv

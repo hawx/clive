@@ -1,13 +1,11 @@
 module Clive
 
   # An Argument represents an argument for an Option or Command, it can be optional
-  # and can also be constricted by various other values see {#initialize}.
+  # and can also be constricted by various other values, see {#initialize}.
   class Argument
   
-    # A class which always returns true when a method is called on it. You can
-    # add new methods it will return true for by calling {.for}. This also 
-    # returns a new instance. It is not possible to remove methods. But why 
-    # would you want to?
+    # Creates an instance which will respond with true to all call to the method(s)
+    # given.
     #
     # @example
     #   eg = AlwaysTrue.for(:a, :b, :c)
@@ -17,6 +15,7 @@ module Clive
     #   eg.d          #=> NoMethodError
     #
     class AlwaysTrue
+    
       # @param syms [Symbol] Methods which should return true
       def self.for(*syms)
         c = Class.new
@@ -49,7 +48,7 @@ module Clive
     #
     # @option opts [Boolean] :optional
     #   Whether this argument is optional. An optional argument does not have 
-    #   to be given and will pass +nil+ to the block if not given.
+    #   to be given and will pass +:default+ to the block instead.
     #
     # @option opts [Type] :type
     #   Type that the matching argument should be cast to. See {Type} and the 
@@ -60,7 +59,7 @@ module Clive
     #   Regular expression the argument must match.
     #
     # @option opts [#include?] :within
-    #   Collection that the matching argument should be in. This will be checked
+    #   Collection that the argument should be in. This will be checked
     #   against the string argument and the cast object (see +:type+). So for 
     #   instance if +:type+ is set to +Integer+ you can set +:within+ to be an array
     #   of integers, [1,2,3], or an array of strings, %w(1 2 3), and get the
@@ -74,7 +73,7 @@ module Clive
     #   Proc which is passed the found argument and should return +true+ if the
     #   value is ok and false if not.
     #   If the object responds to #to_proc this will be called and the resulting
-    #   Proc object saved for later use. This allows you to then pass method symbols.
+    #   Proc object saved for later use. This allows you to pass method symbols.
     #
     # @example
     #
@@ -130,15 +129,15 @@ module Clive
     #
     # @param obj [String,Object]
     #   This method will be called at least twice for each argument, the first
-    #   time when testing for {Arguments#possible?} and then for {Argument#valid?}.
+    #   time when testing for {Arguments#possible?} and then for {Arguments#valid?}.
     #   When called in {Arguments#possible?} +obj+ will be passed as a string,
-    #   for {Argument#valid?} though +obj+ will have been cast using {#coerce}
+    #   for {Arguments#valid?} though +obj+ will have been cast using {#coerce}
     #   to the correct type meaning this method must deal with both cases.
     #
     # @return Whether +obj+ could be this argument.
     #
-    def possible?(obj)  
-      return false unless @type.valid?(obj.to_s)
+    def possible?(obj)
+      return false if obj.is_a?(String) && !@type.valid?(obj)
       return false unless @match.match(obj.to_s)
       
       unless @within.include?(obj.to_s) || @within.include?(coerce(obj))
@@ -155,7 +154,7 @@ module Clive
     end
 
     # Converts the given String argument to the correct type determined by the
-    # {Type} object passed.
+    # +:type+ passed to {#initialize}.
     def coerce(str)
       return str unless str.is_a?(String)
       @type.typecast(str)

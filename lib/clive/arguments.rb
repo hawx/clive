@@ -2,9 +2,6 @@ module Clive
   # An Array of {Clive::Argument} instances.
   class Arguments < Array
   
-    # @todo Move some code around. Could probably move a lot of ArugmentParser into 
-    #  here, then just give that the task of splitting, and normalising key names?
-    #
     # @example
     #
     #   ArgumentList.create :args => '<a> [<b>]', :as => [Integer, String]
@@ -28,8 +25,6 @@ module Clive
     #   list = ArgumentList.new([a, b, c, d])
     #   found_args = %w(1 2 3)
     #
-    #   # The map at the end just makes it easier to read, you will want to
-    #   # omit it in real usage.
     #   list.zip(found_args).map {|i| [i[0].to_s, i[1]] }
     #   #=> [['[<a>]', nil], ['<b>', 1], ['<c>', 2], ['[<d>]', 3]]
     #   
@@ -60,18 +55,17 @@ module Clive
       end
     end
   
-    # @return Pretty string of arguments joined with superfluous square 
-    #  brackets removed.
+    # @return [String]
     def to_s
       map {|i| i.to_s }.join(' ').gsub('] [', ' ')
     end
     
-    # @return [Integer] The minimum number of arguments that __must__ be given.
+    # @return [Integer] The minimum number of arguments that *must* be given.
     def min
       reject {|i| i.optional? }.size
     end
     
-    # @return [Integer] The maximum number of arguments that can be given.
+    # @return [Integer] The maximum number of arguments that *can* be given.
     def max
       size
     end
@@ -130,8 +124,10 @@ module Clive
       end.compact.size >= min && possible?(list)
     end
     
-    # Given +list+, will fill blank spaces with +nil+ where appropriate then
-    # coerces each argument and uses default values if necessary.
+    # Will fill spaces in +list+ with default values, then coerces all arguments
+    # to the corect types.
+    #
+    # @return [Array]
     def create_valid(list)
       zip(list).map {|a,r| r ? a.coerce(r) : a.coerce(a.default) }
     end
