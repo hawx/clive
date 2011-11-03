@@ -14,6 +14,14 @@ require 'lib/clive'
 require 'rubygems'
 require 'shellwords'
 
+class Command < Option
+  def self.create(*args, &block)
+    i = new(*args, &block)
+    i.run_block
+    i
+  end
+end
+
 def s(str)
   Shellwords.split(str)
 end
