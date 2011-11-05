@@ -14,7 +14,7 @@ require 'lib/clive'
 require 'rubygems'
 require 'shellwords'
 
-class Command < Option
+class Clive::Command
   def self.create(*args, &block)
     i = new(*args, &block)
     i.run_block

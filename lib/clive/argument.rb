@@ -147,7 +147,11 @@ module Clive
       begin
         return false unless @constraint.call(obj.to_s)
       rescue
-        return false unless @constraint.call(coerce(obj))
+        begin
+          return false unless @constraint.call(coerce(obj))
+        rescue 
+          return false
+        end
       end
 
       true

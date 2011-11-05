@@ -9,19 +9,6 @@ end
 
 describe Clive do
 
-  describe 'using it as a class' do
-    it 'aliases TopCommand' do
-      c = Clive.new
-      c.opt(:v, :verbose, 'Run verbosely')
-      c.opt(:version, 'Print the version') { puts "Version 1" }
-      
-      this {
-        a,s = c.run s('-v --version')
-        s[:verbose].must_be_true
-      }.must_output "Version 1\n"
-    end
-  end
-  
   describe 'extending Clive' do
     subject { Class.new { extend Clive } }
   
