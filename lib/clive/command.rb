@@ -282,8 +282,12 @@ module Clive
 
     private
     
-    def set_state(state, args)
-      state[:args] = (@args.max <= 1 ? args[0] : args)
+    def set_state(state, args, scope=nil)
+      if scope
+        state[scope][:args] = (@args.max <= 1 ? args[0] : args)
+      else
+        state[:args] = (@args.max <= 1 ? args[0] : args)
+      end
       state
     end
     

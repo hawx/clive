@@ -12,6 +12,7 @@ end
 require 'clive/error'
 require 'clive/output'
 require 'clive/version'
+require 'clive/aliased_hash'
 
 require 'clive/formatter'
 require 'clive/formatter/plain'

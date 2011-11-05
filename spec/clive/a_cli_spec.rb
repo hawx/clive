@@ -35,12 +35,12 @@ describe 'A CLI' do
         puts "a: #{a}, b: #{b}, c: #{c}"
       end
       
-      command :new, 'Creates new things', :arg => '[<dir>]', :match => /\// do
+      command :new, :create, 'Creates new things', :arg => '[<dir>]', :match => /\// do
     
         set :something, []
     
         # implicit arg as "<choice>", also added default
-        opt :type, :in => %w(post page blog), :default => :page, :as => Symbol
+        opt :T, :type, :in => %w(post page blog), :default => :page, :as => Symbol
         opt :force, 'Force overwrite' do
           require 'highline/import'
           answer = ask("Are you sure, this could delete stuff? [y/n]\n")
@@ -69,27 +69,31 @@ describe 'A CLI' do
     end
   end
   
-  describe '--[no-]auto' do
+  describe '-a, --[no-]auto' do
     it 'sets to true' do
       a,s = subject.run s '--auto'
       s[:auto].must_be_true
+      s[:a].must_be_true
     end
     
     it 'sets to false if no passed' do
       a,s = subject.run s '--no-auto'
       s[:auto].must_be_false
+      s[:a].must_be_false
     end
     
     it 'allows the short version' do
       a,s = subject.run s '-a'
       s[:auto].must_be_true
+      s[:a].must_be_true
     end
   end
   
-  describe '--size' do
+  describe '-s, --size' do
     it 'takes a Float as an argument' do
       a,s = subject.run s '--size 50.56'
       s[:size].must_equal 50.56
+      s[:s].must_equal 50.56
     end
     
     it 'raises an error if the argument is not passed' do
@@ -105,15 +109,17 @@ describe 'A CLI' do
     end
   end
   
-  describe '--super-size' do
+  describe '-S, --super-size' do
     it 'can be called with dashes' do
       a,s = subject.run s '--super-size'
       s[:super_size].must_be_true
+      s[:S].must_be_true
     end
     
     it 'can be called with underscores' do
       a,s = subject.run s '--super_size'
       s[:super_size].must_be_true
+      s[:S].must_be_true
     end
   end
   
@@ -176,20 +182,23 @@ describe 'A CLI' do
       end
     end
     
-    describe '--type' do
+    describe '-T, --type' do
       it 'sets the type' do
         a,s = subject.run s 'new --type blog'
         s[:new][:type].must_equal :blog
+        s[:new][:T].must_equal :blog
       end
       
       it 'uses the default' do
         a,s = subject.run s 'new --type'
         s[:new][:type].must_equal :page
+        s[:new][:T].must_equal :page
       end
       
       it 'ignores non valid options' do
         a,s = subject.run s 'new --type crazy'
         s[:new][:type].must_equal :page
+        s[:new][:T].must_equal :page
         a.must_equal ['crazy']
       end
     end

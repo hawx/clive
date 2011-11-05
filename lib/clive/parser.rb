@@ -11,7 +11,7 @@ module Clive
     end
 
     DEFAULTS = {
-      :state => ::Hash,
+      :state => ::Clive::AliasedHash,
       :debug => false
     }
 
@@ -34,7 +34,7 @@ module Clive
     #   A pre-populated state to be used.
     #
     # @param opts [Hash]
-    # @option opts [.new, #[], #[]=] :state
+    # @option opts [.new, #[], #[]=, #alias] :state
     #   What class the state should be
     # @option opts [Boolean] :debug
     #   Whether to print debugging statements
@@ -68,7 +68,9 @@ module Clive
           if found.kind_of?(Command)
             command_ran = true
             
-            @state[found.name] = found.run_block(@opts[:state].new)
+            found.names.each do |name|
+              @state[name] = found.run_block(@opts[:state].new)
+            end
 
             debug "Found command: #{found}"
             @debug_padding = "  "
@@ -83,12 +85,7 @@ module Clive
                 debug "Found option: #{opt}"
                 
                 args = opt.args.max > 0 ? do_arguments_for(opt) : [true]
-
-                if opt.block?
-                  opt.run(@state[found.name], args)
-                else
-                  @state[found.name][opt.name] = (opt.args.max <= 1 ? args[0] : args)
-                end
+                opt.run(@state[found.name], args)
                 
               else
                 break unless found.args.possible?(command_args + [curr])

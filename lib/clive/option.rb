@@ -163,9 +163,10 @@ module Clive
     
     # @param state [Hash] Local state for parser, this may be modified!
     # @param args [Array] Arguments for the block which is run
+    # @param scope [Command] Scope of the state to use
     # @return [Hash] the state which may have been modified!
     #
-    def run(state, args=[])
+    def run(state, args=[], scope=nil)
       mapped_args = if boolean?
         [[:truth, args.first]]
       else
@@ -173,9 +174,13 @@ module Clive
       end
       
       if block?
-        @opts[:runner]._run(mapped_args, state, @block)
+        if scope
+          @opts[:runner]._run(mapped_args, state[scope.name], @block)
+        else
+          @opts[:runner]._run(mapped_args, state, @block)
+        end
       else
-        state = set_state(state, args)
+        state = set_state(state, args, scope)
       end
       
       state
@@ -199,8 +204,16 @@ module Clive
     
     private
     
-    def set_state(state, args)
-      state[name] = (@args.max <= 1 ? args[0] : args)
+    def set_state(state, args, scope=nil)
+      names.each do |name|
+        if scope
+          scope.names.each do |command|
+            state[command][name] = (@args.max <= 1 ? args[0] : args)
+          end
+        else
+          state[name] = (@args.max <= 1 ? args[0] : args)
+        end
+      end
       state
     end
     
