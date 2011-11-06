@@ -9,9 +9,9 @@ module Clive
         # [Integer] Total width of screen to use
         :width     => Output.terminal_width,
         # [Float] Minimum proportion of screen the left side can use
-        :min_ratio => 0.3,
+        :min_ratio => 0.2,
         # [Float] Maximum proportion of screen the left side can use
-        :max_ratio => 0.5
+        :max_ratio => 0.4
       }
       
       # @param opts [Hash]
@@ -74,50 +74,6 @@ module Clive
       end
       
       protected
-      
-      # Builds a single line for an Option of the form.
-      #
-      #  #{before_help_string} #{uniform_padding} #  #{after_help_string}
-      #
-      # @param [Option]
-      def build_option_string(opt)
-        r = before(opt)
-        
-        unless after(opt).empty?
-          r << padding_for(opt) << (padding * 2)
-          r << "# " unless opt.description.empty?
-          r << Output.wrap_text(after(opt), left_width + 4, @opts[:width])
-        end
-        
-        r << "\n"
-        r
-      end
-      
-      # @param opt [Option]
-      # @return [String] First half of the help string, properly formatted
-      def before(opt)
-        b = (padding * 2) << opt.to_s.dup
-        if opt.args != [] && !opt.boolean?
-          b << " " << opt.args.to_s
-        end
-        
-        if b.size > max_left_width
-          # re add padding because .wrap_text removes it
-          b = (padding * 2) << Output.wrap_text(b, (@opts[:padding] * 2) + 3, max_left_width)
-        end
-        
-        b
-      end
-      
-      # @param opt [Option]
-      # @return [String] Second half of the help string, properly formatted
-      def after(opt)
-        a = opt.description.dup
-        if opt.args.size == 1
-          a << " " << opt.args.first.choice_str
-        end
-        a.strip
-      end
   
       # @return [String] Default padding
       def padding
@@ -126,11 +82,10 @@ module Clive
       
       # @return [Integer] Width of the left half, ie. up to {#after}
       def left_width
-        # (padding*2) longest before string (padding*2)
         w = max + (@opts[:padding] * 4)
-        if w > (@opts[:max_ratio] * @opts[:width])
+        if w > @opts[:max_ratio] * @opts[:width]
           (@opts[:max_ratio] * @opts[:width]).to_i
-        elsif w < (@opts[:min_ratio] * @opts[:width])
+        elsif w < @opts[:min_ratio] * @opts[:width]
           (@opts[:min_ratio] * @opts[:width]).to_i
         else
           w.to_i
@@ -141,20 +96,73 @@ module Clive
       #  can be. This allows you to use _a_ max width in calculations 
       #  without creating a loop.
       def max_left_width
-        @opts[:max_ratio] * @opts[:width]
+        (@opts[:max_ratio] * @opts[:width]).to_i
       end
       
       # @param opt [Option]
       # @return [String] Padding for after the opt's {#before}.
       #  The size returned changes so that the descriptions line up.
       def padding_for(opt)
-        width = left_width - @opts[:padding] - before(opt).clear_colours.split("\n").last.size
-        ' ' * width
+        width = left_width - before_for(opt).clear_colours.split("\n").last.size
+        if width >= 0
+          ' ' * width
+        else
+          ' ' * left_width
+        end
       end
       
       # @return [Integer] The length of the longest {#before}
       def max
-        (@options + @commands).map {|i| before(i).size }.max
+        (@options + @commands).map {|i| before_for(i).size }.max
+      end
+      
+      
+      # Builds a single line for an Option of the form.
+      #
+      #  before padding   # after
+      #
+      # @param [Option]
+      def build_option_string(opt)
+        before_for(opt) << padding_for(opt) << (padding * 2) << after_for(opt).rstrip << "\n"
+      end
+      
+      def before_for(opt)
+        b = (padding * 2) << names_for(opt).dup << " " << args_for(opt)
+        b << "\n" if b.size > max_left_width
+        b
+      end
+      
+      def after_for(opt)
+        r = ""
+        after = description_for(opt).dup << " " << choices_for(opt)
+        unless after.empty?
+          r << "# " << Output.wrap_text(after, left_width + 4, @opts[:width])
+        end
+        r
+      end
+      
+      def names_for(opt)
+        opt.to_s
+      end
+      
+      def description_for(opt)
+        opt.description
+      end
+      
+      def args_for(opt)
+        if opt.args != [] && !opt.boolean?
+          opt.args.to_s
+        else
+          ""
+        end
+      end
+      
+      def choices_for(opt)
+        if opt.args.size == 1 && !opt.args.first.choice_str.empty?
+          opt.args.first.choice_str
+        else
+          ""
+        end
       end
       
     end
