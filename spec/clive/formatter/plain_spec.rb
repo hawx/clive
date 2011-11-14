@@ -42,8 +42,8 @@ Usage: clive_test.rb [command] [options]
     help [<command>]                      # Display help
 
   Options:
-    -S, --super-size
-    -a, --[no-]auto
+    -S, --super-size                      
+    -a, --[no-]auto                       
     --complex [<one>] <two> [<three>]     # A super long description for a
                                             super stupid option, this should
                                             test the _extreme_ wrapping
@@ -53,7 +53,7 @@ Usage: clive_test.rb [command] [options]
                                             good measure. That's all
     -s, --size <size>                     # Size of thing
     -h, --help                            # Display this help message
-    --version
+    --version                             
 
 Further help is available online
 EOS
@@ -70,8 +70,8 @@ Usage: clive_test.rb [command] [options]
     help [<command>]                                      # Display help
 
   Options:
-    -S, --super-size
-    -a, --[no-]auto
+    -S, --super-size                                      
+    -a, --[no-]auto                                       
     --complex [<one>] <two> [<three>]                     # A super long
                                                             description for a
                                                             super stupid option,
@@ -87,7 +87,7 @@ Usage: clive_test.rb [command] [options]
     -s, --size <size>                                     # Size of thing
     -h, --help                                            # Display this help
                                                             message
-    --version
+    --version                                             
 
 Further help is available online
 EOS
@@ -108,18 +108,17 @@ Usage: clive_test.rb [command] [options]
     help [<command>]      # Display help
 
   Options:
-    -S, --super-size
-    -a, --[no-]auto
-    --complex
-       [<one>] <two>
-       [<three>]          # A super long description for a super stupid option,
+    -S, --super-size      
+    -a, --[no-]auto       
+    --complex [<one>] <two> [<three>]
+                          # A super long description for a super stupid option,
                             this should test the _extreme_ wrapping abilities as
                             it should all be aligned. Maybe I should go for
                             another couple of lines just for good measure.
                             That's all
     -s, --size <size>     # Size of thing
     -h, --help            # Display this help message
-    --version
+    --version             
 
 Further help is available online
 EOS

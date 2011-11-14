@@ -175,9 +175,9 @@ module Clive
       
       if block?
         if scope
-          @opts[:runner]._run(mapped_args, state[scope.name], @block)
+          state = @opts[:runner]._run(mapped_args, state[scope.name], @block)
         else
-          @opts[:runner]._run(mapped_args, state, @block)
+          state = @opts[:runner]._run(mapped_args, state, @block)
         end
       else
         state = set_state(state, args, scope)
@@ -204,16 +204,38 @@ module Clive
     
     private
     
+    # Set
     def set_state(state, args, scope=nil)
-      names.each do |name|
-        if scope
-          scope.names.each do |command|
-            state[command][name] = (@args.max <= 1 ? args[0] : args)
+      args = (@args.max <= 1 ? args[0] : args)
+      
+      if scope
+        # set for _the_ option name
+        state[scope.name][name] = args
+        
+        # then set aliases for other names to scope.name
+        (names - [name]).each do |n|
+          if state[scope.name].respond_to?(:alias)
+            state[scope.name].alias n, name
           end
-        else
-          state[name] = (@args.max <= 1 ? args[0] : args)
+        end
+        
+        # then set for other command names
+        (scope.names - [scope.name]).each do |i|
+          if state.respond_to?(:alias)
+            state.alias i, scope.name
+          end
+        end
+      
+      else
+        state[name] = args
+        
+        (names - [name]).each do |n|
+          if state.respond_to?(:alias)
+            state.alias n, name
+          end
         end
       end
+
       state
     end
     

@@ -11,7 +11,7 @@ module Clive
         # [Float] Minimum proportion of screen the left side can use
         :min_ratio => 0.2,
         # [Float] Maximum proportion of screen the left side can use
-        :max_ratio => 0.4
+        :max_ratio => 0.5
       }
       
       # @param opts [Hash]
@@ -76,13 +76,13 @@ module Clive
       protected
   
       # @return [String] Default padding
-      def padding
-        ' ' * @opts[:padding]
+      def padding(n=1)
+        ' ' * (@opts[:padding] * n)
       end
       
       # @return [Integer] Width of the left half, ie. up to {#after}
       def left_width
-        w = max + (@opts[:padding] * 4)
+        w = max + padding(2).size
         if w > @opts[:max_ratio] * @opts[:width]
           (@opts[:max_ratio] * @opts[:width]).to_i
         elsif w < @opts[:min_ratio] * @opts[:width]
@@ -99,9 +99,34 @@ module Clive
         (@opts[:max_ratio] * @opts[:width]).to_i
       end
       
+      # @return [Integer] The length of the longest {#before}, ignoring any that break 
+      #  the line.
+      def max
+        (@options + @commands).map {|i| 
+          before_for(i).size 
+        }.reject {|i|
+          i > max_left_width
+        }.max
+      end
+      
+      # Builds a single line for an Option of the form.
+      #
+      #  before padding   # after
+      #
+      # @param [Option]
+      def build_option_string(opt)
+        before_for(opt) << padding_for(opt) << padding << after_for(opt).rstrip << "\n"
+      end
+      
       # @param opt [Option]
-      # @return [String] Padding for after the opt's {#before}.
-      #  The size returned changes so that the descriptions line up.
+      # @return [String] Builds the first half of the help string for an Option.
+      def before_for(opt)
+        b = padding(2) << names_for(opt).dup << " " << args_for(opt)
+        b << "\n" if b.size > max_left_width
+        b
+      end
+      
+      # @return [String] Padding for between an Option's #before and #after.
       def padding_for(opt)
         width = left_width - before_for(opt).clear_colours.split("\n").last.size
         if width >= 0
@@ -111,32 +136,13 @@ module Clive
         end
       end
       
-      # @return [Integer] The length of the longest {#before}
-      def max
-        (@options + @commands).map {|i| before_for(i).size }.max
-      end
-      
-      
-      # Builds a single line for an Option of the form.
-      #
-      #  before padding   # after
-      #
-      # @param [Option]
-      def build_option_string(opt)
-        before_for(opt) << padding_for(opt) << (padding * 2) << after_for(opt).rstrip << "\n"
-      end
-      
-      def before_for(opt)
-        b = (padding * 2) << names_for(opt).dup << " " << args_for(opt)
-        b << "\n" if b.size > max_left_width
-        b
-      end
-      
+      # @param opt [Option]
+      # @return [String] Builds the second half of the help string for an Option.
       def after_for(opt)
         r = ""
         after = description_for(opt).dup << " " << choices_for(opt)
-        unless after.empty?
-          r << "# " << Output.wrap_text(after, left_width + 4, @opts[:width])
+        unless after == " "
+          r << "# " << Output.wrap_text(after, left_width + padding(2).size, @opts[:width])
         end
         r
       end

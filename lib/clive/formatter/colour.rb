@@ -6,18 +6,28 @@ module Clive
       def after_for(opt)
         r = ""
         after = description_for(opt).dup << " " << choices_for(opt)
-        unless after.empty?
-          r << "# ".grey << Output.wrap_text(after, left_width + 6, @opts[:width])
+        unless after == " "
+          r << "# ".grey << Output.wrap_text(after, left_width + padding(2).size, @opts[:width])
         end
         r
       end
       
       def description_for(opt)
-        super.grey
+        s = super
+        if s.empty?
+          s
+        else
+          s.grey
+        end
       end
       
       def choices_for(opt)
-        super.blue.bold
+        s = super
+        if s.empty?
+          s
+        else
+          s.blue.bold
+        end
       end
     
     end

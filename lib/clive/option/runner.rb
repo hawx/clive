@@ -60,6 +60,7 @@ module Clive
           else
             instance_exec(&fn)
           end
+          
           @state
         end
         

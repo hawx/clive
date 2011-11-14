@@ -42,8 +42,8 @@ Usage: clive_test.rb [command] [options]
     help [<command>]                      \e[90m# \e[0m\e[90mDisplay help\e[0m
 
   Options:
-    -S, --super-size                      \e[90m\e[0m
-    -a, --[no-]auto                       \e[90m\e[0m
+    -S, --super-size                      
+    -a, --[no-]auto                       
     --complex [<one>] <two> [<three>]     \e[90m# \e[0m\e[90mA super long description for a
                                             super stupid option, this should
                                             test the _extreme_ wrapping
@@ -53,7 +53,7 @@ Usage: clive_test.rb [command] [options]
                                             good measure. That's all\e[0m
     -s, --size <size>                     \e[90m# \e[0m\e[90mSize of thing\e[0m
     -h, --help                            \e[90m# \e[0m\e[90mDisplay this help message\e[0m
-    --version                             \e[90m\e[0m
+    --version                             
 
 Further help is available online
 EOS
@@ -70,8 +70,8 @@ Usage: clive_test.rb [command] [options]
     help [<command>]                                      \e[90m# \e[0m\e[90mDisplay help\e[0m
 
   Options:
-    -S, --super-size                                      \e[90m\e[0m
-    -a, --[no-]auto                                       \e[90m\e[0m
+    -S, --super-size                                      
+    -a, --[no-]auto                                       
     --complex [<one>] <two> [<three>]                     \e[90m# \e[0m\e[90mA super long
                                                             description for a
                                                             super stupid option,
@@ -87,7 +87,7 @@ Usage: clive_test.rb [command] [options]
     -s, --size <size>                                     \e[90m# \e[0m\e[90mSize of thing\e[0m
     -h, --help                                            \e[90m# \e[0m\e[90mDisplay this help
                                                             message\e[0m
-    --version                                             \e[90m\e[0m
+    --version                                             
 
 Further help is available online
 EOS
@@ -108,18 +108,17 @@ Usage: clive_test.rb [command] [options]
     help [<command>]      \e[90m# \e[0m\e[90mDisplay help\e[0m
 
   Options:
-    -S, --super-size      \e[90m\e[0m
-    -a, --[no-]auto       \e[90m\e[0m
-    --complex
-       [<one>] <two>
-       [<three>]          \e[90m# \e[0m\e[90mA super long description for a super stupid option,
+    -S, --super-size      
+    -a, --[no-]auto       
+    --complex [<one>] <two> [<three>]
+                          \e[90m# \e[0m\e[90mA super long description for a super stupid option,
                             this should test the _extreme_ wrapping abilities as
                             it should all be aligned. Maybe I should go for
                             another couple of lines just for good measure.
                             That's all\e[0m
     -s, --size <size>     \e[90m# \e[0m\e[90mSize of thing\e[0m
     -h, --help            \e[90m# \e[0m\e[90mDisplay this help message\e[0m
-    --version             \e[90m\e[0m
+    --version             
 
 Further help is available online
 EOS

@@ -70,7 +70,6 @@ module Clive
       @options  = []
       @commands = []
       
-      # Create basic header "Usage: filename [command] [options]
       @header = "Usage: #{File.basename($0)} [command] [options]"
       @footer = ""
       @opts = DEFAULTS
@@ -95,7 +94,11 @@ module Clive
       add_help_option
       add_help_command
       
-      Clive::Parser.new(self).parse(argv, @pre_state, opts)
+      Clive::Parser.new(self, opts).parse(argv, @pre_state)
+    end
+    
+    def global_opts
+      @opts.find_all {|k,v| GLOBAL_OPTIONS.include?(k) }
     end
 
     # Creates a new Command.
@@ -115,9 +118,7 @@ module Clive
           when ::Hash   then o = i
         end
       end
-      o = DEFAULTS.merge(
-        Hash[@opts.find_all {|k,v| GLOBAL_OPTIONS.include?(k) }]
-      ).merge(o)
+      o = DEFAULTS.merge(Hash[global_opts]).merge(o)
       @commands << Command.new(ns, d, o.merge({:group => @_group}), &block)
     end
     

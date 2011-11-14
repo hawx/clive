@@ -236,7 +236,9 @@ describe 'A CLI' do
   
   it 'should be able to do combined short switches' do
     a,s = subject.run s '-vas 2.45'
-    s.must_equal :something => [], :verbose => true, :auto => true, :size => 2.45
+    
+    s.to_hash.must_equal :something => [], :verbose => true, :auto => true, :size => 2.45
+    s.aliases.must_equal :v => :verbose, :a => :auto, :s => :size
     
     this {
       subject.run %w(-vsa 2.45)

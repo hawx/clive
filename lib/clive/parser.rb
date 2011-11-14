@@ -11,12 +11,17 @@ module Clive
     end
 
     DEFAULTS = {
-      :state => ::Clive::AliasedHash,
-      :debug => false
+      :state => ::Clive::AliasedHash
     }
 
-    def initialize(base)
+    # @param base [Command]
+    #
+    # @param opts [Hash]
+    # @option opts [.new, #[], #[]=, #alias] :state
+    #   What class the state should be
+    def initialize(base, opts)
       @base = base
+      @opts = DEFAULTS.merge(opts)
     end
 
     # The parser should work how you expect. It allows you to put global options before and after
@@ -33,21 +38,13 @@ module Clive
     # @param pre_state [Hash]
     #   A pre-populated state to be used.
     #
-    # @param opts [Hash]
-    # @option opts [.new, #[], #[]=, #alias] :state
-    #   What class the state should be
-    # @option opts [Boolean] :debug
-    #   Whether to print debugging statements
-    #
-    def parse(argv, pre_state, opts={})
+    def parse(argv, pre_state)
       @argv = argv
-      @opts = DEFAULTS.merge(opts)
       @i = 0
 
       @arguments   = []
       @state       = @opts[:state].new
       pre_state.each {|k,v| @state[k] = v }
-      command_ran  = false # only one command can be ran per parse!
       
       # Pull out 'help' command immediately if found
       if @argv[0] == 'help'
@@ -60,86 +57,63 @@ module Clive
 
       until ended?
         # does +curr+ exist? (and also check that if it is a command a command hasn't been run yet
-        if @base.has?(curr) && ((@base.find(curr).kind_of?(Command) && !command_ran) || (@base.find(curr).kind_of?(Option)))
+        if @base.has?(curr) && ((@base.find(curr).kind_of?(Command) && !command_ran?) || @base.find(curr).kind_of?(Option))
         
           found = @base.find(curr)
 
           # is it a command?
           if found.kind_of?(Command)
-            command_ran = true
-            
-            found.names.each do |name|
-              @state[name] = found.run_block(@opts[:state].new)
-            end
-
-            debug "Found command: #{found}"
-            @debug_padding = "  "
+            @command_ran = true
+            @state[found.name] = found.run_block(@opts[:state].new)
             
             inc
-            
-            command_args = []
+            args = []
 
             until ended?
               if found.has?(curr)
-                opt = found.find(curr)
-                debug "Found option: #{opt}"
-                
-                args = opt.args.max > 0 ? do_arguments_for(opt) : [true]
-                opt.run(@state[found.name], args)
-                
+                run_option found.find(curr), found
               else
-                break unless found.args.possible?(command_args + [curr])
-                command_args << curr
+                break unless found.args.possible?(args + [curr])
+                args << curr
               end
-
               inc
             end
             dec
             
-            unless found.args.valid?(command_args)
-              raise MissingArgumentError.new(found, command_args, found.args)
-            end
-            
-            found.run(@state[found.name], command_args)
-            @debug_padding = ""
+            found.run @state, validate_arguments(found, args), found
 
           # otherwise it is an option
           else
-            debug "Found option: #{found}"
-            args = found.args.max > 0 ? do_arguments_for(found) : [true]
-            found.run(@state, args)
+            run_option found
           end
 
+        # it's a no- option
         elsif curr[0..4] == '--no-'
-          found = @base.find("--#{curr[5..-1]}")
-          debug "Found argument: #{found} (false)"
-          found.run(@state, [false])
+          @base.find("--#{curr[5..-1]}").run @state, [false]
 
+        # it's one (or more) short options
         elsif curr[0..0] == '-' && curr.size > 2 && @base.has?("-#{curr[1..1]}")
           currs = curr[1..-1].split('').map {|i| "-#{i}" }
 
           currs.each do |c|
             opt = @base.find(c)
             raise MissingOptionError.new(name) unless opt
-            debug "Found option: #{opt}"
 
             if c == currs.last
-              args = opt.args.max > 0 ? do_arguments_for(opt) : [true]
-              
-              opt.run(@state, args)
-            else # can't take any arguments as an option is next to it
-              if opt.args.max > 0
-                raise MissingArgumentError.new(opt, [], opt.args)
+              run_option opt
+            else 
+              # can't take any arguments as an option is next to it
+              if opt.args.min > 0
+                raise MissingArgumentError.new(opt, [], opt.args) 
+              else
+                opt.run @state, [true]
               end
-              
-              opt.run(@state, [true])
             end
           end
 
         # otherwise it is an argument
         else
-          debug "Found argument: #{curr}"
-          @arguments << curr
+          add_argument curr
         end
 
         inc
@@ -150,6 +124,15 @@ module Clive
     
 
     private
+    
+    def run_option(opt, within=nil)
+      args = opt.args.max > 0 ? do_arguments_for(opt) : [true]
+      opt.run @state, args, within
+    end
+    
+    def add_argument(arg)
+      @arguments << arg
+    end
     
     # Increment the index
     def inc
@@ -170,27 +153,24 @@ module Clive
     def ended?
       @i >= @argv.size
     end
-
-    # Print a debugging statement if running in debug mode.
-    def debug(str)
-      puts @debug_padding.to_s + str.l_cyan if @opts[:debug]
+    
+    def command_ran?
+      @command_ran || false
     end
 
     # Returns the finished argument list for +opt+ which can then be pushed to the state.
-    def do_arguments_for(opt, buffer=0)
-      arg_list = collect_arguments(opt, buffer)
+    def do_arguments_for(opt)
+      arg_list = collect_arguments(opt)
       arg_list = validate_arguments(opt, arg_list)
-      
-      debug "  got #{arg_list.compact.size} argument(s): #{arg_list.inspect}"
 
       arg_list
     end
 
     # Collects the arguments for +opt+.
-    def collect_arguments(opt, buffer=0)
+    def collect_arguments(opt)
       inc
       arg_list = []
-      while @i < (@argv.size - buffer) && arg_list.size < opt.args.max
+      while !ended? && arg_list.size < opt.args.max
         break unless opt.args.possible?(arg_list + [curr])
         arg_list << curr
         inc

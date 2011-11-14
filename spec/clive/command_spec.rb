@@ -4,11 +4,11 @@ require 'helper'
 describe Clive::Command do
 
   it 'can take arguments' do
-    command = Clive::Command.create([], '', :arg => '<dir>')
+    command = Clive::Command.create([:test], '', :arg => '<dir>')
     
-    state = {}
+    state = {:test => {}}
     command.run(state, ['~/somewhere'])
-    state[:args].must_equal '~/somewhere'
+    state[:test][:args].must_equal '~/somewhere'
   end
   
   it 'can run a block with arguments' do
@@ -28,7 +28,7 @@ describe Clive::Command do
     }
   
     it 'sets the names' do
-      subject.names.must_equal [:a,:b,:c]
+      subject.names.must_equal [:c,:b,:a]
     end
     
     it 'sets the description' do
@@ -47,7 +47,7 @@ describe Clive::Command do
     
     it 'sets a default header' do
       File.stubs(:basename).returns('file.rb')
-      subject.instance_variable_get(:@header).must_equal 'Usage: file.rb a,b,c [options]'
+      subject.instance_variable_get(:@header).must_equal 'Usage: file.rb c,b,a [options]'
     end
     
     it 'sets a default footer' do
@@ -65,9 +65,9 @@ describe Clive::Command do
   end
 
   describe '#name' do
-    it 'returns the first, alphabetically, name' do
-      command = Clive::Command.new [:eee, :aaaaa, :aaa]
-      command.name.must_equal :aaa
+    it 'returns the first, in order when defined, name' do
+      command = Clive::Command.new [:efg, :abc, :zxy]
+      command.name.must_equal :efg
     end
   end
 

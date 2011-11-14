@@ -68,7 +68,7 @@ module Clive
     #   Whether to add a '-h, --help' option to this command which displays help.
     #   
     def initialize(names=[], description="", opts={}, &block)
-      @names = names.sort
+      @names = names
       @description = description
       @_block = block
       @opts, @args = ArgumentParser.new(opts, OPT_KEYS).to_a
@@ -88,6 +88,7 @@ module Clive
     end
 
     # @return [Symbol] Single name to use when referring specifically to this command.
+    #  Use the first name that was passed in.
     def name
       names.first
     end
@@ -283,11 +284,20 @@ module Clive
     private
     
     def set_state(state, args, scope=nil)
-      if scope
-        state[scope][:args] = (@args.max <= 1 ? args[0] : args)
-      else
-        state[:args] = (@args.max <= 1 ? args[0] : args)
+      args = (@args.max <= 1 ? args[0] : args)
+      
+      # scope will always be nil, so ignore it for Option compatibility
+      
+      # set for _the_ command name
+      state[name][:args] = args
+      
+      # then alias for the others
+      (names - [name]).each do |i|
+        if state.respond_to?(:alias)
+          state.alias i, name
+        end
       end
+
       state
     end
     
