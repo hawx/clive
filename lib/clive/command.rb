@@ -1,4 +1,4 @@
-module Clive
+class Clive
 
   # A command allows you to separate groups of commands under their own
   # namespace. But it can also take arguments like an Option. Instead of 
@@ -68,18 +68,17 @@ module Clive
     #   Whether to add a '-h, --help' option to this command which displays help.
     #   
     def initialize(names=[], description="", opts={}, &block)
-      @names = names
+      @names       = names
       @description = description
-      @_block = block
-      @opts, @args = ArgumentParser.new(opts, OPT_KEYS).to_a
-      @opts = DEFAULTS.merge(@opts)
+      @options     = []
+      @_block      = block
       
-      @options = []
+      @opts, @args = ArgumentParser.new(opts, OPT_KEYS).to_a
+      @opts        = DEFAULTS.merge(@opts)
       
       # Create basic header "Usage: filename commandname(s) [options]
       @header = "Usage: #{File.basename($0)} #{to_s} [options]"
       @footer = ""
-      
       @_group = nil
       
       add_help_option

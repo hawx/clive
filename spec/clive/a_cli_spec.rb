@@ -3,8 +3,7 @@ require 'helper'
 
 describe 'A CLI' do
   subject { 
-    Class.new {
-      extend Clive
+    Class.new(Clive) {
       
       header 'Usage: clive_test.rb [command] [options]'
       

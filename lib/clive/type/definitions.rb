@@ -2,7 +2,7 @@
 require 'time'
 autoload :Pathname, 'pathname'
 
-module Clive
+class Clive
   class Type
   
     # Basic object, all arguments are valid and will simply return

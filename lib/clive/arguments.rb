@@ -1,4 +1,4 @@
-module Clive
+class Clive
   # An Array of {Clive::Argument} instances.
   class Arguments < Array
   

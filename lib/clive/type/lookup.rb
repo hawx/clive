@@ -1,4 +1,4 @@
-module Clive
+class Clive
   class Type
   
     # Clive::Type::Lookup is an almost carbon copy of DataMapper::Property::Lookup

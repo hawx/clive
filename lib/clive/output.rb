@@ -1,4 +1,4 @@
-module Clive
+class Clive
   module Output extend self
   
     # If the terminal width can't be determined use a sensible default value

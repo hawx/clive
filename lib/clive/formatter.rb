@@ -1,4 +1,4 @@
-module Clive
+class Clive
   
   # @abstract Subclass and override {#to_s} and probably {#initialize} to
   #  implement a custom Formatter. {#initialize} *should* take an options

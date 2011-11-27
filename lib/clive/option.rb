@@ -1,4 +1,4 @@
-module Clive
+class Clive
 
   # An option is called using either a long form +--opt+ or a short form +-o+
   # they can take arguments and these arguments can be restricted using various

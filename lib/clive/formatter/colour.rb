@@ -1,4 +1,4 @@
-module Clive
+class Clive
   class Formatter
   
     class Colour < Plain

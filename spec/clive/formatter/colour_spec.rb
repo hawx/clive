@@ -1,11 +1,10 @@
-$: << File.dirname(__FILE__) + '/..'
+$: << File.dirname(__FILE__) + '/../..'
 require 'helper'
 
 describe Clive::Formatter::Colour do
 
   let :clive do
-    Class.new {
-      extend Clive
+    Class.new(Clive) {
       
       header 'Usage: clive_test.rb [command] [options]'
       footer 'Further help is available online'

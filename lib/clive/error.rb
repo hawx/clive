@@ -1,4 +1,4 @@
-module Clive
+class Clive
 
   # For general errors with Clive. It stripts most of the backtrace which 
   # you don't really want, and allows you to set nice error messages

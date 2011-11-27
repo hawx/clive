@@ -1,4 +1,4 @@
-module Clive
+class Clive
   class Option
   
     # Runner is a class which is used for executing blocks given to Options and

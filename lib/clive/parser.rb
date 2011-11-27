@@ -1,4 +1,4 @@
-module Clive
+class Clive
 
   class Parser
 

@@ -1,4 +1,4 @@
-module Clive
+class Clive
 
   # An Argument represents an argument for an Option or Command, it can be optional
   # and can also be constricted by various other values, see {#initialize}.

@@ -5,7 +5,7 @@ describe Clive::Parser do
   
   describe 'single option' do
     subject {
-      Class.new { extend Clive
+      Class.new(Clive) {
         opt :force
       }
     }
@@ -18,7 +18,7 @@ describe Clive::Parser do
   
   describe 'single option with block' do
     subject {
-      Class.new { extend Clive
+      Class.new(Clive) { 
         opt(:force) { print "forced" }
       }
     }
@@ -32,7 +32,7 @@ describe Clive::Parser do
   
   describe 'single option with argument' do
     subject {
-      Class.new { extend Clive
+      Class.new(Clive) { 
         opt :name, :arg => '<name>'
       }
     }
@@ -45,7 +45,7 @@ describe Clive::Parser do
   
   describe 'single option with argument with block' do
     subject {
-      Class.new { extend Clive
+      Class.new(Clive) { 
         opt(:name, :arg => '<name>') {|name| print "I am #{name}" }
       }
     }
@@ -59,7 +59,7 @@ describe Clive::Parser do
   
   describe 'single option with arguments' do
     subject {
-      Class.new { extend Clive
+      Class.new(Clive) { 
         opt :name, :arg => '<first> <last>'
       }
     }
@@ -72,7 +72,7 @@ describe Clive::Parser do
   
   describe 'single option with arguments with block' do
     subject {
-      Class.new { extend Clive
+      Class.new(Clive) { 
         opt(:name, :arg => '<first> <last>') { print "I am #{first} #{last}" }
       }
     }
@@ -86,7 +86,7 @@ describe Clive::Parser do
   
   describe 'Boolean options' do
     subject {
-      Class.new { extend Clive
+      Class.new(Clive) { 
         bool :force
         bool :auto
       }
@@ -102,7 +102,7 @@ describe Clive::Parser do
   describe 'Commands' do  
     describe 'with options and arguments' do
       subject {
-        Class.new { extend Clive
+        Class.new(Clive) { 
           command :new, :args => '<dir>' do
             bool :force
             opt :name, :arg => '<name>'
@@ -139,7 +139,7 @@ describe Clive::Parser do
     
     describe 'with options and optional arguments' do
       subject {
-        Class.new { extend Clive
+        Class.new(Clive) { 
           command :new, :args => '[<dir>]' do
             bool :force
             opt :name, :arg => '<name>'

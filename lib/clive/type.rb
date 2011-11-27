@@ -1,4 +1,4 @@
-module Clive
+class Clive
   class Type
   
     # @param arg [::String]
