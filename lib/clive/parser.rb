@@ -11,7 +11,7 @@ class Clive
     end
 
     DEFAULTS = {
-      :state => ::Clive::AliasedHash
+      :state => ::Clive::StructHash
     }
 
     # @param base [Command]
@@ -40,11 +40,10 @@ class Clive
     #
     def parse(argv, pre_state)
       @argv = argv
-      @i = 0
-
-      @arguments   = []
-      @state       = @opts[:state].new
-      pre_state.each {|k,v| @state[k] = v }
+      @i    = 0
+      
+      @arguments = []
+      @state     = @opts[:state].new(pre_state)
       
       # Pull out 'help' command immediately if found
       if @argv[0] == 'help'
@@ -64,7 +63,7 @@ class Clive
           # is it a command?
           if found.kind_of?(Command)
             @command_ran = true
-            @state[found.name] = found.run_block(@opts[:state].new)
+            @state.store found.names, found.run_block(@opts[:state].new)
             
             inc
             args = []
@@ -118,8 +117,9 @@ class Clive
 
         inc
       end
-
-      return @arguments, @state
+    
+      @state.store :args, @arguments
+      @state
     end
     
 

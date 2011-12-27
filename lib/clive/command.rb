@@ -127,7 +127,7 @@ class Clive
     
     # @see Clive::Option::Runner.set
     def set(key, value)
-      @state[key] = value
+      @state.store key, value
     end
     
     # @overload option(short=nil, long=nil, description=current_desc, opts={}, &block)
@@ -283,20 +283,9 @@ class Clive
     private
     
     def set_state(state, args, scope=nil)
-      args = (@args.max <= 1 ? args[0] : args)
-      
       # scope will always be nil, so ignore it for Option compatibility
+      state[name].store :args, (@args.max <= 1 ? args[0] : args)
       
-      # set for _the_ command name
-      state[name][:args] = args
-      
-      # then alias for the others
-      (names - [name]).each do |i|
-        if state.respond_to?(:alias)
-          state.alias i, name
-        end
-      end
-
       state
     end
     

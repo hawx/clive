@@ -132,7 +132,7 @@ describe Clive::Option do
     
     it 'sets state if no block exists' do
       o = option_with :args => '<a> <b>'
-      state = {}
+      state = Clive::StructHash.new
       o.run state, ['a', 'b']
       state[:opt].must_equal ['a', 'b']
     end

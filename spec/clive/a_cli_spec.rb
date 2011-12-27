@@ -63,36 +63,36 @@ describe 'A CLI' do
   
   describe 'set :something' do
     it 'is set to an empty Array' do
-      a,s = subject.run []
-      s[:something].must_equal []
+      r = subject.run []
+      r[:something].must_equal []
     end
   end
   
   describe '-a, --[no-]auto' do
     it 'sets to true' do
-      a,s = subject.run s '--auto'
-      s[:auto].must_be_true
-      s[:a].must_be_true
+      r = subject.run s '--auto'
+      r[:auto].must_be_true
+      r[:a].must_be_true
     end
     
     it 'sets to false if no passed' do
-      a,s = subject.run s '--no-auto'
-      s[:auto].must_be_false
-      s[:a].must_be_false
+      r = subject.run s '--no-auto'
+      r[:auto].must_be_false
+      r[:a].must_be_false
     end
     
     it 'allows the short version' do
-      a,s = subject.run s '-a'
-      s[:auto].must_be_true
-      s[:a].must_be_true
+      r = subject.run s '-a'
+      r[:auto].must_be_true
+      r[:a].must_be_true
     end
   end
   
   describe '-s, --size' do
     it 'takes a Float as an argument' do
-      a,s = subject.run s '--size 50.56'
-      s[:size].must_equal 50.56
-      s[:s].must_equal 50.56
+      r = subject.run s '--size 50.56'
+      r[:size].must_equal 50.56
+      r[:s].must_equal 50.56
     end
     
     it 'raises an error if the argument is not passed' do
@@ -110,22 +110,22 @@ describe 'A CLI' do
   
   describe '-S, --super-size' do
     it 'can be called with dashes' do
-      a,s = subject.run s '--super-size'
-      s[:super_size].must_be_true
-      s[:S].must_be_true
+      r = subject.run s '--super-size'
+      r[:super_size].must_be_true
+      r[:S].must_be_true
     end
     
     it 'can be called with underscores' do
-      a,s = subject.run s '--super_size'
-      s[:super_size].must_be_true
-      s[:S].must_be_true
+      r = subject.run s '--super_size'
+      r[:super_size].must_be_true
+      r[:S].must_be_true
     end
   end
   
   describe '--modify' do
     it 'updates the key' do
-      a,s = subject.run s '--name "John Doe" --modify name count oe,e'
-      s[:name].must_equal 1
+      r = subject.run s '--name "John Doe" --modify name count oe,e'
+      r[:name].must_equal 1
     end
   end
   
@@ -176,36 +176,36 @@ describe 'A CLI' do
   describe 'new' do
     describe 'set :something' do
       it 'sets :something in :new to []' do
-        a,s = subject.run s 'new'
-        s[:new][:something].must_equal []
+        r = subject.run s 'new'
+        r[:new][:something].must_equal []
       end
     end
     
     describe '-T, --type' do
       it 'sets the type' do
-        a,s = subject.run s 'new --type blog'
-        s[:new][:type].must_equal :blog
-        s[:new][:T].must_equal :blog
+        r = subject.run s 'new --type blog'
+        r[:new][:type].must_equal :blog
+        r[:new][:T].must_equal :blog
       end
       
       it 'uses the default' do
-        a,s = subject.run s 'new --type'
-        s[:new][:type].must_equal :page
-        s[:new][:T].must_equal :page
+        r = subject.run s 'new --type'
+        r[:new][:type].must_equal :page
+        r[:new][:T].must_equal :page
       end
       
       it 'ignores non valid options' do
-        a,s = subject.run s 'new --type crazy'
-        s[:new][:type].must_equal :page
-        s[:new][:T].must_equal :page
-        a.must_equal ['crazy']
+        r = subject.run s 'new --type crazy'
+        r[:new][:type].must_equal :page
+        r[:new][:T].must_equal :page
+        r.args.must_equal ['crazy']
       end
     end
     
     describe '--force' do
       #it 'asks for conformation' do
-      #  a,s = subject.run s 'new --force'
-      #  s[:force].must_be_true
+      #  r = subject.run s 'new --force'
+      #  r[:force].must_be_true
       #end
     end
     
@@ -226,18 +226,17 @@ describe 'A CLI' do
   
   it 'should be able to do this' do
     this {
-      a,s = subject.run s('-v new --type post ~/my_site --no-auto arg arg2')
-      a.must_equal %w(arg arg2)
-      s.must_equal :something => [], :verbose => true, 
+      r = subject.run s('-v new --type post ~/my_site --no-auto arg arg2')
+      r.args.must_equal %w(arg arg2)
+      r.to_h.must_equal :something => [], :verbose => true, 
                    :new => {:something => [], :type => :post}, :auto => false
     }.must_output "Creating post in ~/my_site\n"
   end
   
   it 'should be able to do combined short switches' do
-    a,s = subject.run s '-vas 2.45'
+    r = subject.run s '-vas 2.45'
     
-    s.to_hash.must_equal :something => [], :verbose => true, :auto => true, :size => 2.45
-    s.aliases.must_equal :v => :verbose, :a => :auto, :s => :size
+    r.to_h.must_equal :something => [], :verbose => true, :auto => true, :size => 2.45
     
     this {
       subject.run %w(-vsa 2.45)

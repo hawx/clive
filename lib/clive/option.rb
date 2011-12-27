@@ -209,31 +209,9 @@ class Clive
       args = (@args.max <= 1 ? args[0] : args)
       
       if scope
-        # set for _the_ option name
-        state[scope.name][name] = args
-        
-        # then set aliases for other names to scope.name
-        (names - [name]).each do |n|
-          if state[scope.name].respond_to?(:alias)
-            state[scope.name].alias n, name
-          end
-        end
-        
-        # then set for other command names
-        (scope.names - [scope.name]).each do |i|
-          if state.respond_to?(:alias)
-            state.alias i, scope.name
-          end
-        end
-      
+        state[scope.name].store [long, short].compact, args
       else
-        state[name] = args
-        
-        (names - [name]).each do |n|
-          if state.respond_to?(:alias)
-            state.alias n, name
-          end
-        end
+        state.store [long, short].compact, args
       end
 
       state

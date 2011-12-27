@@ -11,8 +11,8 @@ describe Clive::Parser do
     }
     
     it 'runs the option' do
-      a,s = subject.run s '--force'
-      s[:force].must_be_true
+      r = subject.run s '--force'
+      r.must_have :force
     end
   end
   
@@ -38,8 +38,8 @@ describe Clive::Parser do
     }
     
     it 'runs the option' do
-      a,s = subject.run s '--name "John Doe"'
-      s[:name].must_equal 'John Doe'
+      r = subject.run s '--name "John Doe"'
+      r.name.must_equal 'John Doe'
     end
   end
   
@@ -65,8 +65,8 @@ describe Clive::Parser do
     }
     
     it 'runs the option' do
-      a,s = subject.run s '--name John Doe'
-      s[:name].must_equal ['John', 'Doe']
+      r = subject.run s '--name John Doe'
+      r.name.must_equal ['John', 'Doe']
     end
   end
   
@@ -93,9 +93,9 @@ describe Clive::Parser do
     }
     
     it 'runs the options' do
-      a,s = subject.run s '--no-force --auto'
-      s[:force].must_be_false
-      s[:auto].must_be_true
+      r = subject.run s '--no-force --auto'
+      r.wont_have :force
+      r.must_have :auto
     end
   end
   
@@ -113,27 +113,27 @@ describe Clive::Parser do
       let(:result) { {:new => {:args => '~/somewhere', :force => true, :name => 'New'}} }
       
       it 'runs properly with arguments after options' do
-        a,s = subject.run s 'new --force --name New ~/somewhere'
-        s.must_equal result
+        r = subject.run s 'new --force --name New ~/somewhere'
+        r.must_equal result
       end
       
       it 'runs properly with options after arguments' do
-        a,s = subject.run s 'new ~/somewhere --force --name New'
-        s.must_equal result
+        r = subject.run s 'new ~/somewhere --force --name New'
+        r.must_equal result
       end
       
       it 'runs properly with arguments between options' do
-        a,s = subject.run s 'new --force ~/somewhere --name New'
-        a2,s2 = subject.run s 'new --name New ~/somewhere --force'
-        a2.must_equal a
-        s2.must_equal s
-        s.must_equal result
+        r = subject.run s 'new --force ~/somewhere --name New'
+        r2 = subject.run s 'new --name New ~/somewhere --force'
+        r2.must_equal r
+        r2.args.must_equal r.args
+        r.must_equal result
       end
       
       it 'runs properly with excessive arguemnts' do
-        a,s = subject.run s 'new ~/somewhere Hello Other'
-        s[:new][:args].must_equal '~/somewhere'
-        a.must_equal ['Hello', 'Other']
+        r = subject.run s 'new ~/somewhere Hello Other'
+        r.new.args.must_equal '~/somewhere'
+        r.args.must_equal ['Hello', 'Other']
       end
     end
     
@@ -151,32 +151,32 @@ describe Clive::Parser do
       let(:with_argument) { {:new => {:force => true, :name => 'New', :args => '~/somewhere'}} }
       
       it 'runs properly with just options' do
-        a,s = subject.run s 'new --force --name New'
-        s.must_equal result
+        r = subject.run s 'new --force --name New'
+        r.must_equal result
       end
       
       it 'runs properly with arguments after options' do
-        a,s = subject.run s 'new --force --name New ~/somewhere'
-        s.must_equal with_argument
+        r = subject.run s 'new --force --name New ~/somewhere'
+        r.must_equal with_argument
       end
 
       it 'runs properly with options after arguments' do
-        a,s = subject.run s 'new ~/somewhere --force --name New'
-        s.must_equal with_argument
+        r = subject.run s 'new ~/somewhere --force --name New'
+        r.must_equal with_argument
       end
       
       it 'runs properly with arguments between options' do
-        a,s = subject.run s 'new --force ~/somewhere --name New'
-        a2,s2 = subject.run s 'new --name New ~/somewhere --force'
-        a2.must_equal a
-        s2.must_equal s
-        s.must_equal with_argument
+        r = subject.run s 'new --force ~/somewhere --name New'
+        r2 = subject.run s 'new --name New ~/somewhere --force'
+        r2.must_equal r
+        r2.args.must_equal r.args
+        r.must_equal with_argument
       end
       
       it 'runs properly with excessive arguemnts' do
-        a,s = subject.run s 'new ~/somewhere Hello Other'
-        s[:new][:args].must_equal '~/somewhere'
-        a.must_equal ['Hello', 'Other']
+        r = subject.run s 'new ~/somewhere Hello Other'
+        r[:new][:args].must_equal '~/somewhere'
+        r.args.must_equal ['Hello', 'Other']
       end
     end
   end

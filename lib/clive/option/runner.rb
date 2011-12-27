@@ -85,7 +85,7 @@ class Clive
         #   end
         #
         def set(key, value)
-          @state[key] = value
+          @state.store key, value
         end
         
         # @overload update(key, method, *args)
@@ -136,7 +136,7 @@ class Clive
         #   # ./test.rb --has-other-key  #=> false
         #
         def has?(key)
-          @state.has_key?(key)
+          @state.key?(key)
         end
         
         def method_missing(sym, *args)

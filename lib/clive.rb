@@ -13,7 +13,7 @@ end
 require 'clive/error'
 require 'clive/output'
 require 'clive/version'
-require 'clive/aliased_hash'
+require 'clive/struct_hash'
 
 require 'clive/formatter'
 require 'clive/formatter/plain'
@@ -28,6 +28,7 @@ require 'clive/option'
 require 'clive/command'
 require 'clive/parser'
 require 'clive/base'
+
 
 # Clive is a DSL for creating command line interfaces. Extend a class with it
 # to use.
@@ -52,7 +53,7 @@ class Clive
     # @group Class style
     #
     # class CLI < Clive; opt :v, :verbose; end
-    # a,s = CLI.run ARGV
+    # s,a = CLI.run ARGV
     #
     
     class << self
@@ -84,7 +85,7 @@ class Clive
     # @group Instance style
     #
     # c = Clive.new { opt :v, :verbose }
-    # a,s = c.run ARGV
+    # s,a = c.run ARGV
     # 
     
     attr_accessor :instance
