@@ -37,12 +37,13 @@ this way it can be easily modified and reopened to add more options.
       end
     end
     
-    args, state = MyApp::CLI.run(ARGV)
+    result = MyApp::CLI.run(ARGV)
 
 Then run with `my_app.rb --version` to display the version for MyApp. `.run`
-returns two arguments the first is an Array with all of the arguments that were 
-not used; the second is a Hash, if any option is called which doesn't have a
-block an entry is added with the name of the option and `true`.
+returns an instance of `Clive::StructHash` this allows you to access entries
+with methods as well as using `#[]`. It also stores any spare arguments given
+under `#args` or `#[:args]`. The entry will have the arguments if needed or 
+`true` when an option has been given.
 
 
 ### Options
@@ -55,7 +56,7 @@ argument to `#opt` or can be defined before it using `#desc`.
       # ...
     end
     
-    # is equivelant to
+    # is equivalent to
     
     desc 'Display the current version'
     opt :v, :version do
@@ -129,7 +130,7 @@ specific type.
 
     opt :list, as: Array
 
-Accepts a comma delimeted list of items, `--list a,b,c` and returns them as
+Accepts a comma delimited list of items, `--list a,b,c` and returns them as
 an Array (ie. `['a', 'b', 'c']`).
 
 #### Matches
