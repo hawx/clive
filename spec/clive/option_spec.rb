@@ -8,18 +8,26 @@ describe Clive::Option do
     Clive::Option.new [:o, :opt], "", opts, &block
   end
   
-  describe '#initialize' do    
+  describe '#initialize' do
     it 'sorts names by size' do
       subject.new([:zz, :a]).names.must_equal [:a, :zz]
       subject.new([:aa, :z]).names.must_equal [:z, :aa]
     end
     
-    it 'uses ArgumentParser to set opts and args' do
-      Clive::Option::ArgumentParser.expects(:new).with(
-        {:head => true, :args => '<a> <b>'},
-        Clive::Option::OPT_KEYS
-      )
-      option_with :head => true, :args => '<a> <b>'
+    let(:opt) { option_with :head => true, :args => '<a> <b>', :as => [String, Integer] }
+    
+    it 'finds all options' do
+      opt.opts.must_include :head
+      opt.opts.wont_include :args
+    end
+    
+    it 'uses default options when not set' do
+      opt.opts.must_include :runner
+    end
+    
+    it 'creates the args list' do
+      opt.args.first.must_be_argument :name => :a, :type => Clive::Type::String
+      opt.args.last.must_be_argument :name => :b, :type => Clive::Type::Integer
     end
   end
   

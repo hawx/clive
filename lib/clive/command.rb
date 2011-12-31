@@ -73,8 +73,8 @@ class Clive
       @options     = []
       @_block      = block
       
-      @opts, @args = ArgumentParser.new(opts, OPT_KEYS).to_a
-      @opts        = DEFAULTS.merge(@opts)
+      @args = Arguments.create( get_and_rename_hash(opts, Arguments::Parser::KEYS) )
+      @opts = DEFAULTS.merge( get_and_rename_hash(opts, OPT_KEYS) || {} )
       
       # Create basic header "Usage: filename commandname(s) [options]
       @header = "Usage: #{File.basename($0)} #{to_s} [options]"

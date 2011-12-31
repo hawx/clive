@@ -6,17 +6,17 @@ class Clive
     OPT_KEYS = Command::OPT_KEYS + [:help_command, :debug]
     
     DEFAULTS = {
-      :formatter => Formatter::Colour.new,
-      :help => true,
-      :help_command => true
+      :formatter    => Formatter::Colour.new,
+      :help_command => true,
+      :help         => true,
     }
     
-    # These options should be copied into each command that is created.
+    # These options should be copied into each {Command} that is created.
     GLOBAL_OPTIONS = [:formatter, :help]
     
     # Never create an instance of this yourself. Extend Clive, then call #run.
     def initialize(&block)
-      super(&block)
+      super &block
       
       @commands = []
       @header   = "Usage: #{File.basename($0)} [command] [options]"
@@ -33,8 +33,7 @@ class Clive
     end
     
     def run(argv, opts={})
-      opts = ArgumentParser.new(opts, OPT_KEYS).opts
-      @opts = DEFAULTS.merge(opts)
+      @opts = DEFAULTS.merge( get_and_rename_hash(opts, OPT_KEYS) || {} )
       
       add_help_option
       add_help_command

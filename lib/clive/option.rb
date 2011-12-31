@@ -99,8 +99,8 @@ class Clive
       @description  = description
       @block = block
       
-      @opts, @args = ArgumentParser.new(opts, OPT_KEYS).to_a
-      @opts = DEFAULTS.merge(@opts || {})
+      @args = Arguments.create( get_and_rename_hash(opts, Arguments::Parser::KEYS) )
+      @opts = DEFAULTS.merge( get_and_rename_hash(opts, OPT_KEYS) || {} )
     end
     
     # Short name for the option. (ie. +:a+)
@@ -215,6 +215,21 @@ class Clive
       end
 
       state
+    end
+    
+    # @param hash [Hash]
+    # @param keys [Hash]
+    def get_and_rename_hash(hash, keys)
+      Hash[ hash.find_all {|k,v| keys.include?(k) } ].inject({}) do |hsh, (k,v)|
+        if keys.include?(k)
+          if keys.respond_to?(:key?)
+            hsh[keys[k]] = v
+          else
+            hsh[k] = v
+          end
+        end
+        hsh
+      end
     end
     
   end

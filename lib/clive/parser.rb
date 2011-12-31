@@ -42,8 +42,8 @@ class Clive
       @argv = argv
       @i    = 0
       
-      @arguments = []
-      @state     = @opts[:state].new(pre_state)
+      @state = @opts[:state].new(pre_state)
+      @state.store :args, []
       
       # Pull out 'help' command immediately if found
       if @argv[0] == 'help'
@@ -96,7 +96,7 @@ class Clive
 
           currs.each do |c|
             opt = @base.find(c)
-            raise MissingOptionError.new(name) unless opt
+            raise MissingOptionError.new(c) unless opt
 
             if c == currs.last
               run_option opt
@@ -112,13 +112,12 @@ class Clive
 
         # otherwise it is an argument
         else
-          add_argument curr
+          @state.args << curr
         end
 
         inc
       end
     
-      @state.store :args, @arguments
       @state
     end
     
@@ -128,10 +127,6 @@ class Clive
     def run_option(opt, within=nil)
       args = opt.args.max > 0 ? do_arguments_for(opt) : [true]
       opt.run @state, args, within
-    end
-    
-    def add_argument(arg)
-      @arguments << arg
     end
     
     # Increment the index
