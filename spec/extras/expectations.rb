@@ -24,4 +24,12 @@ module MiniTest::Expectations
       self.instance_variable_get("@#{k}").must_equal v
     end
   end
+  
+  def must_have_option(opt)
+    self.has_option?(opt).must_be_true
+  end
+  
+  def must_have_command(opt)
+    self.has_command?(opt).must_be_true
+  end
 end

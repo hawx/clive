@@ -44,6 +44,18 @@ describe Clive do
     end
     
   end
+  
+  describe 'Clive#()' do
+    subject { Clive(:verbose, [:b, :bare]) }  
+  
+    it 'creates an option for symbols passed' do
+      subject.must_have_option :verbose
+    end
+    
+    it 'uses both names if given as an array' do
+      subject.find_option(:b).must_equal subject.find_option(:bare)
+    end
+  end
 
 end
 
