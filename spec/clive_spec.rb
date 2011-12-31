@@ -29,18 +29,12 @@ describe Clive do
   describe 'initializing Clive' do
     subject { Clive.new }
     
-    it 'responds to all the methods in Base' do
-      (Clive::Base.instance_methods - Object.instance_methods).each do |meth|
-        subject.must_respond_to meth
-      end
+    it 'actually initializes Clive::Base' do
+      subject.must_be_instance_of Clive::Base
     end
     
     it 'does not allow you to reference Types' do
       this { Clive.new { Boolean } }.must_raise NameError
-    end
-    
-    it 'allows you to get the Base instance' do
-      subject.instance.must_be_kind_of Clive::Base
     end
     
   end
