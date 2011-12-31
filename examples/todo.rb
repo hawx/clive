@@ -2,8 +2,7 @@ require_relative '../lib/clive'
 
 TODO_FILE = File.expand_path('~/Desktop/todos.txt')
 
-class Todo
-  extend Clive
+class Todo < Clive
   
   def self.write(mode, text)
     File.open(TODO_FILE, mode) {|f| f.write(text) }

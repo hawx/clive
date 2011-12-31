@@ -1,8 +1,7 @@
 require_relative '../lib/clive'
 
 # see http://ruby-doc.org/stdlib/libdoc/optparse/rdoc/classes/OptionParser.html
-class CLI
-  extend Clive
+class CLI < Clive
 
   CODES = %w[iso-2022-jp shift_jis euc-jp utf8 binary]
   CODE_ALIASES = { "jis" => "iso-2022-jp", "sjis" => "shift_jis" }
@@ -52,5 +51,6 @@ class CLI
 
 end
 
-args, opts = CLI.run(ARGV, :help_command => false)
-p opts
+r = CLI.run(ARGV, :help_command => false)
+p r.to_h
+p r.args
