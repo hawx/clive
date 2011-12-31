@@ -14,10 +14,10 @@ require 'clive/error'
 require 'clive/output'
 require 'clive/version'
 require 'clive/struct_hash'
-
 require 'clive/formatter'
 require 'clive/formatter/plain'
 require 'clive/formatter/colour'
+
 require 'clive/type'
 require 'clive/argument'
 require 'clive/arguments'
@@ -61,29 +61,29 @@ class Clive
   
   class << self
     attr_accessor :instance
-  end
-  
-  def self.inherited(klass)
-    klass.instance = Base.new
     
-    str = (Base.instance_methods(false) | Command.instance_methods(false)).map do |sym|
-      <<-EOS
-        def self.#{sym}(*args, &block)
-          instance.send(:#{sym}, *args, &block)
-        end
-      EOS
-    end.join("\n")
-    klass.instance_eval str
+    # Sets up proxy methods for each relevent method in {Base} to an instance of {Base}.
+    def inherited(klass)
+      klass.instance = Base.new
+      
+      str = (Base.instance_methods(false) | Command.instance_methods(false)).map do |sym|
+        <<-EOS
+          def self.#{sym}(*args, &block)
+            instance.send(:#{sym}, *args, &block)
+          end
+        EOS
+      end.join("\n")
+      klass.instance_eval str
+    end
+    
+    def method_missing(sym, *args, &block)
+      instance.send(sym, *args, &block)
+    end
+    
+    def respond_to_missing?(sym, include_private)
+      instance.respond_to?(sym, include_private)
+    end
   end
-  
-  def self.method_missing(sym, *args, &block)
-    instance.send(sym, *args, &block)
-  end
-  
-  def self.respond_to_missing?(sym, include_private)
-    instance.respond_to?(sym, include_private)
-  end
-  
   
   # @group Instance style
   #
@@ -91,18 +91,9 @@ class Clive
   # r = c.run ARGV
   # 
   
-  attr_accessor :instance
-  
-  def initialize(&block)
-    @instance = Base.new(&block)
-  end
-  
-  def method_missing(sym, *args, &block)
-    instance.send(sym, *args, &block)
-  end
-  
-  def respond_to_missing?(sym, include_private)
-    instance.respond_to?(sym, include_private)
+  # Proxy for Clive::Base.new
+  def self.new(&block)
+    Base.new(&block)
   end
 
 end
@@ -112,23 +103,23 @@ end
 #
 # @example
 #
-#   # with ARGV = ['--verbose']
-#   r = Clive(:verbose, [:b, :bare]).run(ARGV)
+#   r = Clive(:verbose, [:b, :bare]).run(%w(--verbose))
 #   r.bare     #=> false
 #   r.verbose  #=> true
+#
 #
 #   # The above example is equivalent to 
 #   r = Clive.new {
 #     opt :verbose
 #     opt :b, :bare
-#   }.run(ARGV)
+#   }.run(%w(--verbose))
 #
 # @param names [#to_sym, Array<#to_sym>] List of names to create options for
 # @return [Clive] A clive instance setup with the correct options
 #
 def Clive(*names)
-  c = Clive.new
-  options.each do |o|
+  c = Clive::Base.new
+  names.each do |o|
     c.option *Array(o).map(&:to_sym)
   end
   c
