@@ -127,7 +127,7 @@ class Clive
       if @names.long
         r << ", " if @names.short
         r << "--"
-        r << "[no-]" if boolean?
+        r << "[no-]" if @opts[:boolean] == true
         r << @names.long.to_s.gsub('_', '-')
       end
       
@@ -150,9 +150,9 @@ class Clive
     end
 
     # @return Whether this is a boolean option and can be called with a +no-+ prefix.
-    def boolean?
-      @opts[:boolean] == true
-    end
+    #def boolean?
+    #  @opts[:boolean] == true
+    #end
 
     # @return Whether a block was given.
     def block?
@@ -165,7 +165,7 @@ class Clive
     # @return [Hash] the state which may have been modified!
     #
     def run(state, args=[], scope=nil)
-      mapped_args = if boolean?
+      mapped_args = if @opts[:boolean] == true
         [[:truth, args.first]]
       else
         @args.zip(args).map {|k,v| [k.name, v] }

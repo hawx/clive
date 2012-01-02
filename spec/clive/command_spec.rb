@@ -141,7 +141,7 @@ describe Clive::Command do
       bool.name.must_equal :auto
       bool.description.must_equal 'Auto build'
       bool.must_be :head?
-      bool.must_be :boolean?
+      bool.opts[:boolean].must_be_true
     end
   end
   

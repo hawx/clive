@@ -156,7 +156,7 @@ class Clive
       end
       
       def args_for(opt)
-        if opt.args != [] && !opt.boolean?
+        if opt.args != [] && !opt.opts[:boolean] == true
           opt.args.to_s
         else
           ""

@@ -87,7 +87,7 @@ class Clive
           end
 
         # it's a no- option
-        elsif curr[0..4] == '--no-'
+        elsif curr[0..4] == '--no-' && @base.find("--#{curr[5..-1]}").opts[:boolean] == true
           @base.find("--#{curr[5..-1]}").run @state, [false]
 
         # it's one (or more) short options
