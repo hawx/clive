@@ -1,6 +1,6 @@
 source :rubygems
 
 gem 'rake'
-gem 'duvet'
+gem 'duvet', :platforms => :ruby_19
 
 gemspec
