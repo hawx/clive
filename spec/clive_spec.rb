@@ -3,7 +3,16 @@ require 'helper'
 
 # For some reason Class.new(Clive) { Boolean } throws an error?
 class IncludingCliveReferenceTest < Clive
-  opt :name, as: Boolean
+  opt :name, :as => Boolean
+end
+
+describe Symbol do
+  describe '#<=>' do
+    it 'compares the symbols like strings' do
+      (:a <=> :b).must_equal ('a' <=> 'b')
+      (:a <=> :a).must_equal ('a' <=> 'a')
+    end
+  end
 end
 
 describe Clive do
@@ -13,7 +22,7 @@ describe Clive do
   
     it 'responds to all the methods in Base' do
       (Clive::Base.instance_methods - Object.instance_methods).each do |meth|
-        subject.must_respond_to meth
+        subject.must_respond_to meth.to_sym
       end
     end
     

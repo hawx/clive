@@ -96,6 +96,17 @@ class Clive
     #
     def initialize(names=[], description="", opts={}, &block)
       @names = names.sort_by {|i| i.to_s.size }
+      
+      # [Symbol, nil] Short name for the option. (ie. +:a+)
+      def @names.short
+        find {|i| i.to_s.size == 1 }
+      end
+      
+      # [Symbol, nil] Long name for the option. (ie. +:abc+)
+      def @names.long
+        find {|i| i.to_s.size > 1 }
+      end
+      
       @description  = description
       @block = block
       
@@ -103,34 +114,21 @@ class Clive
       @opts = DEFAULTS.merge( get_and_rename_hash(opts, OPT_KEYS) || {} )
     end
     
-    # Short name for the option. (ie. +:a+)
-    # @return [Symbol, nil]
-    def short
-      @names.find {|i| i.to_s.size == 1 }
-    end
-    
-    # Long name for the option. (ie. +:abc+)
-    # @return [Symbol, nil]
-    def long
-      @names.find {|i| i.to_s.size > 1 }
-    end
-
-    # The longest name available, as names are sorted by size the longest name
-    # is the last in the Array.
+    # The longest name available.
     # @return [Symbol]
     def name
-      names.last
+      names.long || names.short
     end
     
     # @return [String]
     def to_s
       r = ""
-      r << "-#{short}" if short
-      if long
-        r << ", " if short
+      r << "-#{@names.short}" if @names.short
+      if @names.long
+        r << ", " if @names.short
         r << "--"
         r << "[no-]" if boolean?
-        r << long.to_s.gsub('_', '-')
+        r << @names.long.to_s.gsub('_', '-')
       end
       
       r
@@ -209,9 +207,9 @@ class Clive
       args = (@args.max <= 1 ? args[0] : args)
       
       if scope
-        state[scope.name].store [long, short].compact, args
+        state[scope.name].store [@names.long, @names.short].compact, args
       else
-        state.store [long, short].compact, args
+        state.store [@names.long, @names.short].compact, args
       end
 
       state

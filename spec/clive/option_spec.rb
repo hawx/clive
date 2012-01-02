@@ -31,30 +31,6 @@ describe Clive::Option do
     end
   end
   
-  describe '#short' do
-    it 'returns the short name' do
-      opt = subject.new [:o, :opt]
-      opt.short.must_equal :o
-    end
-    
-    it 'returns nil if no short name exists' do
-      opt = subject.new [:opt]
-      opt.short.must_be_nil
-    end
-  end
-  
-  describe '#long' do
-    it 'returns the long name' do
-      opt = subject.new [:o, :opt]
-      opt.long.must_equal :opt
-    end
-    
-    it 'returns nil if no long name exists' do
-      opt = subject.new [:o]
-      opt.long.must_be_nil
-    end
-  end
-  
   describe '#name' do
     it 'returns the long name' do
       opt = subject.new [:opt, :o]

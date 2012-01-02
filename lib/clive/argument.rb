@@ -4,7 +4,7 @@ class Clive
   # and can also be constricted by various other values, see {#initialize}.
   class Argument
   
-    # Creates an instance which will respond with true to all call to the method(s)
+    # Creates an object which will respond with true to all call to the method(s)
     # given.
     #
     # @example
