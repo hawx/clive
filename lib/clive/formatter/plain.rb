@@ -1,8 +1,8 @@
 class Clive
   class Formatter
-  
+
     class Plain < Formatter
-    
+
       DEFAULTS = {
         # [Integer] Amount of left padding to use
         :padding   => 2,
@@ -13,7 +13,7 @@ class Clive
         # [Float] Maximum proportion of screen the left side can use
         :max_ratio => 0.5
       }
-      
+
       # @param opts [Hash]
       # @option opts [Integer] :width
       #   Total width of screen to use
@@ -25,19 +25,19 @@ class Clive
       #   Maximum proportion of screen the left side can use
       def initialize(opts={})
         @opts = DEFAULTS.merge(opts)
-        
+
         if @opts[:min_ratio] > @opts[:max_ratio]
           @opts[:max_ratio] = @opts[:min_ratio]
         end
-        
+
         @header, @footer = "", ""
         @commands, @options = [], []
       end
-      
+
       # Builds the help string. Formatted like:
       #
       #  @header
-      #   
+      #
       #    Commands:
       #      command            # Description
       #
@@ -49,15 +49,15 @@ class Clive
       # @return [String]
       def to_s
         groups = (@options + @commands).group_by {|i| i.opts[:group] }
-              
+
         # So no groups were created, let's create some nice defaults
         if groups.size == 1 && groups.keys.first == nil
           # Use an array so that the order is always correct
           groups = [['Commands', @commands.sort], ['Options', @options.sort]]
         end
-  
+
         r = @header.dup << "\n\n"
-        
+
         groups.each do |name, group|
           unless group.empty?
             r << (name ? "#{padding}#{name}:\n" : '')
@@ -67,19 +67,18 @@ class Clive
             r << "\n"
           end
         end
-      
+
         r << @footer
-        
-        r
+        r.split("\n").map {|i| i.rstrip }.join("\n")
       end
-      
+
       protected
-  
+
       # @return [String] Default padding
       def padding(n=1)
         ' ' * (@opts[:padding] * n)
       end
-      
+
       # @return [Integer] Width of the left half, ie. up to {#after}
       def left_width
         w = max + padding(2).size
@@ -91,24 +90,24 @@ class Clive
           w.to_i
         end
       end
-      
+
       # @return [Integer] The greatest width the left part of the screen
-      #  can be. This allows you to use _a_ max width in calculations 
+      #  can be. This allows you to use _a_ max width in calculations
       #  without creating a loop.
       def max_left_width
         (@opts[:max_ratio] * @opts[:width]).to_i
       end
-      
-      # @return [Integer] The length of the longest {#before}, ignoring any that break 
+
+      # @return [Integer] The length of the longest {#before}, ignoring any that break
       #  the line.
       def max
-        (@options + @commands).map {|i| 
-          before_for(i).size 
+        (@options + @commands).map {|i|
+          before_for(i).size
         }.reject {|i|
           i > max_left_width
         }.max
       end
-      
+
       # Builds a single line for an Option of the form.
       #
       #  before padding   # after
@@ -117,7 +116,7 @@ class Clive
       def build_option_string(opt)
         before_for(opt) << padding_for(opt) << padding << after_for(opt).rstrip << "\n"
       end
-      
+
       # @param opt [Option]
       # @return [String] Builds the first half of the help string for an Option.
       def before_for(opt)
@@ -125,7 +124,7 @@ class Clive
         b << "\n" if b.size > max_left_width
         b
       end
-      
+
       # @return [String] Padding for between an Option's #before and #after.
       def padding_for(opt)
         width = left_width - before_for(opt).clear_colours.split("\n").last.size
@@ -135,7 +134,7 @@ class Clive
           ' ' * left_width
         end
       end
-      
+
       # @param opt [Option]
       # @return [String] Builds the second half of the help string for an Option.
       def after_for(opt)
@@ -146,15 +145,15 @@ class Clive
         end
         r
       end
-      
+
       def names_for(opt)
         opt.to_s
       end
-      
+
       def description_for(opt)
         opt.description
       end
-      
+
       def args_for(opt)
         if opt.args != [] && !opt.opts[:boolean] == true
           opt.args.to_s
@@ -162,7 +161,7 @@ class Clive
           ""
         end
       end
-      
+
       def choices_for(opt)
         if opt.args.size == 1 && !opt.args.first.choice_str.empty?
           opt.args.first.choice_str
@@ -170,7 +169,7 @@ class Clive
           ""
         end
       end
-      
+
     end
   end
 end

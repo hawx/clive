@@ -1,46 +1,49 @@
 class Clive
-  class Base < Command    
-    
+  class Base < Command
+
     attr_reader :commands
-    
+
     OPT_KEYS = Command::OPT_KEYS + [:help_command, :debug]
-    
+
     DEFAULTS = {
       :formatter    => Formatter::Colour.new,
       :help_command => true,
       :help         => true,
     }
-    
+
     # These options should be copied into each {Command} that is created.
     GLOBAL_OPTIONS = [:formatter, :help]
-    
+
     # Never create an instance of this yourself. Extend Clive, then call #run.
     def initialize(&block)
-      super &block
-      
+      super
+
       @commands = []
       @header   = "Usage: #{File.basename($0)} [command] [options]"
+      @footer   = ""
+      @_group   = nil
       @opts     = DEFAULTS
-    
+
       # Need to keep a state before #run is called so #set works.
-      @pre_state = run_block({})
+      @pre_state = {}
+      instance_exec &block if block
     end
-    
+
     # Need to define #set here for the class that extends Clive.
     # @see Option::Runner#set
     def set(key, value)
-      @pre_state[key] = value
+      @pre_state.store key, value
     end
-    
+
     def run(argv, opts={})
       @opts = DEFAULTS.merge( get_and_rename_hash(opts, OPT_KEYS) || {} )
-      
+
       add_help_option
       add_help_command
-      
+
       Clive::Parser.new(self, opts).parse(argv, @pre_state)
     end
-    
+
     def global_opts
       @opts.find_all {|k,v| GLOBAL_OPTIONS.include?(k) }
     end
@@ -65,7 +68,7 @@ class Clive
       o = DEFAULTS.merge(Hash[global_opts]).merge(o)
       @commands << Command.new(ns, d, o.merge({:group => @_group}), &block)
     end
-    
+
     # @see Command#find
     def find(arg)
       if arg[0..0] == '-'
@@ -74,19 +77,19 @@ class Clive
         find_command(arg.to_sym)
       end
     end
-    
+
     # @param arg [Symbol]
     def find_command(arg)
       @commands.find {|i| i.names.include?(arg) }
     end
-    
+
     # @param arg [Symbol]
     def has_command?(arg)
       !!find_command(arg)
     end
-    
+
     private
-    
+
     # Adds the help command, which accepts the name of a command to display help
     # for, to this if it is wanted.
     def add_help_command
@@ -94,6 +97,6 @@ class Clive
         self.command(:help, 'Display help', :arg => '[<command>]', :tail => true)
       end
     end
-    
+
   end
 end

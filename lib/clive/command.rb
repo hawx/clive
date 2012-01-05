@@ -1,8 +1,8 @@
 class Clive
 
   # A command allows you to separate groups of commands under their own
-  # namespace. But it can also take arguments like an Option. Instead of 
-  # of executing the block passed to it executes the block passed to 
+  # namespace. But it can also take arguments like an Option. Instead of
+  # of executing the block passed to it executes the block passed to
   # {#action}.
   #
   # @example
@@ -24,11 +24,11 @@ class Clive
   #   #   ./file.rb new ~/somewhere --force
   #
   class Command < Option
-  
+
     attr_reader :names, :options
-    
+
     OPT_KEYS = Option::OPT_KEYS + [:formatter, :help]
-  
+
     # @param names [Array[Symbol]]
     #   Names that the Command can be ran with.
     #
@@ -58,7 +58,7 @@ class Clive
     #   Default value that is used if argument is not given.
     #
     # @option opts :group
-    #   Name of the group this option belongs to. This is actually set when 
+    #   Name of the group this option belongs to. This is actually set when
     #   {Command#group} is used.
     #
     # @option opts [#to_s, #header=, #footer=, #options=, #commands=] :formatter
@@ -66,23 +66,23 @@ class Clive
     #
     # @option opts [Boolean] :help
     #   Whether to add a '-h, --help' option to this command which displays help.
-    #   
+    #
     def initialize(names=[], description="", opts={}, &block)
       @names       = names
       @description = description
       @options     = []
       @_block      = block
-      
+
       @args = Arguments.create( get_and_rename_hash(opts, Arguments::Parser::KEYS) )
       @opts = DEFAULTS.merge( get_and_rename_hash(opts, OPT_KEYS) || {} )
-      
+
       # Create basic header "Usage: filename commandname(s) [options]
       @header = "Usage: #{File.basename($0)} #{to_s} [options]"
       @footer = ""
       @_group = nil
-      
+
       add_help_option
-      
+
       current_desc
     end
 
@@ -91,13 +91,13 @@ class Clive
     def name
       names.first
     end
-    
+
     # @return [String]
     def to_s
       names.join(',')
     end
-    
-    # Runs the block that was given to {Command#initialize} within the context of the 
+
+    # Runs the block that was given to {Command#initialize} within the context of the
     # command. The state hash is passed (and returned) so that {#set} works outside
     # of {Runner} allowing default values to be set.
     #
@@ -109,27 +109,27 @@ class Clive
         instance_exec(&@_block)
         @state
       else
-        {}
+        @state = state
       end
     end
-    
+
     # Set the header for {#help}.
     # @param [String]
     def header(val)
       @header = val
     end
-    
+
     # Set the footer for {#help}.
     # @param [String]
     def footer(val)
       @footer = val
     end
-    
+
     # @see Clive::Option::Runner.set
     def set(key, value)
       @state.store key, value
     end
-    
+
     # @overload option(short=nil, long=nil, description=current_desc, opts={}, &block)
     #   Creates a new Option in the Command. Either +short+ or +long+ must be set.
     #   @param short [Symbol] The short name for the option (:a would become +-a+)
@@ -149,7 +149,7 @@ class Clive
       @options << Option.new(ns, d, ({:group => @_group}).merge(o), &block)
     end
     alias_method :opt, :option
-    
+
     # @overload boolean(short=nil, long=nil, description=current_desc, opts={}, &block)
     #   Creates a new Option in the Command which responds to calls with a 'no-' prefix.
     #   +long+ must be set.
@@ -170,10 +170,10 @@ class Clive
       @options << Option.new(ns, d, ({:group => @_group, :boolean => true}).merge(o), &block)
     end
     alias_method :bool, :boolean
-    
+
     # If an argument is given it will set the description to that, otherwise it will
     # return the description for the command.
-    # 
+    #
     # @param arg [String]
     def description(arg=nil)
       if arg
@@ -182,17 +182,17 @@ class Clive
         @description
       end
     end
-    
+
     def desc(arg)
       @_last_desc = arg
     end
-    
+
     # The action block is the block which will be executed with any arguments that
     # are found for it. It sets +@block+ so that {Option#run} does not have to be redefined.
     def action(&block)
       @block = block
     end
-    
+
     # Finds the option represented by +arg+, this can either be the long name +--opt+
     # or the short name +-o+, if the option can't be found +nil+ is returned.
     #
@@ -206,27 +206,27 @@ class Clive
       end
     end
     alias_method :[], :find
-    
+
     # Attempts to find the option represented by the string +arg+, returns true if
     # it exists and false if not.
     #
     # @param arg [String]
     # @example
-    #   
+    #
     #   a = Command.new [:command] do
     #     bool :force
     #     bool :auto
     #   end
-    #  
+    #
     #   a.has?('--force')    #=> true
     #   a.has?('--auto')     #=> true
     #   a.has?('--no-auto')  #=> false
     #   a.has?('--not-real') #=> false
-    #   
+    #
     def has?(arg)
       !!find(arg)
     end
-    
+
     # Finds the option with the name given by +arg+, this must be in Symbol form so
     # does not have a dash before it. As with {#find} if the option does not exist +nil+
     # will be returned.
@@ -236,7 +236,7 @@ class Clive
     def find_option(arg)
       @options.find {|opt| opt.names.include?(arg) }
     end
-    
+
     # Attempts to find the option with the Symbol name given, returns true if the option
     # exists and false if not.
     #
@@ -244,7 +244,7 @@ class Clive
     def has_option?(arg)
       !!find_option(arg)
     end
-    
+
     # Set the group name for all options defined after it.
     #
     # @param name [String]
@@ -262,12 +262,12 @@ class Clive
     def group(name)
       @_group = name
     end
-    
+
     # Sugar for +group(nil)+
     def end_group
       group nil
     end
-    
+
     # @see Formatter
     # @return [String] Help string for this command.
     def help
@@ -276,19 +276,19 @@ class Clive
       f.footer   = @footer
       f.commands = @commands if @commands
       f.options  = @options
-      
+
       f.to_s
-    end    
+    end
 
     private
-    
+
     def set_state(state, args, scope=nil)
       # scope will always be nil, so ignore it for Option compatibility
       state[name].store :args, (@args.max <= 1 ? args[0] : args)
-      
+
       state
     end
-    
+
     # Adds the '--help' option to the Command instance if it should be added.
     def add_help_option
       if @opts[:help] && !has_option?(:help)
@@ -299,7 +299,7 @@ class Clive
         end
       end
     end
-    
+
     # @return [String]
     #   Returns the last description to be set with {#description}, it then clears the
     #   stored description so that it is not returned twice.
@@ -308,6 +308,6 @@ class Clive
       @_last_desc = ""
       r
     end
-    
+
   end
 end
