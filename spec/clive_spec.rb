@@ -18,7 +18,8 @@ describe Clive do
     end
 
     it 'allows you to reference Types' do
-      IncludingCliveReferenceTest.find('--name').args.first.type.must_equal Clive::Type::Boolean
+      IncludingCliveReferenceTest.find('--name').args.first.type.
+        must_equal Clive::Type::Boolean
     end
 
     it 'allows you to get the Base instance' do
@@ -34,7 +35,12 @@ describe Clive do
     end
 
     it 'does not allow you to reference Types' do
-      this { Clive.new { Boolean } }.must_raise NameError
+      # For some reason this works in 1.9.2, possibly others, but it should
+      # definitely not be relied on to work as it will raise a NameError under
+      # most versions.
+      unless RUBY_VERSION =~ /^1.9.2/
+        this { Clive.new { Boolean } }.must_raise NameError
+      end
     end
 
   end
