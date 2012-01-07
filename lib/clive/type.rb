@@ -1,25 +1,25 @@
 class Clive
   class Type
-  
+
     # @param arg [::String]
     def valid?(arg)
       false
     end
-    
+
     # @param arg [::String]
     def typecast(arg)
       nil
     end
-    
+
     class << self
-    
+
       # Find the class for +name+.
       # @param name [::String]
       def find_class(name)
         name = name.split('::').last
         Clive::Type.const_get(name) if Clive::Type.const_defined?(name)
       end
-    
+
       # Shorthand to define #valid? for subclasses of {Type}, pass a
       # regular expression that should be matched or a symbol for a
       # method which will be called on the argument that returns either
@@ -46,7 +46,7 @@ class Clive
       #     match :five?
       #     # ...
       #   end
-      #       
+      #
       def match(other)
         if other.respond_to?(:to_proc)
           @valid = other.to_proc
@@ -54,7 +54,7 @@ class Clive
           @valid = proc {|arg| other =~ arg.to_s }
         end
       end
-      
+
       # Similar to {.match} but opposite, so where {.match} would be valid
       # refute is invalid.
       #
@@ -79,10 +79,10 @@ class Clive
       #     cast :to_sym
       #   end
       #
-      def cast(sym)
-        @cast = sym
+      def cast(sym, *args)
+        @cast = [sym, args]
       end
-      
+
       # Checks whether the +arg+ passed is valid, if {.match} or {.refute}
       # have been called it uses the Proc created by them otherwise calls
       # {#valid?}.
@@ -90,27 +90,27 @@ class Clive
       # @param arg [::String]
       def valid?(arg)
         if @valid
-          @valid.call(arg)
+          @valid.call arg
         else
-          new.valid?(arg)
+          new.valid? arg
         end
       end
-      
+
       # Casts the +arg+ to the correct type, if {.cast} has been called it
       # uses the proc created otherwise it calls {#typecast}.
       #
       # @param arg [::String]
       def typecast(arg)
         if @cast
-          arg.send(@cast)
+          arg.send @cast[0], *@cast[1]
         else
-          new.typecast(arg)
+          new.typecast arg
         end
       end
-      
+
     end
-    
-  end  
+
+  end
 end
 
 require 'clive/type/definitions'
