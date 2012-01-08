@@ -3,8 +3,6 @@ class Clive
 
     attr_reader :commands
 
-    OPT_KEYS = Command::OPT_KEYS + [:help_command, :debug]
-
     DEFAULTS = {
       :formatter    => Formatter::Colour.new,
       :help_command => true,
@@ -35,15 +33,23 @@ class Clive
       @pre_state.store key, value
     end
 
-    def run(argv, opts={})
-      @opts = DEFAULTS.merge( get_and_rename_hash(opts, OPT_KEYS) || {} )
+    # Runs the Clive with the args passed which defaults to +ARGV+.
+    #
+    # @param args [Array<String>] Command line arguments to run with
+    # @param opts [Hash] Options to run with
+    # @option opts [Boolean] :help Whether to create a help option
+    # @option opts [Boolean] :help_command Whether to create a help command
+    # @option opts [Formatter] :formatter Help formatter to use
+    def run(args=ARGV, opts={})
+      @opts = DEFAULTS.merge( get_and_rename_hash(opts, DEFAULTS.keys) || {} )
 
       add_help_option
       add_help_command
 
-      Clive::Parser.new(self, opts).parse(argv, @pre_state)
+      Clive::Parser.new(self, opts).parse(args, @pre_state)
     end
 
+    # Options which should be copied into each Command created.
     def global_opts
       @opts.find_all {|k,v| GLOBAL_OPTIONS.include?(k) }
     end

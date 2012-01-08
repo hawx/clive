@@ -27,7 +27,14 @@ class Clive
 
     attr_reader :names, :options
 
-    OPT_KEYS = Option::OPT_KEYS + [:formatter, :help]
+    DEFAULTS = {
+      :group     => nil,
+      :head      => false,
+      :tail      => false,
+      :runner    => Clive::Option::Runner,
+      :formatter => nil, # really takes the DEFAULT (or one set) from Base
+      :help      => true
+    }
 
     # @param names [Array[Symbol]]
     #   Names that the Command can be ran with.
@@ -35,12 +42,27 @@ class Clive
     # @param desc [String]
     #   Description of the Command, this is shown in help and will be wrapped properly.
     #
+    #
     # @param opts [Hash]
     # @option opts [Boolean] :head
     #   If option should be at top of help list.
     #
     # @option opts [Boolean] :tail
     #   If option should be at bottom of help list.
+    #
+    # @option opts [String] :group
+    #   Name of the group this option belongs to. This is actually set when
+    #   {Command#group} is used.
+    #
+    # @option opts [Runner] :runner
+    #   Class to use for running the block passed to #action. This doesn't have
+    #   to be Option::Runner, but you probably never need to change this.
+    #
+    # @option opts [Formatter] :formatter
+    #   Help formatter to use for this command, defaults to top-level formatter.
+    #
+    # @option opts [Boolean] :help
+    #   Whether to add a '-h, --help' option to this command which displays help.
     #
     # @option opts [String] :args
     #   Arguments that the option takes. See {Argument}.
@@ -54,18 +76,8 @@ class Clive
     # @option opts [#include?, Array[#include?]] :in
     #   Collection that argument(s) must be in.
     #
-    # @option opts :default
+    # @option opts [Object] :default
     #   Default value that is used if argument is not given.
-    #
-    # @option opts :group
-    #   Name of the group this option belongs to. This is actually set when
-    #   {Command#group} is used.
-    #
-    # @option opts [#to_s, #header=, #footer=, #options=, #commands=] :formatter
-    #   Help formatter to use for this command, defaults to top-level formatter.
-    #
-    # @option opts [Boolean] :help
-    #   Whether to add a '-h, --help' option to this command which displays help.
     #
     def initialize(names=[], description="", opts={}, &block)
       @names       = names
@@ -74,7 +86,7 @@ class Clive
       @_block      = block
 
       @args = Arguments.create( get_and_rename_hash(opts, Arguments::Parser::KEYS) )
-      @opts = DEFAULTS.merge( get_and_rename_hash(opts, OPT_KEYS) || {} )
+      @opts = DEFAULTS.merge( get_and_rename_hash(opts, DEFAULTS.keys) || {} )
 
       # Create basic header "Usage: filename commandname(s) [options]
       @header = "Usage: #{File.basename($0)} #{to_s} [options]"
@@ -272,6 +284,7 @@ class Clive
     # @return [String] Help string for this command.
     def help
       f = @opts[:formatter]
+
       f.header   = @header
       f.footer   = @footer
       f.commands = @commands if @commands
@@ -291,7 +304,7 @@ class Clive
 
     # Adds the '--help' option to the Command instance if it should be added.
     def add_help_option
-      if @opts[:help] && !has_option?(:help)
+      if @opts[:help] && !(has_option?(:help) || has_option?(:h))
         h = self # bind self so that it can be called in the block
         self.option(:h, :help, "Display this help message", :tail => true) do
           puts h.help

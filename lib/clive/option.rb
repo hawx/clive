@@ -2,7 +2,7 @@ class Clive
 
   # An option is called using either a long form +--opt+ or a short form +-o+
   # they can take arguments and these arguments can be restricted using various
-  # parameters. 
+  # parameters.
   #
   #   opt :name, arg: '<first> [<middle>] <second>' do |f, m, s|
   #     # do something
@@ -34,20 +34,20 @@ class Clive
   #   # this only accepts words of five letters by calling the proc given.
   #
   # Since options can take multiple arguments (<a> <b> <c>) it is possible to
-  # use each of the constraints above for each argument. 
+  # use each of the constraints above for each argument.
   #
   #   opt :worked, arg: '<from> [<to>]', as: [Date, Date]
   #   # This makes both <from> and <to> a Date
   #
-  #   opt :fruits, arg: '<choice> <number>', 
-  #                in: [%w(apple pear banana), nil], 
+  #   opt :fruits, arg: '<choice> <number>',
+  #                in: [%w(apple pear banana), nil],
   #                as: [nil, Integer]
   #   # Here we extend the :fruit example from above to allow a number of fruit
   #   # to be picked. Note the use of nil in places where we want the default to
   #   # be used.
   #
   class Option
-  
+
     class InvalidNamesError < Error
       reason '#1'
     end
@@ -55,12 +55,13 @@ class Clive
     extend Type::Lookup
 
     attr_reader :names, :opts, :args, :description
-    
-    # Valid key names for options passed to Option#initialize.
-    OPT_KEYS = [:head, :tail, :group, :boolean, :runner]
-    
+
     DEFAULTS = {
-      :runner => Clive::Option::Runner
+      :boolean => false,
+      :group   => nil,
+      :head    => false,
+      :tail    => false,
+      :runner  => Clive::Option::Runner
     }
 
     # @param names [Array<Symbol>] Names for this option
@@ -96,30 +97,30 @@ class Clive
     #
     def initialize(names=[], description="", opts={}, &block)
       @names = names.sort_by {|i| i.to_s.size }
-      
+
       # [Symbol, nil] Short name for the option. (ie. +:a+)
       def @names.short
         find {|i| i.to_s.size == 1 }
       end
-      
+
       # [Symbol, nil] Long name for the option. (ie. +:abc+)
       def @names.long
         find {|i| i.to_s.size > 1 }
       end
-      
+
       @description  = description
       @block = block
-      
+
       @args = Arguments.create( get_and_rename_hash(opts, Arguments::Parser::KEYS) )
-      @opts = DEFAULTS.merge( get_and_rename_hash(opts, OPT_KEYS) || {} )
+      @opts = DEFAULTS.merge( get_and_rename_hash(opts, DEFAULTS.keys) || {} )
     end
-    
+
     # The longest name available.
     # @return [Symbol]
     def name
       names.long || names.short
     end
-    
+
     # @return [String]
     def to_s
       r = ""
@@ -130,10 +131,10 @@ class Clive
         r << "[no-]" if @opts[:boolean] == true
         r << @names.long.to_s.gsub('_', '-')
       end
-      
+
       r
     end
-  
+
     # @return [String]
     def inspect
       "#<#{self.class} #{to_s}>"
@@ -149,16 +150,11 @@ class Clive
       @opts[:tail] == true
     end
 
-    # @return Whether this is a boolean option and can be called with a +no-+ prefix.
-    #def boolean?
-    #  @opts[:boolean] == true
-    #end
-
     # @return Whether a block was given.
     def block?
       @block != nil
     end
-    
+
     # @param state [Hash] Local state for parser, this may be modified!
     # @param args [Array] Arguments for the block which is run
     # @param scope [Command] Scope of the state to use
@@ -170,7 +166,7 @@ class Clive
       else
         @args.zip(args).map {|k,v| [k.name, v] }
       end
-      
+
       if block?
         if scope
           state = @opts[:runner]._run(mapped_args, state[scope.name], @block)
@@ -180,12 +176,12 @@ class Clive
       else
         state = set_state(state, args, scope)
       end
-      
+
       state
     end
-    
+
     include Comparable
-    
+
     # Compare based on the size of {#name}, makes sure {#tail?}s go to the bottom
     # and {#head?}s go to the top. If both are {#head?} or {#tail?} then sorts
     # based on the names.
@@ -198,14 +194,14 @@ class Clive
         self.name.to_s <=> other.name.to_s
       end
     end
-    
-    
+
+
     private
-    
+
     # Set
     def set_state(state, args, scope=nil)
       args = (@args.max <= 1 ? args[0] : args)
-      
+
       if scope
         state[scope.name].store [@names.long, @names.short].compact, args
       else
@@ -214,7 +210,7 @@ class Clive
 
       state
     end
-    
+
     # @param hash [Hash]
     # @param keys [Hash]
     def get_and_rename_hash(hash, keys)
@@ -229,7 +225,7 @@ class Clive
         hsh
       end
     end
-    
+
   end
 
 end
