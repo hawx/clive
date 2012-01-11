@@ -1,105 +1,183 @@
-require 'spec_helper'
+$: << File.dirname(__FILE__) + '/..'
+require 'helper'
 
 describe Clive::Parser do
 
-  subject {
-    class CLI
-      include Clive::Parser
-    end
-    CLI
-  }
-  
-  it "keeps track of its class" do
-    subject.instance_variable_get("@klass").should == CLI
-  end
-  
-  describe "#base" do
-    it "has a 'base' command" do
-      subject.base.should be_kind_of Clive::Command
-    end
-  end
-  
-  describe "#parse" do
-    it "should call #run on 'base'" do
-      subject.base.should_receive(:run).with([])
-      subject.parse([])
-    end
-  end
-  
-  describe "#flag" do
-    it "adds a new flag to 'base'" do
-      expect {
-        subject.flag(:t, :test, :arg => "NAME") {|i| puts i }
-      }.should change {subject.base.flags.size}.by(1)
-    end
-  end
-  
-  describe "#switch" do
-    it "adds a new switch to 'base'" do
-      expect {
-        subject.switch(:t, :test) {}
-      }.should change {subject.base.switches.size}.by(1)
+  describe 'single option' do
+    subject {
+      Clive.new {
+        opt :force
+      }
+    }
+
+    it 'runs the option' do
+      r = subject.run s '--force'
+      r.must_have :force
     end
   end
 
-  describe "#command" do
-    it "adds a new command to 'base'" do
-      expect {
-        subject.command(:command) {}
-      }.should change {subject.base.commands.size}.by(1)
+  describe 'single option with block' do
+    subject {
+      Clive.new {
+        opt(:force) { print "forced" }
+      }
+    }
+
+    it 'runs the option' do
+      this {
+        subject.run s '--force'
+      }.must_output "forced"
     end
   end
-  
-  describe "#bool" do
-    it "adds a new bool to 'base'" do
-      expect {
-        subject.bool(:boo) {}
-      }.should change {subject.base.bools.size}.by(2)
+
+  describe 'single option with argument' do
+    subject {
+      Clive.new {
+        opt :name, :arg => '<name>'
+      }
+    }
+
+    it 'runs the option' do
+      r = subject.run s '--name "John Doe"'
+      r.name.must_equal 'John Doe'
     end
   end
-  
-  describe "#desc" do
-    it "sets current desc for 'base'" do
-      subject.desc "test"
-      subject.base.instance_variable_get("@current_desc").should == "test"
+
+  describe 'single option with argument with block' do
+    subject {
+      Clive.new {
+        opt(:name, :arg => '<name>') {|name| print "I am #{name}" }
+      }
+    }
+
+    it 'runs the option' do
+      this {
+        subject.run s '--name "John Doe"'
+      }.must_output "I am John Doe"
     end
   end
-  
-  describe "#help_formatter" do
-    it "sets the help formatter for 'base'" do
-      subject.base.should_receive(:help_formatter).with(:white)
-      subject.help_formatter(:white)
+
+  describe 'single option with arguments' do
+    subject {
+      Clive.new {
+        opt :name, :arg => '<first> <last>'
+      }
+    }
+
+    it 'runs the option' do
+      r = subject.run s '--name John Doe'
+      r.name.must_equal ['John', 'Doe']
     end
   end
-  
-  describe "#option_var" do
-    before { subject.option_var(:test, 1) }
-  
-    it "creates a getter" do
-      subject.should respond_to :test
-    end
-    
-    it "creates a setter" do
-      subject.should respond_to :test=
-      subject.test = 2
-    end
-    
-    it "sets a default value" do
-      subject.test.should == 1
+
+  describe 'single option with arguments with block' do
+    subject {
+      Clive.new {
+        opt(:name, :arg => '<first> <last>') { print "I am #{first} #{last}" }
+      }
+    }
+
+    it 'runs the option' do
+      this {
+        subject.run s '--name John Doe'
+      }.must_output "I am John Doe"
     end
   end
-  
-  describe "#option_hash" do
-    it "uses #option_var with empty hash" do
-      subject.should_receive(:option_var).with(:test, {})
-      subject.option_hash(:test)
+
+  describe 'Boolean options' do
+    subject {
+      Clive.new {
+        bool :force
+        bool :auto
+      }
+    }
+
+    it 'runs the options' do
+      r = subject.run s '--no-force --auto'
+      r.wont_have :force
+      r.must_have :auto
     end
   end
-  
-  describe "#option_array" do
-    it "uses #option_var with empty array" do
-      subject.should_receive(:option_var).with(:test, [])
-      subject.option_array(:test)
+
+  describe 'Commands' do
+    describe 'with options and arguments' do
+      subject {
+        Clive.new {
+          command :new, :args => '<dir>' do
+            bool :force
+            opt :name, :arg => '<name>'
+          end
+        }
+      }
+
+      let(:result) { {:new => {:args => '~/somewhere', :force => true, :name => 'New'}} }
+
+      it 'runs properly with arguments after options' do
+        r = subject.run s 'new --force --name New ~/somewhere'
+        r.must_equal result
+      end
+
+      it 'runs properly with options after arguments' do
+        r = subject.run s 'new ~/somewhere --force --name New'
+        r.must_equal result
+      end
+
+      it 'runs properly with arguments between options' do
+        r = subject.run s 'new --force ~/somewhere --name New'
+        r2 = subject.run s 'new --name New ~/somewhere --force'
+        r2.must_equal r
+        r2.args.must_equal r.args
+        r.must_equal result
+      end
+
+      it 'runs properly with excessive arguemnts' do
+        r = subject.run s 'new ~/somewhere Hello Other'
+        r.new.args.must_equal '~/somewhere'
+        r.args.must_equal ['Hello', 'Other']
+      end
+    end
+
+    describe 'with options and optional arguments' do
+      subject {
+        Clive.new {
+          command :new, :args => '[<dir>]' do
+            bool :force
+            opt :name, :arg => '<name>'
+          end
+        }
+      }
+
+      let(:result) { {:new => {:force => true, :name => 'New', :args => nil}} }
+      let(:with_argument) { {:new => {:force => true, :name => 'New', :args => '~/somewhere'}} }
+
+      it 'runs properly with just options' do
+        r = subject.run s 'new --force --name New'
+        r.must_equal result
+      end
+
+      it 'runs properly with arguments after options' do
+        r = subject.run s 'new --force --name New ~/somewhere'
+        r.must_equal with_argument
+      end
+
+      it 'runs properly with options after arguments' do
+        r = subject.run s 'new ~/somewhere --force --name New'
+        r.must_equal with_argument
+      end
+
+      it 'runs properly with arguments between options' do
+        r = subject.run s 'new --force ~/somewhere --name New'
+        r2 = subject.run s 'new --name New ~/somewhere --force'
+        r2.must_equal r
+        r2.args.must_equal r.args
+        r.must_equal with_argument
+      end
+
+      it 'runs properly with excessive arguemnts' do
+        r = subject.run s 'new ~/somewhere Hello Other'
+        r[:new][:args].must_equal '~/somewhere'
+        r.args.must_equal ['Hello', 'Other']
+      end
     end
   end
 

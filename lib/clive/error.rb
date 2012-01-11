@@ -1,9 +1,9 @@
-module Clive
+class Clive
 
-  # General problem, this strips most of the backtrace. Allows the setting
-  # of reasons for error messages using .reason. Arguments can be passed 
-  # and then used in messages by referencing with +#n+ tokens, where +n+ is
-  # the index of the argument.
+  # For general errors with Clive. It stripts most of the backtrace which 
+  # you don't really want, and allows you to set nice error messages
+  # using {.reason}. Arguments can be passed and then used in messages by 
+  # referencing with +#n+ tokens, where +n+ is the index of the argument.
   #
   # A lot of this is pulled from OptionParser::ParseError see
   # http://ruby-doc.org/stdlib/libdoc/optparse/rdoc/index.html.
@@ -20,7 +20,7 @@ module Clive
     attr_accessor :args
     
     # @param args
-    #   Arguments that can be accessed with '#n' in {#reason}.
+    #   Arguments that can be accessed with '#n' in {.reason}.
     def initialize(*args)
       @args = args
     end

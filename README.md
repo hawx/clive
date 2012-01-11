@@ -1,246 +1,264 @@
 # clive
 
-Clive is a DSL for creating a command line interface. It is for people who, like me, 
-love [OptionParser's](http://ruby-doc.org/stdlib/libdoc/optparse/rdoc/classes/OptionParser.html) syntax and love [GLI's](http://github.com/davetron5000/gli) commands.
+Clive is a DSL for creating command line interfaces.
 
 ## Install
 
 Install with:
     
-    (sudo) gem install clive
+    gem install clive
     
 
-## How To
+## Usage
 
-Simply include `Clive::Parser` to start using.
-A simple example:
-    
-    # test.rb
+__NOTE__: Throughout I will be using the new 1.9 `{a: b}` hash syntax, obviously the old
+`{:a => b}` syntax still works and can be used if you want or where 1.8 compatibility is
+needed.
+
+Clive is built around the idea that it makes more sense to define a cli in a class,
+this way it can be easily modified and reopened to add more options.
+
+    # my_app.rb
     require 'clive'
-    
-    class CLI
-      include Clive::Parser
-      option_hash :config
+
+    module MyApp
+      VERSION = "0.1.4"
       
-      desc 'Run verbosely'
-      switch :v, :verbose do
-        config[:verbose] = true
-      end
+      # some code
       
-    end
-    CLI.parse(ARGV)
-    p CLI.config
-
-This creates a very simple interface which can have one switch, you can then use the 
-long or short form to call the block.
-
-    test.rb -v
-    #=> {:verbose => true}
-    test.rb --verbose
-    #=> {:verbose => true}
-    
-
-### Switches
-
-The most basic options. When they are called by either name the block is run. To create
-a switch use `#switch`.
-
-    switch :s do
-      # code
-    end
-    # Called with '-s'
-    
-    switch :long do
-      # code
-    end
-    # Called with '--long'
-    
-    switch :b, :both do
-      # code
-    end
-    # Called with '-b' or '--both'
-
-
-### Booleans
-
-Boolean switches allow you to easily create a pair of switches, eg. `--force` and 
-`--no-force`. The block given is passed either true or false depending on which was 
-used.
-
-    bool :f, :force do |truth|
-      p truth
-    end
-    # '-f' returns true
-    # '--force' returns true
-    # '--no-force' returns false
-
-You must provide a long name, a short name is optional.
-
-
-### Flags
-
-Flags are like switches but take one or more arguments, these are then passed to the 
-block.
-
-    # Creates a flag with a mandatory argument
-    flag :with, :args => "ARG" do |arg|
-      puts arg
-    end
-    
-    # Creates a flag with an optional argument, by using []
-    flag :with, :args => "[ARG]" do |arg|
-      puts arg
-    end
-    
-    # Creates a flag with multiple arguments
-    flag :with, :args => "FIRST [OPTIONAL]" do |i, j|
-      puts i, j
-    end
-
-You can also provide a list of options to select from.
-    
-    flag :choose, :args => %w(small med large) do |choice|
-      puts choice
-    end
-    
-    flag :number, :args => 1..5 do |num|
-      puts num
-    end
-    
-
-### Commands 
-
-Commands allow you to group a collection of options (or more commands) under a keyword.
-The block provided is run when one of the names for the command is encountered, but the
-blocks of the options in it are only ran when they are found.
-
-    command :init, :create do
-      bool :force do |truth|
-        puts "Force"
+      class CLI
+        extend Clive
+        
+        opt :v, :version, 'Display the current version' do
+          puts MyApp::Version
+          exit 0
+        end
+        
       end
     end
-    # 'init --force'
     
+    result = MyApp::CLI.run(ARGV)
+
+Then run with `my_app.rb --version` to display the version for MyApp. `.run`
+returns an instance of `Clive::StructHash` this allows you to access entries
+with methods as well as using `#[]`. It also stores any spare arguments given
+under `#args` or `#[:args]`. The entry will have the arguments if needed or 
+`true` when an option has been given.
+
+
+### Options
+
+Options are defined using `#opt` or `#option` they can have short ('-a') or long 
+names ('--abc') and can also have arguments. The description can be given as an
+argument to `#opt` or can be defined before it using `#desc`.
+
+    opt :v, :version, 'Display the current version' do
+      # ...
+    end
+    
+    # is equivalent to
+    
+    desc 'Display the current version'
+    opt :v, :version do
+      # ...
+    end
+
+Longer option names, with `_` are called by replacing the `_` with a `-` so
+
+    opt :longer_name_than_expected
+
+Would be called with `--longer-name-than-expected`.
+
+#### Boolean Options
+
+Boolean options are options which can be called with a `no-` prefix, which then
+passes false to the block/state. For example,
+
+    bool :a, :auto
+
+Can be called with `-a` or `--auto` returning a state of `{:auto => true}`,
+or `--no-auto` returning a state of `{:auto => false}`. If a block is given the
+truth can be got by adding block parameters or using the `truth` variable which 
+is set.
+
+    bool :a, :auto do |t|
+      puts t
+    end
+    
+    # OR
+    
+    bool :a, :auto do
+      puts truth
+    end
+
 
 ### Arguments
 
-Anything that is not captured as a command, option or argument of a flag, is returned by
-\#parse in an array.
+Options can takes arguments by adding a hash with the key `:arg` or `:args`:
 
-    class Args
-      include Clive::Parser
+    opt :size, args: '<height> <width>'
+
+The option size takes two arguments. These would be saved to state as an array, 
+for instance running with `--size 10 40` would return a state of `{:size => 
+['10', '40']}`.
+
+Arguments can be made optional by enclosing one or more arguments with `[` and `]`:
+
+    # both required
+    opt :size, args: '<h> <w>'
+    
+    # first required
+    opt :size, args: '<h> [<w>]'
+    
+    # second required
+    opt :size, args: '[<h>] <w>'
+    
+    # neither required
+    opt :size, args: '[<h> <w>]'
+
+There are also various options that can be passed to constrain or change the 
+arguments. When using these if `:arg` is not given it is inferred from the
+options given.
+
+
+#### Types
+Aliased as `:type`, `:kind`, `:as`.
+
+Allows you to say that an argument must be converted to a specific type before
+use in a block or being saved to state, but also that it should look like a 
+specific type.
+
+    opt :list, as: Array
+
+Accepts a comma delimited list of items, `--list a,b,c` and returns them as
+an Array (ie. `['a', 'b', 'c']`).
+
+#### Matches
+Aliased as `:match`.
+
+Allows you to say that an argument must match a regular expression (or any object
+which responds to `#match`).
+
+    opt :word, match: /^\w+$/
+
+Accepts `--word hello` but not `--word 123`.
+
+#### Withins
+Aliased as `':within`, `:in`.
+
+Allows you to say that an argument must be within a passed Array, Set or Range
+(any object which responds to `#include?`).
+
+    opt :num, in: 1..100
+
+Accepts `--num 50` but not `--num 900`.
+
+#### Defaults
+Aliased as `:default`.
+
+Allows you to give a default value that should be used if an argument is not 
+given. 
+
+    opt :type, default: 'house'
+
+So `--type` would return a state of `{:type => 'house'}` but `--type shed`
+would return a state of `{:type => 'shed'}`.
+
+#### Constraints
+Aliased as `:constraint`.
+
+Allows you to constrain the argument using a Proc, this is to cover the very
+few events where the above options do not satisfy the requirements.
+
+    opt :long_word, constraint: -> {|i| i.size >= 7 }
+
+Accepts `--long-word eventually` but not `--long-word even`.
+
+
+### Commands
+
+Commands can be defined using `#command`, they can contain other Options allowing
+you to namespace functionality. Commands are like Options in that they can take
+arguments, but they do not have short and long names, instead they can be given
+as many names as you wish. 
+
+    command :new, :create, 'Creates a new project', arg: '<dir>', as: Pathname do
+    
+      desc 'Use basic, complex or custom template from ~/.templates'
+      opt :type, arg: '<choice>', in: %w(basic complex custom), default: :basic, as: Symbol
       
-      switch(:hey) { puts "Hey" }
-    end
-    args = Args.parse(ARGV)
-    p args
-    
-    # `file --hey argument "A string"`
-    #=> ['argument', 'A string']
-
-
-### Variables
-
-Usually you'll want to set up some kind of variable, such as a hash to store your 
-configuration in, or an array of items to do something with. This would be quite annoying
-due to the fact it's a class, so I addded some handy methods.
-
-    class CLI
-      option_var :ok, false
-    end
-    CLI.ok #=> false
-    CLI.ok = true 
-    CLI.ok #=> true
-    
-    class CLI
-      option_hash :config
-      #=> is same as option_var :config, {}
+      opt :force, 'Force overwrite' do
+        require 'highline/import'
+        answer = ask "Are you sure, this could delete stuff? [y/n]\n"
+        set :force, true if answer == "y"
+      end
       
-      flag :set, :args => "KEY VALUE" do |key, value|
-        config[key.to_sym] = value
+      action do
+        puts "Creating #{get :type} in #{dir}"
+        # write stuff
       end
+    end
+
+This shows a fairly complex command. It can be called with `new` or `create` and takes
+one argument a directory which is converted to a Pathname object. Inside two Options
+are defined; `--type` which takes one of a selection of options but has a default set.
+And `--force` which asks for confirmation before using the `#set` method to set a value 
+in the state. Then an action is defined below which prints a message using `#get` to 
+retrieve a value from the state and then using the argument passed to the command. 
+
+If called with `new --type complex --force ~/projects/first` and then typed 'y' when 
+prompted, the message `"Creating complex in ~/projects/first"` would be printed and the 
+state returned would be `{:type => :complex, :force => true}`.
+
+
+### Help Formatters
+
+Although the default format for help will suit most cases occasionally you may want 
+something a bit different. This is possible by creating a formatter, that is an 
+object which responds to `#to_s`, `#header=`, `#footer=`, `#options=` and `#commands=`.
+It is probably going to be easiest to look at the default in `lib/clive/formatter.rb`
+as an example.
+
+To use your new formatter pass it with the key `:formatter` when calling `.run` or
+when creating a command. If a command has not been passed a formatter it uses the
+global one passed to `.run`.
+
+    class MyFormatter
+      # ...
+    end
     
-      option_list :items
-      # or option_array :items
-      #=> are the same as option_var :items, []
-      #                   option_var :a_list, []
-      
-      flag :add, :args => "ITEM" do |item|
-        items << item
-      end
+    class SpecialFormatter
+      # ...
     end
-    CLI.parse %w(--set works true --add apple --add orange)
-    CLI.config #=> {:works => true}
-    CLI.items #=> ['apple', 'orange']
-
-### Option Missing Handling
-
-You are able to intercept errors when an option does not exist in a similar way to 
-`method_missing`.
-
-    class Missing
-      option_missing do |name|
-        puts "#{name} was used but not defined"
-      end
-    end
-    Missing.parse %w(--hey)
-    #=> hey was used but not defined
-
-
-### Help Formatting
-
-There are two built in help formats the default, with colour, and a pure white one. To 
-change the formatter call `#help_formatter` with :default, or :white.
-
-Optionally you can create your own formatter, like so:
-
+    
     class CLI
-      help_formatter do |h|
-        h.switch "{prepend}{names.join(', ')} {spaces}# {desc}"
-        h.bool   "{prepend}{names.join(', ')} {spaces}# {desc}"
-        h.flag   "{prepend}{names.join(', ')} {args.join(' ')} {spaces}# {desc}" <<
-                   "{options.join('(', ', ', ')')}"
-        h.command "{prepend}{names.join(', ')} {spaces}# {desc}"
+      
+      # uses MyFormatter
+      command :new do
+        # ...
       end
-    end
-
-Which would look like:
-
-    Usage: my_app [command] [options]
+      
+      # uses SpecialFormatter
+      command :different, formatter: SpecialFormatter do
+        # ...
+      end
     
-      Commands:
-        test            # A command
-        
-      Options:
-        -h, --help      # Display help
-        --[no-]force    # Force build
+    end
+    
+    CLI.run formatter: MyFormatter
 
-You have access to the variables:
 
-* prepend - a string of spaces as specified when `#help_formatter` is called
-* names - an array of names for the option
-* spaces - a string of spaces to align the descriptions properly
-* desc - a string of the description for the option
-
-And for flags you have access to:
-
-* args - an array of arguments for the flag
-* options - an array of options to choose from
-
-Inside the { and } you can put any ruby, so feel free to use joins on the array.
-
- 
 ## Clive::Output
 
-This is a new bit that allows you to colourise output from the command line, by patching a 
-few methods onto String.
+`clive/output` contains various monkey patches on String that allow you to easily 
+colourise output.
 
     require 'clive/output'
     # or require 'clive'
     
-    puts "I'm blue".blue  # will print blue text
-    puts "I'm red".red    # will print red text
-    puts "I'm green and bold".green.bold   # will print green and bold text
+    puts "I'm blue".blue                     # will print blue text
+    puts "I'm red".red                       # will print red text
+    puts "I'm green and bold".green.bold     # will print green and bold text
     puts "Crazy".blue.l_yellow_bg.underline
     # etc
 
@@ -257,23 +275,12 @@ Methods available are:
  - yellow
  - blue
  - cyan
- - black (light version called grey not l_black)
+ - black (light version called grey not l\_black)
  
- - + light versions of colours using l_colour)
- - + background setters using colour_bg
- - + light background using l_colour_bg
-
-    
-
-## Note on Patches/Pull Requests
+ - + light versions of colours using l\_colour)
+ - + background setters using colour\_bg
+ - + light background using l\_colour\_bg
  
-* Fork the project.
-* Make your feature addition or bug fix.
-* Add tests for it. This is important so I don't break it in a
-  future version unintentionally.
-* Commit, do not mess with rakefile, version, or history.
-  (if you want to have your own version, that is fine but bump version in a commit by itself so I can ignore when I pull)
-* Send me a pull request. Bonus points for topic branches.
 
 ## Copyright
 

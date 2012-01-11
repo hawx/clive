@@ -1,239 +1,295 @@
-require 'spec_helper'
+$: << File.dirname(__FILE__) + '/..'
+require 'helper'
 
 describe Clive::Command do
 
-  context "when creating a base command" do
-    subject { Clive::Command.setup(Class.new) {} }
+  it 'can take arguments' do
+    command = Clive::Command.create([:test], '', :arg => '<dir>')
+
+    state = {:test => {}}
+    command.run(state, ['~/somewhere'])
+    state[:test][:args].must_equal '~/somewhere'
   end
-  
-  subject { 
-    Clive::Command.new([:co, :comm], "A command", Class.new) do
-      bool(:boo) {}
-      switch(:swi) {}
-      flag(:fla) {}
-      command(:com) {}
+
+  it 'can run a block with arguments' do
+    command = Clive::Command.create [], '', :arg => '<dir>' do
+      action { puts dir }
     end
-  }
-  
-  it_behaves_like "an option"
-  
-  describe "#initialize" do
-    subject { 
-      Clive::Command.new([:com], "A command", Class.new) do
-        flag(:test)
+
+    this { command.run({}, ['~/somewhere']) }.must_output "~/somewhere\n"
+  end
+
+  describe '#initialize' do
+    subject {
+      Clive::Command.new [:c,:b,:a], 'A command', :head => true,
+                                                  :args => '<a> [<b>]',
+                                                  :as => [Integer, nil],
+                                                  :group => 'Cool commands'
+    }
+
+    it 'sets the names' do
+      subject.names.must_equal [:c,:b,:a]
+    end
+
+    it 'sets the description' do
+      subject.description.must_equal 'A command'
+    end
+
+    it 'sets the options' do
+      subject.opts[:head].must_be_true
+      subject.opts[:group].must_equal 'Cool commands'
+    end
+
+    it 'sets the arguments' do
+      subject.args.size.must_equal 2
+      subject.args.map(&:name).must_equal [:a, :b]
+    end
+
+    it 'sets a default header' do
+      File.stubs(:basename).returns('file.rb')
+      subject.instance_variable_get(:@header).must_equal 'Usage: file.rb c,b,a [options]'
+    end
+
+    it 'sets a default footer' do
+      subject.instance_variable_get(:@footer).must_equal ''
+    end
+
+    it 'adds the help option' do
+      subject.must_be :has?, '--help'
+      subject.must_be :has?, '-h'
+    end
+
+    it 'resets the current description' do
+      subject.instance_variable_get(:@_last_desc).must_equal ''
+    end
+  end
+
+  describe '#name' do
+    it 'returns the first, in order when defined, name' do
+      command = Clive::Command.new [:efg, :abc, :zxy]
+      command.name.must_equal :efg
+    end
+  end
+
+  describe '#to_s' do
+    it 'returns the names joined' do
+      command = Clive::Command.new [:a, :b, :c]
+      command.to_s.must_equal 'a,b,c'
+    end
+  end
+
+  describe '#run_block' do
+    it 'runs the block passed to command' do
+      command = Clive::Command.new do
+        print 'Hey I was ran'
+      end
+      this { command.run_block({}) }.must_output 'Hey I was ran'
+    end
+
+    it 'returns a possibly modified state' do
+      state = {}
+      command = Clive::Command.new { set :a, true }
+      state.wont_have :key?, :a
+      command.run_block(state)
+      state.must_have :key?, :a
+    end
+  end
+
+  describe '#header' do
+    it 'sets the header' do
+      command = Clive::Command.new
+      command.header 'A header'
+      command.instance_variable_get(:@header).must_equal 'A header'
+    end
+  end
+
+  describe '#footer' do
+    it 'sets the footer' do
+      command = Clive::Command.new
+      command.footer 'A footer'
+      command.instance_variable_get(:@footer).must_equal 'A footer'
+    end
+  end
+
+  describe '#set' do
+    it 'sets a value to the state hash' do
+      command = Clive::Command.new
+      command.instance_variable_set :@state, {}
+      command.set :a, true
+      command.instance_variable_get(:@state).must_equal :a => true
+    end
+  end
+
+  describe '#option' do
+    it 'creates an option' do
+      command = Clive::Command.new
+      command.option :O, :opt, 'An option', :tail => true
+
+      opt = command.find('-O')
+      opt.name.must_equal :opt
+      opt.description.must_equal 'An option'
+      opt.opts.must_contain :tail => true
+    end
+  end
+
+  describe '#boolean' do
+    it 'creates a new boolean option' do
+      command = Clive::Command.new
+      command.boolean :auto, 'Auto build', :head => true
+
+      bool = command.find('--auto')
+      bool.name.must_equal :auto
+      bool.description.must_equal 'Auto build'
+      bool.opts.must_contain :head => true
+      bool.opts[:boolean].must_be_true
+    end
+  end
+
+  describe '#action' do
+    it 'stores a block' do
+      command = Clive::Command.new
+      block = proc {}
+      command.action &block
+      command.instance_variable_get(:@block).to_s.must_equal block.to_s
+    end
+  end
+
+  describe '#description' do
+    it 'sets the description' do
+      command = Clive::Command.new
+      command.description 'Some description'
+      command.instance_variable_get(:@_last_desc).must_equal 'Some description'
+    end
+
+    it 'gets the description' do
+      command = Clive::Command.new [], 'A command'
+      command.description.must_equal 'A command'
+    end
+  end
+
+  describe '#find' do
+    subject {
+      Clive::Command.create [:command] do
+        bool :F, :force
+        opt :auto_build
       end
     }
-  
-    it "generates a help header" do
-      File.stub!(:basename).and_return("test")
-      subject.instance_variable_get("@header").should == "Usage: test com [options]"
-    end
-    
-    it "generates an option missing proc" do
-      proc = subject.instance_variable_get("@option_missing")
-      expect {
-        proc.call("hey")
-      }.should raise_error Clive::NoOptionError
-    end
-    
-    it "doesn't run the block given" do
-      subject.flags.size.should == 0
-    end
-    
-    it "generates a help switch" do
-      subject.switches.map {|i| i.names}.should include ["h", "help"]
-    end
-  end
-  
-  describe "#bools" do
-    it "returns an array of bools" do
-      subject.find
-      subject.bools.each do |i|
-        i.should be_kind_of Clive::Bool
-      end
-    end
-  end
-  
-  describe "#switches" do
-    it "returns an array of switches" do
-      subject.find
-      subject.switches.each do |i|
-        i.should be_kind_of Clive::Switch
-      end
-    end
-  end
-  
-  describe "#flags" do
-    it "returns an array of flags" do
-      subject.find
-      subject.flags.each do |i|
-        i.should be_kind_of Clive::Flag
-      end
-    end
-  end
-  
-  describe "#find" do
-    it "runs the block for the command" do
-      subject.flags.size.should == 0
-      subject.find
-      subject.flags.size.should == 1
-    end
-    
-    it "sets the block to nil" do
-      subject.find
-      subject.block.should be_nil
-    end
-  end
-  
-  describe "#run" do
-    it "returns an array of unused arguments" do
-      subject.find
-      subject.run(%w(--swi what)).should == ['what']
-    end
-  end
-  
-  describe "#to_h" do
-    it "returns a hash of data for help formatting" do
-      hsh = {'names' => subject.names, 'desc' => subject.desc}
-      subject.to_h.should == hsh
-    end
-  end
-  
-  describe "#command" do
-    it "creates a new command" do
-      expect {
-        subject.command(:comm)
-      }.should change {subject.commands.size}.by(1)
-    end
-    
-    it "resets the current description" do
-      subject.desc 'A command'
-      subject.command(:comm)
-      subject.current_desc.should == ""
-    end
-  end
-  
-  describe "#switch" do
-    it "creates a new switch" do
-      expect {
-        subject.switch(:s, :switch)
-      }.should change {subject.switches.size}.by(1)
-    end
-    
-    it "resets the current description" do
-      subject.desc 'A switch'
-      subject.switch(:s, :switch)
-      subject.current_desc.should == ""
-    end
-  end
-  
-  describe "#flag" do
-    it "creates a new flag" do
-      expect {
-        subject.flag(:f, :flag)
-      }.should change {subject.flags.size}.by(1)
-    end
-    
-    it "resets the current description" do
-      subject.desc 'A flag'
-      subject.flag(:f, :flag)
-      subject.current_desc.should == ""
-    end
-  end
-  
-  describe "#bool" do
-    it "creates two bool switches" do
-      expect {
-        subject.bool(:b, :bool)
-      }.should change {subject.bools.size}.by(2)
-    end
-    
-    it "resets the current description" do
-      subject.desc 'A bool'
-      subject.bool(:b, :bool)
-      subject.current_desc.should == ""
-    end
-  end
-  
-  describe "#desc" do
-    context "when called with no arguments" do
-      it "returns the description for the command" do
-        subject.desc.should == "A command"
-      end
-    end
-    
-    context "when called with an argument" do
-      it "sets the current description" do
-        subject.desc "A new desc"
-        subject.instance_variable_get("@current_desc").should == "A new desc"
-      end
-    end
-  end
-  
-  describe "#option_missing" do
-    it "sets the option missing proc" do
-      proc = lambda {|n| puts "What? #{name} doesn't exist" }
-      subject.option_missing(&proc)
-      subject.instance_variable_get("@option_missing").should == proc
-    end
-  end
-  
-  describe "#header" do
-    it "sets the header" do
-      subject.header "A header"
-      subject.instance_variable_get("@header").should == "A header"
-    end
-  end
-  
-  describe "#footer" do
-    it "sets the footer" do
-      subject.footer "A footer"
-      subject.instance_variable_get("@footer").should == "A footer"
-    end
-  end
-  
-  describe "#build_help" do
-    it "adds a switch for help" do
-      subject.options = []
-      subject.options.should be_empty
-      subject.build_help
-      subject.options.map(&:names).should include ['h', 'help']
-    end
-  end
-  
-  describe "#help" do
-    it "returns a string of help" do
-      help = <<EOS
-Usage: rspec co, comm [options]
 
-  Options: 
-    -h, --help                \e[90mDisplay help\e[0m
-EOS
-    
-      subject.help.should == help
+    it 'finds boolean options' do
+      subject.find('--force').name.must_equal :force
+    end
+
+    it 'finds short options' do
+      subject.find('-F').name.must_equal :force
+    end
+
+    it 'does not find short negative boolean options' do
+      subject.find('--no-F').must_be_nil
+    end
+
+    it 'does not find negative boolean options' do
+      subject.find('--no-force').must_be_nil
+    end
+
+    it 'finds options with multiple words in name' do
+      subject.find('--auto_build').name.must_equal :auto_build
+    end
+
+    it 'finds options with dashes in name' do
+      subject.find('--auto-build').name.must_equal :auto_build
+    end
+
+    it 'does not find non existent options' do
+      subject.find('--no-auto-build').must_be_nil
+      subject.find('--unreal').must_be_nil
     end
   end
-  
-  describe "#help_formatter" do
-    context "when called with a symbol" do
-      it "uses the named formatter" do
-        before = subject.instance_variable_get("@formatter")
-        subject.help_formatter(:white)
-        subject.instance_variable_get("@formatter").should_not == before
+
+  describe '#find_option' do
+    subject {
+      Clive::Command.create do
+        bool :F, :force
+        opt :auto_build
       end
+    }
+
+    it 'finds boolean options' do
+      subject.find_option(:force).name.must_equal :force
     end
-    
-    context "when called with argumentss and a block" do
-      it "creates a new help formatter" do
-        subject.help_formatter :width => 40, :prepend => 5 do |h|
-          h.switch  "switch"
-          h.bool    "bool"
-          h.flag    "flag"
-          h.command "command"
-        end
-        formatter = subject.instance_variable_get("@formatter")
-        formatter.width.should == 40
+
+    it 'finds short options' do
+      subject.find_option(:F).name.must_equal :force
+    end
+
+    it 'does not find short negative boolean options' do
+      subject.find_option(:no_F).must_be_nil
+    end
+
+    it 'does not find negative boolean options' do
+      subject.find_option(:no_force).must_be_nil
+    end
+
+    it 'finds options with multiple words in name' do
+      subject.find_option(:auto_build).name.must_equal :auto_build
+    end
+
+    it 'does not find non existent options' do
+      subject.find_option(:no_auto_build).must_be_nil
+      subject.find_option(:unreal).must_be_nil
+    end
+  end
+
+  describe '#has?' do
+    it 'tries to find the option' do
+      command = Clive::Command.new
+      command.expects(:find).with('--option').returns(Clive::Option.new)
+      command.has?('--option').must_be_true
+    end
+  end
+
+  describe '#group' do
+    it 'sets the group for options created' do
+      command = Clive::Command.create do
+        group 'Testing'
+        opt :test
+        group 'Changed'
+        opt :change
+        opt :manual, :group => 'Set'
       end
+
+      command.find_option(:test).opts[:group].must_equal   'Testing'
+      command.find_option(:change).opts[:group].must_equal 'Changed'
+      command.find_option(:manual).opts[:group].must_equal 'Set'
+    end
+  end
+
+  describe '#end_group' do
+    it 'calls #group with nil' do
+      command = Clive::Command.create do
+        group 'Testing'
+        option :test
+        end_group
+        option :none
+      end
+
+      command.find_option(:none).opts[:group].must_be_nil
+    end
+  end
+
+  describe '#help' do
+    it 'builds a help string using the defined formatter' do
+      f = mock
+      command = Clive::Command.create [], "", :formatter => f do
+        header 'Top'
+        footer 'Bottom'
+      end
+
+      f.expects(:header=).with('Top')
+      f.expects(:footer=).with('Bottom')
+      f.expects(:options=).with([command.find_option(:help)])
+      f.expects(:to_s).with()
+
+      command.help
     end
   end
 

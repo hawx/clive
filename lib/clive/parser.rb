@@ -1,242 +1,5 @@
-module Clive
+class Clive
 
-<<<<<<< HEAD
-  # A module wrapping the command line parsing of clive. In the future this
-  # will be the only way of using clive.
-  #
-  # @example
-  #
-  #   require 'clive'
-  # 
-  #   class CLI
-  #     include Clive::Parser
-  #     option_hash :opts
-  #   
-  #     switch :v, :verbose, "Run verbosely" do
-  #       opts[:verbose] = true
-  #     end
-  #   end
-  #
-  #   CLI.parse ARGV
-  #   p CLI.opts
-  #
-  module Parser
-    def self.included(klass)
-      klass.include(Clive)
-    end
-  end
-
-
-  # Parse is the parser for command line input it takes the input and all
-  # commands, flags, switches, etc and then sorts it out
-  class Parse
-    
-    # @param argv [Array] The passed command line input, usually ARGV
-    # @param klass [Command] The command being run in
-    def initialize(argv, klass)
-      @argv     = argv
-      @klass    = klass
-    end
-    
-    # @return [Array] all bools in this command
-    def bools
-      @klass.options.find_all {|i| i.class == Bool }
-    end
-    
-    # @return [Array] all switches in this command
-    def switches
-      @klass.options.find_all {|i| i.class == Switch }
-    end
-    
-    # @return [Array] all flags in this command
-    def flags
-      @klass.options.find_all {|i| i.class == Flag }
-    end
-    
-    # Finds the command which has the name given
-    #
-    # @param name [String]
-    # @return [Clive::Command]
-    #
-    def find_command(str)
-      @klass.commands.find {|i| i.names.include?(str)}
-    end
-    
-    # Finds the option which has the name given
-    #
-    # @param name [String]
-    # @return [Clive::Option]
-    #
-    def find_opt(name)
-      @klass.options.find {|i| i.names.include?(name)}
-    end
-    
-    def opt_type(name)
-      case find_opt(name).class.name
-      when "Clive::Switch"
-        :switch
-      when "Clive::Bool"
-        :switch
-      when "Clive::Flag"
-        :flag
-      when "Clive::Command"
-        :command
-      else
-        #raise "'#{name} (#{find_opt(name).class.name})' not of recognised type"
-        nil
-      end
-    end
-    
-    
-    def tokenise(arr=@argv)
-      r = []
-      
-      arr.each do |a|
-        case a
-        when /\-\-(.+)/
-          r << [:option, $1]
-        when /\-(.+)/
-          r += $1.split('').map {|i| [:option, i] }
-        else
-          r << [:word, a]
-        end
-      end
-      
-      r
-    end
-    
-    
-    def _populate(arr=tokenise)
-      tree = []
-      _temp = []
-      
-      arr.each_with_index do |(t,v), i|
-        last = tree[i-1] || []
-        last[2] ||= [] if last[0] == :flag
-        
-        case t
-        when :word
-          if command = find_command(v)
-            if last[0] == :flag
-              if last[2].size < last[1].arg_size(:mandatory)
-                last[2] << [:arg, v]
-              else
-                tree << [:command, command, populate(arr[i+1..-1])]
-                break
-              end
-            else
-              tree << [:command, command, populate(arr[i+1..-1])]
-              break
-            end
-            
-          else
-            if last[0] == :flag && last[2].size < last[1].arg_size(:all)
-              _temp << [:arg, v]
-            else
-              tree << [:arg, v]
-            end
-          end
-          
-        when :option
-          tree << [opt_type(v), find_opt(v)]
-        end
-        
-        unless _temp.empty?
-          tree += _temp
-          _temp = []
-        end
-      end
-      
-      tree
-    end
-    
-    def populate(arr=tokenise)
-      tree = []
-      
-      i = 0
-      arr.each_with_index do |(t,v), i|
-        p t
-        if t == :word
-          last = tree.last || []
-          last[2] ||= [] if last[0] == :flag
-          
-          if command = find_command(v)
-            if last[0] == :flag              
-              if last[2].size < last[1].arg_size(:mandatory)
-                last[2] << [:arg, v]
-              else
-                tree << [:command, command, populate(arr[i+1..-1])]
-                break
-              end
-            else
-              tree << [:command, command, populate(arr[i+1..-1])]
-             break
-            end
-            
-          else
-            if last[0] == :flag && last[2].size < last[1].arg_size(:all)
-              last[2] << [:arg, v]
-            else
-              tree << [:arg, v]
-            end  
-          end
-          
-        else
-          tree << [opt_type(v), find_opt(v)]
-        end
-  
-        i += 1
-      end
-  
-      tree
-    end
-    
-    
-    # Traverses the tree created by #tokens_to_tree and runs the correct options.
-    # 
-    # @param tree [Array]
-    # @return [Array]
-    #   Any unused arguments.
-    #
-    def run_tree(tree=populate)
-      i = 0
-      l = tree.size
-      r = []
-      
-      while i < l
-        curr = tree[i]
-        
-        case curr[0]
-        when :command
-          r << curr[1].run(curr[2])
-          
-        when :switch
-          curr[1].run
-          
-        when :flag
-          args = curr[2].map {|i| i[1] }
-          if args.size < curr[1].arg_size(:mandatory)
-            raise MissingArgument.new(curr[1].sort_name)
-          end
-          curr[1].run(args)
-          
-        when :arg
-          r << curr[1]
-        end
-        
-        i += 1
-      end
-      r.flatten
-    end
-    
-    
-  end
-end
-
-$: << File.dirname(__FILE__) + '/..'
-require 'clive'
-
-=======
   class Parser
 
     class MissingArgumentError < Error
@@ -247,37 +10,18 @@ require 'clive'
       reason 'option could not be found: #0'
     end
 
-    # :state [#[], #[]=] Used to store values from options that do not trigger blocks.
-    # :debug [Boolean] Whether to print debug messages, useful if parsing oddly.
     DEFAULTS = {
-      :state => Hash,
-      :debug => false
+      :state => ::Clive::StructHash
     }
 
-    def initialize(base)
+    # @param base [Command]
+    #
+    # @param opts [Hash]
+    # @option opts [.new, #[], #[]=, #alias] :state
+    #   What class the state should be
+    def initialize(base, opts)
       @base = base
-    end
-
-    attr_accessor :i, :state, :arguments, :argv
-
-    def inc
-      @i += 1
-    end
-
-    def dec
-      @i -= 1
-    end
-
-    def curr
-      argv[i]
-    end
-
-    def ended?
-      i >= argv.size
-    end
-
-    def debug(str)
-      puts @debug_padding.to_s + str.l_cyan if @opts[:debug]
+      @opts = DEFAULTS.merge(opts)
     end
 
     # The parser should work how you expect. It allows you to put global options before and after
@@ -288,192 +32,160 @@ require 'clive'
     #
     # Only one command can be run, if you attempt to use two the other will be caught as an argument.
     #
-    def parse(argv, opts={})
+    # @param argv [Array]
+    #   The input to parse from the command line, usually ARGV.
+    #
+    # @param pre_state [Hash]
+    #   A pre-populated state to be used.
+    #
+    def parse(argv, pre_state)
       @argv = argv
-      @opts = DEFAULTS.merge(opts)
-      @i = 0
-
-      @arguments   = []
-      @state       = @opts[:state].new
-      command_ran  = false # only one command can be ran per parse!
+      @i    = 0
+      
+      @state = @opts[:state].new(pre_state)
+      @state.store :args, []
+      
+      # Pull out 'help' command immediately if found
+      if @argv[0] == 'help'
+        if @argv[1]
+          puts @base.find[@argv[1]].help
+        else
+          puts @base.help
+        end
+      end
 
       until ended?
         # does +curr+ exist? (and also check that if it is a command a command hasn't been run yet
-        if @base.has?(curr) && ((@base.find(curr).command? && !command_ran) || (@base.find(curr).option?))
+        if @base.has?(curr) && ((@base.find(curr).kind_of?(Command) && !command_ran?) || @base.find(curr).kind_of?(Option))
         
           found = @base.find(curr)
 
           # is it a command?
-          if found.command?
-            command_ran = true
-            found.run_block
-
-            debug "Found command: #{found}"
-            @debug_padding = "  "
-
+          if found.kind_of?(Command)
+            @command_ran = true
+            @state.store found.names, found.run_block(@opts[:state].new)
+            
             inc
-            state[found.name] = @opts[:state].new
-            command_args = []
+            args = []
 
             until ended?
               if found.has?(curr)
-                opt = found.find(curr)
-                debug "Found option: #{opt}"
-                
-                args = opt.max_args > 0 ? do_arguments_for(opt) : [true]
-
-                if opt.block?
-                  opt.run(state[found.name], args)
-                else
-                  state[found.name][opt.name] = (opt.max_args <= 1 ? args[0] : args)
-                end
-                
+                run_option found.find(curr), found
               else
-                break unless found.possible?(command_args + [curr])
-                command_args << curr
+                break unless found.args.possible?(args + [curr])
+                args << curr
               end
-
               inc
             end
             dec
-
-            unless found.valid?(command_args)
-              raise MissingArgumentError.new(found, command_args, found.opts)
-            end
-
-            if found.block?
-              found.run(state[found.name], command_args)
-            else
-              state[found.name][:args] = (found.max_args <= 1 ? command_args[0] : command_args)
-            end
-
-            @debug_padding = ""
+            
+            found.run @state, validate_arguments(found, args), found
 
           # otherwise it is an option
           else
-            debug "Found option:  #{found}"
-            args = found.max_args > 0 ? do_arguments_for(found) : [true]
-
-            if found.block?
-              found.run(state, args)
-            else
-              state[found.name] = (found.max_args <= 1 ? args[0] : args)
-            end
+            run_option found
           end
 
-        elsif curr[0..4] == '--no-'
-          found = @base.find("--#{curr[5..-1]}")
-          debug "Found argument: #{found} (false)"
+        # it's a no- option
+        elsif curr[0..4] == '--no-' && @base.find("--#{curr[5..-1]}").opts[:boolean] == true
+          @base.find("--#{curr[5..-1]}").run @state, [false]
 
-          if found.block?
-            found.run(state, [false])
-          else
-            state[found.name] = false
-          end
-
-        elsif curr[0] == '-' && curr.size > 2 && @base.has?("-#{curr[1]}")
+        # it's one (or more) short options
+        elsif curr[0..0] == '-' && curr.size > 2 && @base.has?("-#{curr[1..1]}")
           currs = curr[1..-1].split('').map {|i| "-#{i}" }
 
           currs.each do |c|
             opt = @base.find(c)
-            raise Parser::MissingOptionError.new(name) unless opt
-            debug "Found option: #{opt}"
+            raise MissingOptionError.new(c) unless opt
 
             if c == currs.last
-              args = opt.max_args > 0 ? do_arguments_for(opt) : [true]
-
-              if opt.block?
-                opt.run(state, args)
+              run_option opt
+            else 
+              # can't take any arguments as an option is next to it
+              if opt.args.min > 0
+                raise MissingArgumentError.new(opt, [], opt.args) 
               else
-                state[opt.name] = (opt.max_args <= 1 ? args[0] : args)
-              end
-            else # can't take any arguments as an option is next to it
-              if opt.max_args > 0
-                raise MissingArgumentError.new(opt, [], opt.args)
-              end
-
-              if opt.block?
-                opt.run(state, [true])
-              else
-                state[opt.name] = true
+                opt.run @state, [true]
               end
             end
           end
 
         # otherwise it is an argument
         else
-          debug "Found argument: #{curr}"
-          arguments << curr
+          @state.args << curr
         end
 
         inc
       end
+    
+      @state
+    end
+    
 
-      return arguments, state
+    private
+    
+    def run_option(opt, within=nil)
+      args = opt.args.max > 0 ? do_arguments_for(opt) : [true]
+      opt.run @state, args, within
+    end
+    
+    # Increment the index
+    def inc
+      @i += 1
+    end
+
+    # Decrement the index
+    def dec
+      @i -= 1
+    end
+  
+    # @return [String] The current token
+    def curr
+      @argv[@i]
+    end
+
+    # Whether the index is at the end of the argv
+    def ended?
+      @i >= @argv.size
+    end
+    
+    def command_ran?
+      @command_ran || false
     end
 
     # Returns the finished argument list for +opt+ which can then be pushed to the state.
-    def do_arguments_for(opt, buffer=0)
-      arg_list = collect_arguments(opt, buffer)
+    def do_arguments_for(opt)
+      arg_list = collect_arguments(opt)
       arg_list = validate_arguments(opt, arg_list)
-
-      debug "  got #{arg_list.size} argument(s): #{arg_list.to_s[1..-2]}"
 
       arg_list
     end
 
-    def collect_arguments(opt, buffer=0)
+    # Collects the arguments for +opt+.
+    def collect_arguments(opt)
       inc
       arg_list = []
-      while i < (argv.size - buffer) && arg_list.size < opt.max_args
-        break unless opt.possible?(arg_list + [curr])
+      while !ended? && arg_list.size < opt.args.max
+        break unless opt.args.possible?(arg_list + [curr])
         arg_list << curr
         inc
       end
       dec
       arg_list
     end
-
+    
+    # Makes sure the found list of arguments is valid, if not raises 
+    # MissingArgumentError. Returns the valid argument list with the arguments
+    # as the correct type, in the correct positions and with default values
+    # inserted if necessary.
     def validate_arguments(opt, arg_list)
       # If we don't have enough args
-      unless opt.valid?(arg_list)
-        raise MissingArgumentError.new(opt, arg_list, opt.args)
+      unless opt.args.valid?(arg_list)
+        raise MissingArgumentError.new(opt, arg_list, opt.args.to_s)
       end
 
-      opt.valid_arg_list(arg_list)
+      opt.args.create_valid(arg_list)
     end
->>>>>>> master
 
-class CLI
-  include Clive
-  
-  desc 'Save the file'
-  flag :s, :save, :arg => 'FILENAME' do |i|
-    puts "Saving #{i}"
-  end
-  
-  command :new, 'Create new something' do
-    switch :v do
-      puts "Verbose mode"
-    end
   end
 end
-
-# [
-#   [:command, "new", [
-#     [:switch, "s"],
-#     [:arg, "what"]]
-# ]
-
-$ran ||= false
-unless $ran == true
-  #parse = Clive::Parse.new(%w(new -v), CLI)
-  #p parse.tokenise
-  # p parse._populate
-  #p parse.populate
-  #p parse.run_tree
-  CLI.parse
-  
-  $ran = true
-end
-

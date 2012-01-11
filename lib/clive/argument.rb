@@ -1,132 +1,170 @@
-module Clive
+class Clive
 
   # An Argument represents an argument for an Option or Command, it can be optional
-  # and can also be constricted by various other values.
+  # and can also be constricted by various other values, see {#initialize}.
   class Argument
 
-    class AlwaysInclude
-      def self.include?(arg)
-        true
+    # Creates an object which will respond with true to all call to the method(s)
+    # given.
+    #
+    # @example
+    #   eg = AlwaysTrue.for(:a, :b, :c)
+    #   eg.a          #=> true
+    #   eg.b(1,2,3)   #=> true
+    #   eg.c { 1 }    #=> true
+    #   eg.d          #=> NoMethodError
+    #
+    class AlwaysTrue
+
+      # @param syms [Symbol] Methods which should return true
+      def self.for(*syms)
+        c = Class.new
+        syms.each do |sym|
+          c.send(:define_method, sym) {|*a| true }
+        end
+        c.send(:define_method, :inspect) { "#<AlwaysTrue #{syms.map {|i| ":#{i}" }.join(', ') }>" }
+        c.new
       end
     end
 
-    class AlwaysMatch
-      def self.match(arg)
-        true
-      end
-    end
-
+    # An Argument will have these traits by default.
     DEFAULTS = {
-      :optional => false,
-      :type => Object,
-      :match => AlwaysMatch,
-      :within => AlwaysInclude,
-      :default => nil,
-      :constraint => proc {|a| true }
+      :optional   => false,
+      :type       => Type::Object,
+      :match      => AlwaysTrue.for(:match),
+      :within     => AlwaysTrue.for(:include?),
+      :default    => nil,
+      :constraint => AlwaysTrue.for(:call)
     }
 
     attr_reader :name, :default, :type
 
     # A new instance of Argument.
     #
-    # @param name [Symbol, #to_sym]
+    # @param opts [Hash]
+    #
+    # @option opts [#to_sym] :name
     #   Name of the argument.
     #
-    # @param optional [true, false]
-    #   Whether this argument is optional. An optional argument does not have to be
-    #   given and will instead pass +nil+ to the block.
+    # @option opts [Boolean] :optional
+    #   Whether this argument is optional. An optional argument does not have
+    #   to be given and will pass +:default+ to the block instead.
     #
-    # @param type [Type]
-    #   Type that the matching argument should be cast to. See {Type} and the various
-    #   subclasses for details.
+    # @option opts [Type] :type
+    #   Type that the matching argument should be cast to. See {Type} and the
+    #   various subclasses for details. Each {Type} defines something that the
+    #   argument must match in addition to the +:match+ argument given.
     #
-    # @param match [#match]
+    # @option opts [#match] :match
     #   Regular expression the argument must match.
     #
-    # @param within [#include?]
-    #   Collection that the matching argument should be in. This will be checked
-    #   against the string argument and the cast object (see type above).
+    # @option opts [#include?] :within
+    #   Collection that the argument should be in. This will be checked
+    #   against the string argument and the cast object (see +:type+). So for
+    #   instance if +:type+ is set to +Integer+ you can set +:within+ to be an array
+    #   of integers, [1,2,3], or an array of strings, %w(1 2 3), and get the
+    #   same result.
     #
-    # @param default
-    #   Default value the argument takes.
+    # @option opts :default
+    #   Default value the argument takes. This is only set or used if the Option or
+    #   Command is actually called.
     #
-    # @param constraint [#call]
-    #   Proc which is passed the found argument and should return true if the value is
-    #   ok and false if not.
+    # @option opts [#call, #to_proc] :constraint
+    #   Proc which is passed the found argument and should return +true+ if the
+    #   value is ok and false if not.
+    #   If the object responds to #to_proc this will be called and the resulting
+    #   Proc object saved for later use. This allows you to pass method symbols.
     #
     # @example
     #
-    #   Argument.new(:arg, :optional => true, :type => Integer)
+    #   Argument.new(:arg, :optional => true, :type => Integer, :constraint => :odd?)
     #
-    def initialize(name, *opts)
-      opts  = (opts[0].is_a?(Hash) ? opts[0] : Hash[opts])
+    def initialize(name, opts={})
       @name = name.to_sym
 
-      opts = DEFAULTS.merge(Hash[opts])
+      opts[:constraint] = opts[:constraint].to_proc if opts[:constraint].respond_to?(:to_proc)
+      opts = DEFAULTS.merge(opts)
 
       @optional   = opts[:optional]
-      @type       = Type.find_class(opts[:type].to_s)
+      @type       = Type.find_class(opts[:type].to_s) rescue opts[:type]
       @match      = opts[:match]
       @within     = opts[:within]
       @default    = opts[:default]
       @constraint = opts[:constraint]
     end
 
-    # Whether the argument is optional.
+    # @return Whether the argument is optional.
     def optional?
       @optional
     end
 
     # @return [String] String representation for the argument.
     def to_s
-      if optional?
-        "[<#@name>]"
+      optional? ? "[<#@name>]" : "<#@name>"
+    end
+
+    # @return [String]
+    #  Choices or range of choices that can be made, for the help string.
+    def choice_str
+      if @within
+        case @within
+        when Array
+          '(' + @within.join(', ') + ')'
+        when Range
+          '(' + @within.to_s + ')'
+        else
+          ''
+        end
       else
-        "<#@name>"
+        ''
       end
     end
 
     def inspect
-      r = [self.class, to_s]
-
-      r << "type=#@type"       if @type
-      r << "match=#@match"     if @match
-      r << "within=#@within"   if @within
-      r << "default=#@default" if @default
-
-      "#<#{r.join(' ')}>"
+      "#<#{self.class} #{to_s}>"
     end
 
-    # @param str [String] Found argument that could be this object's object.
-    # @return [true, false] Whether +str+ could be this argument.
-    def possible?(str)
-      if !@type.valid?(str)
+    # Determines whether the object given can be this argument. Checks whether
+    # it is valid based on the options passed to {#initialize}.
+    #
+    # @param obj [String, Object]
+    #   This method will be called at least twice for each argument, the first
+    #   time when testing for {Arguments#possible?} and then for {Arguments#valid?}.
+    #   When called in {Arguments#possible?} +obj+ will be passed as a string,
+    #   for {Arguments#valid?} though +obj+ will have been cast using {#coerce}
+    #   to the correct type meaning this method must deal with both cases.
+    #
+    # @return Whether +obj+ could be this argument.
+    #
+    def possible?(obj)
+      return false if obj.is_a?(String) && !@type.valid?(obj)
+      return false unless @match.match(obj.to_s)
+
+      coerced = coerce(obj)
+
+      unless @within.include?(obj.to_s) || @within.include?(coerced)
         return false
       end
 
-      if !@match.match(str)
-        return false
-      end
-
-      if !(@within.include?(str) || @within.include?(@type.typecast(str)))
-        return false
-      end
-
-      if !(@constraint.call(str) || @constraint.call(@type.typecast(str)))
-        return false
+      begin
+        return false unless @constraint.call(obj.to_s)
+      rescue
+        begin
+          return false unless @constraint.call(coerced)
+        rescue
+          return false
+        end
       end
 
       true
     end
 
-    # Makes the found string argument the correct type.
+    # Converts the given String argument to the correct type determined by the
+    # +:type+ passed to {#initialize}.
     def coerce(str)
-      if @type
-        @type.typecast(str)
-      else
-        str
-      end
+      return str unless str.is_a?(String)
+      @type.typecast(str)
     end
-
   end
+
 end

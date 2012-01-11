@@ -1,8 +1,9 @@
-module Clive
+class Clive
 
-  # A command is a subcommand that allows you to separate options under it's 
-  # namespace, it can also take arguments but does not execute the block with
-  # their values but instead another block defined with #action.
+  # A command allows you to separate groups of commands under their own
+  # namespace. But it can also take arguments like an Option. Instead of
+  # of executing the block passed to it executes the block passed to
+  # {#action}.
   #
   # @example
   #
@@ -10,8 +11,8 @@ module Clive
   #     include Clive
   #
   #     command :new, arg: '<dir>' do
-  #       # opt definitions
-  #       opt :force, as: Boolean
+  #       # definitions
+  #       bool :force
   #
   #       action do |dir|
   #         # code
@@ -20,307 +21,344 @@ module Clive
   #   end
   #
   #   # call with
-  #   #   file.rb new ~/somewhere --force
+  #   #   ./file.rb new ~/somewhere --force
   #
   class Command < Option
-  
-    attr_reader :names, :desc, :options
-  
+
+    # @return [Array<Option>] List of options created in the Command instance
+    attr_reader :options
+
+    DEFAULTS = {
+      :group     => nil,
+      :head      => false,
+      :tail      => false,
+      :runner    => Clive::Option::Runner,
+      :formatter => nil, # really takes the DEFAULT (or one set) from Base
+      :help      => true
+    }
+
     # @param names [Array[Symbol]]
     #   Names that the Command can be ran with.
     #
     # @param desc [String]
     #   Description of the Command, this is shown in help and will be wrapped properly.
     #
-    # @param opts [Hash] The options available for commands are the same as for Options
-    #   see {Option#initialize} for details.
     #
-    def initialize(names, desc="", opts={}, &block)
-      @names = names.sort
-      @desc  = desc
-      @_block = block
-      
-      @opts, hash = sort_opts(opts)
-      
-      hash  = args_to_hash(hash)
-      hash  = infer_args(hash)
-      @args = optify(hash)
-      
-<<<<<<< HEAD
-      self.build_help
-    end
-    
-    # @return [Array] all bools in this command
-    def bools
-      @options.find_all {|i| i.class == Bool }
-    end
-    
-    # @return [Array] all switches in this command
-    def switches
-      @options.find_all {|i| i.class == Switch }
-    end
-    
-    # @return [Array] all flags in this command
-    def flags
-      @options.find_all {|i| i.class == Flag }
-    end
-    
-    # Run the block that was passed to find switches, flags, etc.
+    # @param opts [Hash]
+    # @option opts [Boolean] :head
+    #   If option should be at top of help list.
     #
-    # This should only be called if the command has been called
-    # as the block could contain other actions to perform only 
-    # when called.
+    # @option opts [Boolean] :tail
+    #   If option should be at bottom of help list.
     #
-    def find
-      return nil if @base || @block.nil?
-      self.instance_eval(&@block)
-      @block = nil
-    end
-    
-    # Gets the type of the option which corresponds with the name given
+    # @option opts [String] :group
+    #   Name of the group this option belongs to. This is actually set when
+    #   {Command#group} is used.
     #
-    # @param name [String]
-    # @return [Constant]
+    # @option opts [Runner] :runner
+    #   Class to use for running the block passed to #action. This doesn't have
+    #   to be Option::Runner, but you probably never need to change this.
     #
-    def type_is?(name)
-      find_opt(name).class.name || Clive::Command
-=======
-      @options = []
+    # @option opts [Formatter] :formatter
+    #   Help formatter to use for this command, defaults to top-level formatter.
+    #
+    # @option opts [Boolean] :help
+    #   Whether to add a '-h, --help' option to this command which displays help.
+    #
+    # @option opts [String] :args
+    #   Arguments that the option takes. See {Argument}.
+    #
+    # @option opts [Type, Array[Type]] :as
+    #   The class the argument(s) should be cast to. See {Type}.
+    #
+    # @option opts [#match, Array[#match]] :match
+    #   Regular expression that the argument(s) must match.
+    #
+    # @option opts [#include?, Array[#include?]] :in
+    #   Collection that argument(s) must be in.
+    #
+    # @option opts [Object] :default
+    #   Default value that is used if argument is not given.
+    #
+    def initialize(names=[], description="", opts={}, &block)
+      @names       = names
+      @description = description
+      @options     = []
+      @_block      = block
+
+      @args = Arguments.create( get_subhash(opts, Arguments::Parser::KEYS) )
+      @opts = DEFAULTS.merge( get_subhash(opts, DEFAULTS.keys) || {} )
+
+      # Create basic header "Usage: filename commandname(s) [options]
+      @header = "Usage: #{File.basename($0)} #{to_s} [options]"
+      @footer = ""
+      @_group = nil
+
+      add_help_option
+
       current_desc
->>>>>>> master
     end
-    
+
     # @return [Symbol] Single name to use when referring specifically to this command.
+    #  Use the first name that was passed in.
     def name
       names.first
     end
-    
+
     # @return [String]
     def to_s
-      names.join(', ')
+      names.join(',')
     end
-    
-    # Runs the block that was given to Command#initialize within the context of the 
-    # command.
-    def run_block
-      instance_exec(&@_block) if @_block
-    end
-    
-    # @return [String]
-    #   Returns the last description to be set with {#description}, it then clears the
-    #   stored description so that it is not returned twice.
-    def current_desc
-      r = @_last_desc
-      @_last_desc = ""
-      r
-    end
-    
-    # Creates a new Option in the Command.
+
+    # Runs the block that was given to {Command#initialize} within the context of the
+    # command. The state hash is passed (and returned) so that {#set} works outside
+    # of {Runner} allowing default values to be set.
     #
+    # @param state [Hash] The newly created state for the command.
+    # @return [Hash] The returned hash is used for the state of the command.
+    def run_block(state)
+      if @_block
+        @state = state
+        instance_exec(&@_block)
+        @state
+      else
+        @state = state
+      end
+    end
+
+    # @group DSL Methods
+
+    # Set the header for {#help}.
+    # @param [String]
+    # @example
+    #
+    #   header 'Usage: my_app [options] [args]'
+    #
+    def header(val)
+      @header = val
+    end
+
+    # Set the footer for {#help}.
+    # @param [String]
+    # @example
+    #
+    #   footer 'For more help visit http://mysite.com/help'
+    #
+    def footer(val)
+      @footer = val
+    end
+
+    # @see Clive::Option::Runner.set
+    # @example
+    #
+    #   command :create, 'Create a project' do
+    #     set :files, []
+    #
+    #     opt :add, arg: '<path>', 'Add a file' do
+    #       update :files, :<<, path
+    #     end
+    #   end
+    #
+    def set(key, value)
+      @state.store key, value
+    end
+
     # @overload option(short=nil, long=nil, description=current_desc, opts={}, &block)
-    #   Creates a new Option
+    #   Creates a new Option in the Command. Either +short+ or +long+ must be set.
     #   @param short [Symbol] The short name for the option (:a would become +-a+)
     #   @param long [Symbol] The long name for the option (:add would become +--add+)
     #   @param description [String] Description of the option
-    #   @param opts [Hash] Options to create the Option with, see Option#initialize
-    #
-<<<<<<< HEAD
-    def __array_to_tokens(arr)
-      result = []
-      
-      arr.each do |a|
-        if a[0..1] == "--"
-          result << [:option, a[2..-1]]
-          
-        elsif a[0] == "-"
-          a[1..-1].split('').each do |i|
-            result << [:option, i]
-          end
-
-        else
-          result << [:word, a]
-        end
-      end
-
-      result 
-    end
-    
-    # Converts the set of tokens returned from #array_to_tokens into a tree.
-    # This is where we determine whether a +word+ is an argument or command. 
+    #   @param opts [Hash] Options to create the Option with, see {Option#initialize}
     #
     # @example
-    #   tokens_to_tree([[:option, "switch"], [:word, "command"], 
-    #                   [:option, "f"], [:word, "arg"]])
-    #   #=> [
-    #   #     [:switch, #<Clive::Switch [switch]>],
-    #   #     [:command, #<Clive::Command [command]>, [
-    #   #       [:flag, #<Clive::Flag [f, flag]>, [
-    #   #         [:arg, 'arg']
-    #   #       ]]
-    #   #     ]]
-    #   #   ]
     #
-    # @param arr [Array]
-    # @return [Array]
+    #   opt :type, arg: '<size>', in: %w(small medium large) do
+    #     case size
+    #       when "small"  then set(:size, 1)
+    #       when "medium" then set(:size, 2)
+    #       when "large"  then set(:size, 3)
+    #     end
+    #   end
     #
-    def __tokens_to_tree(arr)
-      tree = []
-      self.find
-      
-      l = arr.size
-      i = 0
-      while i < l
-        a = arr[i]
-        
-        if a[0] == :word
-          
-          last = tree.last || []
-          
-          if last[0] == :flag
-            last[2] ||= []
-          end
-          
-          if command = find_command(a[1])
-            if last[0] == :flag              
-              if last[2].size < last[1].arg_size(:mandatory)
-                last[2] << [:arg, a[1]]
-              else
-                tree << [:command, command, command.tokens_to_tree(arr[i+1..-1])]
-                i = l
-              end
-            else
-              tree << [:command, command, command.tokens_to_tree(arr[i+1..-1])]
-              i = l
-            end
-          else
-            if last[0] == :flag && last[2].size < last[1].arg_size(:all)
-              last[2] << [:arg, a[1]]
-            else
-              tree << [:arg, a[1]]
-            end  
-          end
-        else
-          tree << [opt_type(a[1]), find_opt(a[1])]
-=======
     def option(*args, &block)
       ns, d, o = [], current_desc, {}
       args.each do |i|
         case i
-          when Symbol then ns << i
-          when String then d = i
-          when Hash   then o = i
->>>>>>> master
+          when ::Symbol then ns << i
+          when ::String then d = i
+          when ::Hash   then o = i
         end
       end
-      @options << Option.new(ns, d, o, &block)
+      @options << Option.new(ns, d, ({:group => @_group}).merge(o), &block)
     end
     alias_method :opt, :option
-    
+
+    # @overload boolean(short=nil, long, description=current_desc, opts={}, &block)
+    #   Creates a new Option in the Command which responds to calls with a 'no-' prefix.
+    #   +long+ must be set.
+    #   @param short [Symbol] The short name for the option (:a would become +-a+)
+    #   @param long [Symbol] The long name for the option (:add would become +--add+)
+    #   @param description [String] Description of the option
+    #   @param opts [Hash] Options to create the Option with, see {Option#initialize}
+    #
+    # @example
+    #
+    #   bool :auto, 'Auto regenerate on changes'
+    #
+    #   # Usage
+    #   #  --auto      sets :auto to true
+    #   #  --no-auto   sets :auto to false
+    #
+    def boolean(*args, &block)
+      ns, d, o = [], current_desc, {}
+      args.each do |i|
+        case i
+          when ::Symbol then ns << i
+          when ::String then d = i
+          when ::Hash   then o = i
+        end
+      end
+      @options << Option.new(ns, d, ({:group => @_group, :boolean => true}).merge(o), &block)
+    end
+    alias_method :bool, :boolean
+
     # If an argument is given it will set the description to that, otherwise it will
     # return the description for the command.
-    # 
-<<<<<<< HEAD
-    # @param tree [Array]
-    # @return [Array]
-    #   Any unused arguments.
     #
-    def __run_tree(tree)
-      i = 0
-      l = tree.size
-      r = []
-      
-      while i < l
-        curr = tree[i]
-        
-        case curr[0]
-        when :command
-          r << curr[1].run(curr[2])
-          
-        when :switch
-          curr[1].run
-          
-        when :flag
-          args = curr[2].map {|i| i[1] }
-          if args.size < curr[1].arg_size(:mandatory)
-            raise MissingArgument.new(curr[1].sort_name)
-          end
-          curr[1].run(args)
-          
-        when :arg
-          r << curr[1]
-        end
-        
-        i += 1
-=======
     # @param arg [String]
+    # @example
+    #
+    #   description 'Displays the current version'
+    #   opt(:version) { puts $VERSION }
+    #
     def description(arg=nil)
       if arg
         @_last_desc = arg
       else
         @description
->>>>>>> master
       end
     end
-    alias_method :desc, :description
-    
-<<<<<<< HEAD
-    
-    # Parse the ARGV passed from the command line, and run
+
+    # Short version of {#description} which can only set.
     #
-    # @param [Array] argv the command line input, usually just +ARGV+
-    # @return [Array] any arguments that were present in the input but not used
+    # @param arg [String]
+    # @example
     #
-    def __run(argv=[])
-      to_run = argv
-      if @base # if not base we will have been passed the parsed tree already
-        to_run = tokens_to_tree( array_to_tokens(argv) )
-      end
-      run_tree(to_run)
-=======
+    #   desc 'Displays the current version'
+    #   opt(:version) { puts $VERSION }
+    #
+    def desc(arg)
+      @_last_desc = arg
+    end
+
     # The action block is the block which will be executed with any arguments that
     # are found for it. It sets +@block+ so that {Option#run} does not have to be redefined.
+    #
+    # @example
+    #
+    #   command :create, arg: '<name>', 'Creates a new project' do
+    #     bool :bare, "Don't add boilerplate code to created files"
+    #
+    #     action do |name|
+    #       if get(:bare)
+    #         # write some empty files
+    #       else
+    #         # create some files with stuff in
+    #       end
+    #     end
+    #   end
+    #
     def action(&block)
       @block = block
->>>>>>> master
     end
-    
-    # Why do the general methods take strings not symbols?
-    # > So that I can find out which array to check in. Otherwise, if for example,
-    # > there was an option and command with the same name you would not know which
-    # > to return.
-    
+
+    # Set the group name for all options defined after it.
+    #
+    # @param name [String]
+    # @example
+    #
+    #   group 'Files'
+    #   opt :move,   'Moves a file',   args: '<from> <to>'
+    #   opt :delete, 'Deletes a file', arg:  '<file>'
+    #   opt :create, 'Creates a file', arg:  '<name>'
+    #
+    #   group 'Network'
+    #   opt :upload,   'Uploads everything'
+    #   opt :download, 'Downloads everyhting'
+    #
+    def group(name)
+      @_group = name
+    end
+
+    # Sugar for +group(nil)+
+    def end_group
+      group nil
+    end
+
+    # @endgroup
+
     # Finds the option represented by +arg+, this can either be the long name +--opt+
     # or the short name +-o+, if the option can't be found +nil+ is returned.
     #
     # @param arg [String]
     # @return [Option, nil]
+    # @example
+    #
+    #   a = Command.new [:command] do
+    #     bool :force
+    #   end
+    #
+    #   a.find('--force')
+    #   #=> #<Clive::Option --[no-]force>
+    #
     def find(arg)
       if arg[0..1] == '--'
-        find_option(arg[2..-1].to_sym)
-      elsif arg[0...1] == '-'
+        find_option(arg[2..-1].gsub('-', '_').to_sym)
+      elsif arg[0..0] == '-'
         find_option(arg[1..-1].to_sym)
       end
     end
     alias_method :[], :find
-    
+
     # Attempts to find the option represented by the string +arg+, returns true if
     # it exists and false if not.
     #
     # @param arg [String]
+    # @example
+    #
+    #   a = Command.new [:command] do
+    #     bool :force
+    #     bool :auto
+    #   end
+    #
+    #   a.has?('--force')    #=> true
+    #   a.has?('--auto')     #=> true
+    #   a.has?('--no-auto')  #=> false
+    #   a.has?('--not-real') #=> false
+    #
     def has?(arg)
       !!find(arg)
     end
-    
+
     # Finds the option with the name given by +arg+, this must be in Symbol form so
     # does not have a dash before it. As with {#find} if the option does not exist +nil+
     # will be returned.
     #
     # @param arg [Symbol]
     # @return [Option, nil]
+    # @example
+    #
+    #   a = Command.new [:command] do
+    #     bool :force
+    #   end
+    #
+    #   a.find_option(:force)
+    #   #=> #<Clive::Option --[no-]force>
+    #
     def find_option(arg)
       @options.find {|opt| opt.names.include?(arg) }
     end
-    
+
     # Attempts to find the option with the Symbol name given, returns true if the option
     # exists and false if not.
     #
@@ -329,11 +367,51 @@ module Clive
       !!find_option(arg)
     end
 
-    # A command is a command
-    def command?; true;  end
-    # A command is not an option, these methods should be removed!
-    def option?;  false; end
-    puts "#{__FILE__}:#{__LINE__} remove these methods"
-    
+    # @see Formatter
+    # @return [String] Help string for this command.
+    def help
+      f = @opts[:formatter]
+
+      f.header   = @header
+      f.footer   = @footer
+      f.commands = @commands if @commands
+      f.options  = @options
+
+      f.to_s
+    end
+
+    private
+
+    # Sets a value in the state.
+    #
+    # @param state [#store, #[]]
+    # @param args [Array]
+    # @param scope [nil]
+    def set_state(state, args, scope=nil)
+      # scope will always be nil, so ignore it for Option compatibility
+      state[name].store :args, (@args.max <= 1 ? args[0] : args)
+      state
+    end
+
+    # Adds the '--help' option to the Command instance if it should be added.
+    def add_help_option
+      if @opts[:help] && !(has_option?(:help) || has_option?(:h))
+        h = self # bind self so that it can be called in the block
+        self.option(:h, :help, "Display this help message", :tail => true) do
+          puts h.help
+          exit 0
+        end
+      end
+    end
+
+    # @return [String]
+    #   Returns the last description to be set with {#description}, it then clears the
+    #   stored description so that it is not returned twice.
+    def current_desc
+      r = @_last_desc
+      @_last_desc = ""
+      r
+    end
+
   end
 end
