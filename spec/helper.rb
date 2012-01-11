@@ -17,7 +17,7 @@ require 'shellwords'
 class Clive::Command
   def self.create(*args, &block)
     i = new(*args, &block)
-    i.run_block
+    i.run_block({})
     i
   end
 end

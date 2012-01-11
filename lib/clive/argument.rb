@@ -3,7 +3,7 @@ class Clive
   # An Argument represents an argument for an Option or Command, it can be optional
   # and can also be constricted by various other values, see {#initialize}.
   class Argument
-  
+
     # Creates an object which will respond with true to all call to the method(s)
     # given.
     #
@@ -15,7 +15,7 @@ class Clive
     #   eg.d          #=> NoMethodError
     #
     class AlwaysTrue
-    
+
       # @param syms [Symbol] Methods which should return true
       def self.for(*syms)
         c = Class.new
@@ -47,11 +47,11 @@ class Clive
     #   Name of the argument.
     #
     # @option opts [Boolean] :optional
-    #   Whether this argument is optional. An optional argument does not have 
+    #   Whether this argument is optional. An optional argument does not have
     #   to be given and will pass +:default+ to the block instead.
     #
     # @option opts [Type] :type
-    #   Type that the matching argument should be cast to. See {Type} and the 
+    #   Type that the matching argument should be cast to. See {Type} and the
     #   various subclasses for details. Each {Type} defines something that the
     #   argument must match in addition to the +:match+ argument given.
     #
@@ -60,7 +60,7 @@ class Clive
     #
     # @option opts [#include?] :within
     #   Collection that the argument should be in. This will be checked
-    #   against the string argument and the cast object (see +:type+). So for 
+    #   against the string argument and the cast object (see +:type+). So for
     #   instance if +:type+ is set to +Integer+ you can set +:within+ to be an array
     #   of integers, [1,2,3], or an array of strings, %w(1 2 3), and get the
     #   same result.
@@ -102,8 +102,8 @@ class Clive
     def to_s
       optional? ? "[<#@name>]" : "<#@name>"
     end
-    
-    # @return [String] 
+
+    # @return [String]
     #  Choices or range of choices that can be made, for the help string.
     def choice_str
       if @within
@@ -124,10 +124,10 @@ class Clive
       "#<#{self.class} #{to_s}>"
     end
 
-    # Determines whether the object given (see @param note), can be this argument.
-    # Checks whether it is valid based on the options passed to {#initialize}.
+    # Determines whether the object given can be this argument. Checks whether
+    # it is valid based on the options passed to {#initialize}.
     #
-    # @param obj [String,Object]
+    # @param obj [String, Object]
     #   This method will be called at least twice for each argument, the first
     #   time when testing for {Arguments#possible?} and then for {Arguments#valid?}.
     #   When called in {Arguments#possible?} +obj+ will be passed as a string,
@@ -139,17 +139,19 @@ class Clive
     def possible?(obj)
       return false if obj.is_a?(String) && !@type.valid?(obj)
       return false unless @match.match(obj.to_s)
-      
-      unless @within.include?(obj.to_s) || @within.include?(coerce(obj))
+
+      coerced = coerce(obj)
+
+      unless @within.include?(obj.to_s) || @within.include?(coerced)
         return false
       end
-      
+
       begin
         return false unless @constraint.call(obj.to_s)
       rescue
         begin
-          return false unless @constraint.call(coerce(obj))
-        rescue 
+          return false unless @constraint.call(coerced)
+        rescue
           return false
         end
       end
@@ -164,5 +166,5 @@ class Clive
       @type.typecast(str)
     end
   end
-  
+
 end

@@ -5,17 +5,17 @@ module MiniTest::Expectations
   alias_method :wont_have, :wont_be
   # this { ... }.must_raise ExceptionalException
   alias_method :this, :proc
-  
+
   # true.must_be_true
   infect_an_assertion :assert, :must_be_true
   # true.wont_be_false
   alias_method :wont_be_false, :must_be_true
-  
+
   # false.must_be_false
   infect_an_assertion :refute, :must_be_false
   # false.wont_be_true
   alias_method :wont_be_true, :must_be_false
-  
+
   # @example
   #   arg.must_be_argument :name => :arg, :optional => true, :type => Integer
   #
@@ -24,12 +24,33 @@ module MiniTest::Expectations
       self.instance_variable_get("@#{k}").must_equal v
     end
   end
-  
+
   def must_have_option(opt)
     self.has_option?(opt).must_be_true
   end
-  
+
   def must_have_command(opt)
     self.has_command?(opt).must_be_true
+  end
+end
+
+class Hash
+
+  # @example
+  #
+  #   hsh = {:a => 5}
+  #   hsh.must_contain :a => 5
+  #
+  def must_contain(kv)
+    kv.all? {|k,v| self[k].must_equal v }.must_be_true
+  end
+
+  # @example
+  #
+  #   hsh = {:a => 5}
+  #   hsh.wont_contain :b => 5
+  #
+  def wont_contain(kv)
+    kv.any? {|k,v| self[k].wont_equal v }.must_be_false
   end
 end

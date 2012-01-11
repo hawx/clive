@@ -54,8 +54,18 @@ class Clive
 
     extend Type::Lookup
 
-    attr_reader :names, :opts, :args, :description
+    # @return [Array<Symbol>] List of names this Option can be called
+    attr_reader :names
+    # @return [Hash{Symbol=>Object}] Options passed to {#initialize} using
+    #   defaults when not given
+    attr_reader :opts
+    # @return [Arguments] List of arguments this Option can take when ran
+    attr_reader :args
+    # @return [String] Description of the Option
+    attr_reader :description
 
+    # Default values to use for +@opts+. These are also the options that
+    # Option takes, see {#initialize} for details.
     DEFAULTS = {
       :boolean => false,
       :group   => nil,
@@ -98,12 +108,12 @@ class Clive
     def initialize(names=[], description="", opts={}, &block)
       @names = names.sort_by {|i| i.to_s.size }
 
-      # [Symbol, nil] Short name for the option. (ie. +:a+)
+      # @return [Symbol, nil] Short name from the names (ie. +:a+)
       def @names.short
         find {|i| i.to_s.size == 1 }
       end
 
-      # [Symbol, nil] Long name for the option. (ie. +:abc+)
+      # @return [Symbol, nil] Long name from the names (ie. +:abc+)
       def @names.long
         find {|i| i.to_s.size > 1 }
       end
@@ -111,17 +121,16 @@ class Clive
       @description  = description
       @block = block
 
-      @args = Arguments.create( get_and_rename_hash(opts, Arguments::Parser::KEYS) )
-      @opts = DEFAULTS.merge( get_and_rename_hash(opts, DEFAULTS.keys) || {} )
+      @args = Arguments.create( get_subhash(opts, Arguments::Parser::KEYS.keys) )
+      @opts = DEFAULTS.merge( get_subhash(opts, DEFAULTS.keys) || {} )
     end
 
-    # The longest name available.
-    # @return [Symbol]
+    # @return [Symbol] The longest name given
     def name
-      names.long || names.short
+      @names.long || @names.short
     end
 
-    # @return [String]
+    # @return [String] String representaion of the Option
     def to_s
       r = ""
       r << "-#{@names.short}" if @names.short
@@ -140,26 +149,17 @@ class Clive
       "#<#{self.class} #{to_s}>"
     end
 
-    # @return Whether this option should come first in the help
-    def head?
-      @opts[:head] == true
-    end
-
-    # @return Whether this option should come last in the help
-    def tail?
-      @opts[:tail] == true
-    end
-
     # @return Whether a block was given.
     def block?
       @block != nil
     end
 
+    # Runs the Option's block with the current state and arguments passed.
+    #
     # @param state [Hash] Local state for parser, this may be modified!
     # @param args [Array] Arguments for the block which is run
     # @param scope [Command] Scope of the state to use
     # @return [Hash] the state which may have been modified!
-    #
     def run(state, args=[], scope=nil)
       mapped_args = if @opts[:boolean] == true
         [[:truth, args.first]]
@@ -182,13 +182,16 @@ class Clive
 
     include Comparable
 
-    # Compare based on the size of {#name}, makes sure {#tail?}s go to the bottom
-    # and {#head?}s go to the top. If both are {#head?} or {#tail?} then sorts
-    # based on the names.
+    # Compare based on the size of {#name}, makes sure tails go to the bottom
+    # and heads go to the top. If both are head or tail then sorts based on the
+    # names.
+    #
+    # @param other [Option] Option to compare with
+    # @return [Integer] Either -1, 0 or 1
     def <=>(other)
-      if (tail? && !other.tail?) || (other.head? && !head?)
+      if (opts[:tail] && !other.opts[:tail]) || (other.opts[:head] && !opts[:head])
         1
-      elsif (other.tail? && !tail?) || (head? && !other.head?)
+      elsif (other.opts[:tail] && !opts[:tail]) || (opts[:head] && !other.opts[:head])
         -1
       else
         self.name.to_s <=> other.name.to_s
@@ -198,7 +201,11 @@ class Clive
 
     private
 
-    # Set
+    # Sets a value in the state.
+    #
+    # @param state [#store, #[]]
+    # @param args [Array]
+    # @param scope [Symbol, nil]
     def set_state(state, args, scope=nil)
       args = (@args.max <= 1 ? args[0] : args)
 
@@ -212,18 +219,9 @@ class Clive
     end
 
     # @param hash [Hash]
-    # @param keys [Hash]
-    def get_and_rename_hash(hash, keys)
-      Hash[ hash.find_all {|k,v| keys.include?(k) } ].inject({}) do |hsh, (k,v)|
-        if keys.include?(k)
-          if keys.respond_to?(:key?)
-            hsh[keys[k]] = v
-          else
-            hsh[k] = v
-          end
-        end
-        hsh
-      end
+    # @param keys [Array]
+    def get_subhash(hash, keys)
+      Hash[ hash.find_all {|k,v| keys.include?(k) } ]
     end
 
   end

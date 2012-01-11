@@ -128,7 +128,7 @@ describe Clive::Command do
       opt = command.find('-O')
       opt.name.must_equal :opt
       opt.description.must_equal 'An option'
-      opt.must_be :tail?
+      opt.opts.must_contain :tail => true
     end
   end
 
@@ -140,7 +140,7 @@ describe Clive::Command do
       bool = command.find('--auto')
       bool.name.must_equal :auto
       bool.description.must_equal 'Auto build'
-      bool.must_be :head?
+      bool.opts.must_contain :head => true
       bool.opts[:boolean].must_be_true
     end
   end

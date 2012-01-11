@@ -12,7 +12,8 @@ class Clive
     # These options should be copied into each {Command} that is created.
     GLOBAL_OPTIONS = [:formatter, :help]
 
-    # Never create an instance of this yourself. Extend Clive, then call #run.
+    # You don't need to create an instance of this, create a class extending
+    # Clive or call Clive.new instead.
     def initialize(&block)
       super
 
@@ -27,12 +28,6 @@ class Clive
       instance_exec &block if block
     end
 
-    # Need to define #set here for the class that extends Clive.
-    # @see Option::Runner#set
-    def set(key, value)
-      @pre_state.store key, value
-    end
-
     # Runs the Clive with the args passed which defaults to +ARGV+.
     #
     # @param args [Array<String>] Command line arguments to run with
@@ -41,7 +36,7 @@ class Clive
     # @option opts [Boolean] :help_command Whether to create a help command
     # @option opts [Formatter] :formatter Help formatter to use
     def run(args=ARGV, opts={})
-      @opts = DEFAULTS.merge( get_and_rename_hash(opts, DEFAULTS.keys) || {} )
+      @opts = DEFAULTS.merge( get_subhash(opts, DEFAULTS.keys) || {} )
 
       add_help_option
       add_help_command
@@ -49,18 +44,23 @@ class Clive
       Clive::Parser.new(self, opts).parse(args, @pre_state)
     end
 
-    # Options which should be copied into each Command created.
-    def global_opts
-      @opts.find_all {|k,v| GLOBAL_OPTIONS.include?(k) }
-    end
 
-    # Creates a new Command.
-    #
-    # @overload option(names=[], description=current_desc, opts={}, &block)
+    # @group DSL Methods
+
+    # @overload command(*names, description=current_desc, opts={}, &block)
     #   Creates a new Command.
     #   @param names [Array<Symbol>] Names that the command can be called with.
     #   @param description [String] Description of the command.
     #   @param opts [Hash] Options to be passed to the new Command, see {Command#initialize}.
+    #
+    # @example
+    #
+    #   class CLI
+    #     desc 'Creates a new thing'
+    #     command :create, arg: '<thing>' do
+    #       # ...
+    #     end
+    #   end
     #
     def command(*args, &block)
       ns, d, o = [], current_desc, {}
@@ -75,7 +75,44 @@ class Clive
       @commands << Command.new(ns, d, o.merge({:group => @_group}), &block)
     end
 
+    # Sets a value in the state. Useful for setting default values.
+    # @see Option::Runner#set
+    # @example
+    #
+    #   class CLI
+    #     set :size, :medium
+    #
+    #     opt :size, arg: '<size>', in: %w(small medium large), as: Symbol do
+    #       set :size, size
+    #     end
+    #   end
+    #
+    def set(key, value)
+      @pre_state.store key, value
+    end
+
+    # @endgroup
+
+    # Finds the option or command represented by +arg+, this can the name of a command
+    # or an option which should include the correct number of dashes. If the option or
+    # command cannot be found +nil+ is returned.
+    #
+    # @param arg [String]
     # @see Command#find
+    # @example
+    #
+    #   c = Clive.new {
+    #     command :new
+    #     opt :v, :version
+    #   }
+    #
+    #   c.find('-v')
+    #   #=> #<Clive::Option -v, --version>
+    #   c.find('new')
+    #   #=> #<Clive::Command new>
+    #   c.find('test')
+    #   #=> nil
+    #
     def find(arg)
       if arg[0..0] == '-'
         super
@@ -84,17 +121,46 @@ class Clive
       end
     end
 
-    # @param arg [Symbol]
+    # Finds the command with the name given, if the command cannot be found
+    # returns +nil+.
+    #
+    # @param arg [Symbol, nil]
+    # @example
+    #
+    #   c = Clive.new {
+    #     command :new
+    #   }
+    #
+    #   c.find_command(:new)
+    #   #=> #<Clive::Command new>
+    #
     def find_command(arg)
       @commands.find {|i| i.names.include?(arg) }
     end
 
+    # Attempts to find the command with the name given, returns true if the
+    # command exits.
+    #
     # @param arg [Symbol]
+    # @example
+    #
+    #   c = Clive.new {
+    #     command :new
+    #   }
+    #
+    #   c.has_command? :new     #=> true
+    #   c.has_command? :create  #=> false
+    #
     def has_command?(arg)
       !!find_command(arg)
     end
 
     private
+
+    # Options which should be copied into each Command created.
+    def global_opts
+      @opts.find_all {|k,v| GLOBAL_OPTIONS.include?(k) }
+    end
 
     # Adds the help command, which accepts the name of a command to display help
     # for, to this if it is wanted.

@@ -77,19 +77,25 @@ class Clive
       instance.send(sym, *args, &block)
     end
 
-    if Kernel.respond_to?(:respond_to_missing?)
-      def respond_to_missing?(sym, include_private=false)
-        instance.respond_to?(sym, include_private)
-      end
-    else
+    def respond_to_missing?(sym, include_private=false)
+      instance.respond_to?(sym, include_private)
+    end
+
+    unless Kernel.respond_to?(:respond_to_missing?)
       def respond_to?(sym, include_private=false)
-        instance.respond_to?(sym, include_private)
+        respond_to_missing?(sym, include_private)
       end
     end
+
   end
 
   # This allows you to use Clive without defining a class, but while keeping all
   # of the control.
+  #
+  # There is one caveat though when using this style: types can not be
+  # referenced with just the type name. Instead the full class path/name must be
+  # given. So instead of using `opt :num, as: Integer` you need to use
+  # `opt :num, as: Clive::Type::Integer`, and similarly for all types.
   #
   # @example
   #

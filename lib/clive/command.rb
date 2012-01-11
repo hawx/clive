@@ -25,7 +25,8 @@ class Clive
   #
   class Command < Option
 
-    attr_reader :names, :options
+    # @return [Array<Option>] List of options created in the Command instance
+    attr_reader :options
 
     DEFAULTS = {
       :group     => nil,
@@ -85,8 +86,8 @@ class Clive
       @options     = []
       @_block      = block
 
-      @args = Arguments.create( get_and_rename_hash(opts, Arguments::Parser::KEYS) )
-      @opts = DEFAULTS.merge( get_and_rename_hash(opts, DEFAULTS.keys) || {} )
+      @args = Arguments.create( get_subhash(opts, Arguments::Parser::KEYS) )
+      @opts = DEFAULTS.merge( get_subhash(opts, DEFAULTS.keys) || {} )
 
       # Create basic header "Usage: filename commandname(s) [options]
       @header = "Usage: #{File.basename($0)} #{to_s} [options]"
@@ -113,9 +114,9 @@ class Clive
     # command. The state hash is passed (and returned) so that {#set} works outside
     # of {Runner} allowing default values to be set.
     #
-    # @param state [Hash] The newly created (usually) state for the command.
+    # @param state [Hash] The newly created state for the command.
     # @return [Hash] The returned hash is used for the state of the command.
-    def run_block(state={})
+    def run_block(state)
       if @_block
         @state = state
         instance_exec(&@_block)
@@ -125,19 +126,39 @@ class Clive
       end
     end
 
+    # @group DSL Methods
+
     # Set the header for {#help}.
     # @param [String]
+    # @example
+    #
+    #   header 'Usage: my_app [options] [args]'
+    #
     def header(val)
       @header = val
     end
 
     # Set the footer for {#help}.
     # @param [String]
+    # @example
+    #
+    #   footer 'For more help visit http://mysite.com/help'
+    #
     def footer(val)
       @footer = val
     end
 
     # @see Clive::Option::Runner.set
+    # @example
+    #
+    #   command :create, 'Create a project' do
+    #     set :files, []
+    #
+    #     opt :add, arg: '<path>', 'Add a file' do
+    #       update :files, :<<, path
+    #     end
+    #   end
+    #
     def set(key, value)
       @state.store key, value
     end
@@ -148,6 +169,16 @@ class Clive
     #   @param long [Symbol] The long name for the option (:add would become +--add+)
     #   @param description [String] Description of the option
     #   @param opts [Hash] Options to create the Option with, see {Option#initialize}
+    #
+    # @example
+    #
+    #   opt :type, arg: '<size>', in: %w(small medium large) do
+    #     case size
+    #       when "small"  then set(:size, 1)
+    #       when "medium" then set(:size, 2)
+    #       when "large"  then set(:size, 3)
+    #     end
+    #   end
     #
     def option(*args, &block)
       ns, d, o = [], current_desc, {}
@@ -162,13 +193,21 @@ class Clive
     end
     alias_method :opt, :option
 
-    # @overload boolean(short=nil, long=nil, description=current_desc, opts={}, &block)
+    # @overload boolean(short=nil, long, description=current_desc, opts={}, &block)
     #   Creates a new Option in the Command which responds to calls with a 'no-' prefix.
     #   +long+ must be set.
     #   @param short [Symbol] The short name for the option (:a would become +-a+)
     #   @param long [Symbol] The long name for the option (:add would become +--add+)
     #   @param description [String] Description of the option
     #   @param opts [Hash] Options to create the Option with, see {Option#initialize}
+    #
+    # @example
+    #
+    #   bool :auto, 'Auto regenerate on changes'
+    #
+    #   # Usage
+    #   #  --auto      sets :auto to true
+    #   #  --no-auto   sets :auto to false
     #
     def boolean(*args, &block)
       ns, d, o = [], current_desc, {}
@@ -187,6 +226,11 @@ class Clive
     # return the description for the command.
     #
     # @param arg [String]
+    # @example
+    #
+    #   description 'Displays the current version'
+    #   opt(:version) { puts $VERSION }
+    #
     def description(arg=nil)
       if arg
         @_last_desc = arg
@@ -195,21 +239,78 @@ class Clive
       end
     end
 
+    # Short version of {#description} which can only set.
+    #
+    # @param arg [String]
+    # @example
+    #
+    #   desc 'Displays the current version'
+    #   opt(:version) { puts $VERSION }
+    #
     def desc(arg)
       @_last_desc = arg
     end
 
     # The action block is the block which will be executed with any arguments that
     # are found for it. It sets +@block+ so that {Option#run} does not have to be redefined.
+    #
+    # @example
+    #
+    #   command :create, arg: '<name>', 'Creates a new project' do
+    #     bool :bare, "Don't add boilerplate code to created files"
+    #
+    #     action do |name|
+    #       if get(:bare)
+    #         # write some empty files
+    #       else
+    #         # create some files with stuff in
+    #       end
+    #     end
+    #   end
+    #
     def action(&block)
       @block = block
     end
+
+    # Set the group name for all options defined after it.
+    #
+    # @param name [String]
+    # @example
+    #
+    #   group 'Files'
+    #   opt :move,   'Moves a file',   args: '<from> <to>'
+    #   opt :delete, 'Deletes a file', arg:  '<file>'
+    #   opt :create, 'Creates a file', arg:  '<name>'
+    #
+    #   group 'Network'
+    #   opt :upload,   'Uploads everything'
+    #   opt :download, 'Downloads everyhting'
+    #
+    def group(name)
+      @_group = name
+    end
+
+    # Sugar for +group(nil)+
+    def end_group
+      group nil
+    end
+
+    # @endgroup
 
     # Finds the option represented by +arg+, this can either be the long name +--opt+
     # or the short name +-o+, if the option can't be found +nil+ is returned.
     #
     # @param arg [String]
     # @return [Option, nil]
+    # @example
+    #
+    #   a = Command.new [:command] do
+    #     bool :force
+    #   end
+    #
+    #   a.find('--force')
+    #   #=> #<Clive::Option --[no-]force>
+    #
     def find(arg)
       if arg[0..1] == '--'
         find_option(arg[2..-1].gsub('-', '_').to_sym)
@@ -245,6 +346,15 @@ class Clive
     #
     # @param arg [Symbol]
     # @return [Option, nil]
+    # @example
+    #
+    #   a = Command.new [:command] do
+    #     bool :force
+    #   end
+    #
+    #   a.find_option(:force)
+    #   #=> #<Clive::Option --[no-]force>
+    #
     def find_option(arg)
       @options.find {|opt| opt.names.include?(arg) }
     end
@@ -255,29 +365,6 @@ class Clive
     # @param arg [Symbol]
     def has_option?(arg)
       !!find_option(arg)
-    end
-
-    # Set the group name for all options defined after it.
-    #
-    # @param name [String]
-    # @example
-    #
-    #   group 'Files'
-    #   opt :move,   'Moves a file',   args: '<from> <to>'
-    #   opt :delete, 'Deletes a file', arg:  '<file>'
-    #   opt :create, 'Creates a file', arg:  '<name>'
-    #
-    #   group 'Network'
-    #   opt :upload,   'Uploads everything'
-    #   opt :download, 'Downloads everyhting'
-    #
-    def group(name)
-      @_group = name
-    end
-
-    # Sugar for +group(nil)+
-    def end_group
-      group nil
     end
 
     # @see Formatter
@@ -295,10 +382,14 @@ class Clive
 
     private
 
+    # Sets a value in the state.
+    #
+    # @param state [#store, #[]]
+    # @param args [Array]
+    # @param scope [nil]
     def set_state(state, args, scope=nil)
       # scope will always be nil, so ignore it for Option compatibility
       state[name].store :args, (@args.max <= 1 ? args[0] : args)
-
       state
     end
 

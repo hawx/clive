@@ -1,6 +1,6 @@
 class Clive
   class Option
-  
+
     # Runner is a class which is used for executing blocks given to Options and
     # Commands. It allows you to inside blocks;
     # - reference arguments by name (instead of using block params)
@@ -39,10 +39,10 @@ class Clive
     #     update key, sym, *args
     #   end
     #
-    #   
+    #
     class Runner
       class << self
-  
+
         # @param args [Array[Symbol,Object]]
         #   An array is used because with 1.8.7 a hash has unpredictable
         #   ordering of keys, this means an array is the only way I can be
@@ -51,7 +51,7 @@ class Clive
         # @param fn [Proc]
         def _run(args, state, fn)
           # order of this doesn't matter as it will just be accessed by key
-          @args = Hash[args] 
+          @args = Hash[args]
           @state = state
           return unless fn
           if fn.arity > 0
@@ -60,10 +60,10 @@ class Clive
           else
             instance_exec(&fn)
           end
-          
+
           @state
         end
-        
+
         # @param key [Symbol]
         #
         # @example
@@ -75,7 +75,7 @@ class Clive
         def get(key)
           @state[key]
         end
-        
+
         # @param key [Symbol]
         # @param value [Object]
         #
@@ -87,7 +87,7 @@ class Clive
         def set(key, value)
           @state.store key, value
         end
-        
+
         # @overload update(key, method, *args)
         #   Update the value for +key+ using the +method+ which is passed +args+
         #   @param key [Symbol]
@@ -109,7 +109,7 @@ class Clive
         #     opt :add, arg: '<item>' do
         #       update(:list) {|l| l << item }
         #     end
-        #  
+        #
         def update(*args)
           if block_given?
             key = args.first
@@ -122,10 +122,10 @@ class Clive
             raise ArgumentError, "wrong number of arguments (#{args.size} for 2)"
           end
         end
-        
+
         # @param key [Symbol]
         # @return State has +key+?
-        # 
+        #
         # @example
         #   # test.rb
         #   set :some_key, 1
@@ -138,7 +138,8 @@ class Clive
         def has?(key)
           @state.key?(key)
         end
-        
+
+        # Allows arguments passed in to be referenced directly by name.
         def method_missing(sym, *args)
           if @args.has_key?(sym)
             @args[sym]
@@ -146,7 +147,7 @@ class Clive
             super
           end
         end
-  
+
       end
     end
   end
