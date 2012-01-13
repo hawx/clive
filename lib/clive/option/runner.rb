@@ -14,7 +14,7 @@ class Clive
     #     puts "Area = #{height} * #{width} = #{height * width}"
     #   end
     #
-    # @example Getting Values from State Hash
+    # @example Getting Values from State
     #
     #   command :new, arg: '<dir>' do
     #
@@ -27,13 +27,13 @@ class Clive
     #
     #   end
     #
-    # @example Setting Values to State Hash
+    # @example Setting Values to State
     #
     #   opt :set, arg: '<key> <value>', as: [Symbol, Object] do
     #     set key, value
     #   end
     #
-    # @example Updating Values in State Hash
+    # @example Updating Values in State
     #
     #   opt :modify, arg: '<key> <sym> [<args>]', as: [Symbol, Symbol, Array] do
     #     update key, sym, *args
@@ -50,10 +50,11 @@ class Clive
         # @param state [Hash{Symbol=>Object}]
         # @param fn [Proc]
         def _run(args, state, fn)
+          return unless fn
           # order of this doesn't matter as it will just be accessed by key
           @args = Hash[args]
           @state = state
-          return unless fn
+
           if fn.arity > 0
             # Remember to use the ordered array version
             instance_exec(*args.map {|i| i.last }, &fn)
