@@ -24,7 +24,8 @@ describe Clive::Command do
       Clive::Command.new [:c,:b,:a], 'A command', :head => true,
                                                   :args => '<a> [<b>]',
                                                   :as => [Integer, nil],
-                                                  :group => 'Cool commands'
+                                                  :group => 'Cool commands',
+                                                  :help => true
     }
 
     it 'sets the names' do
@@ -279,7 +280,7 @@ describe Clive::Command do
   describe '#help' do
     it 'builds a help string using the defined formatter' do
       f = mock
-      command = Clive::Command.create [], "", :formatter => f do
+      command = Clive::Command.create [], "", :formatter => f, :help => true do
         header 'Top'
         footer 'Bottom'
       end
