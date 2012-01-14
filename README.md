@@ -27,12 +27,10 @@ as shown in the example below.
       # some code
       
       class CLI < Clive
-        
         opt :v, :version, 'Display the current version' do
           puts MyApp::Version
           exit 0
         end
-        
       end
     end
     
@@ -74,7 +72,7 @@ This simple example shows how Clive can handle multiple arguments, casting to
 types (Integer in this case) and how extra arguments are stored in `#args`.
 
 
-### Options
+## Options
 
 Options are defined using `#opt` or `#option` they can have short (`-a`) or long 
 names (`--abc`) and can also have arguments. The description can be given as an
@@ -97,7 +95,7 @@ Longer option names, containing `_`s are called by replacing the `_` with a `-` 
 
 would be called with `--longer-name-than-expected`.
 
-#### Boolean Options
+### Boolean Options
 
 Boolean options are options which can be called with a `no-` prefix, which then
 passes false to the block/state. For example,
@@ -122,7 +120,7 @@ automatically set.
 Boolean options __must__ have a long name.
 
 
-### Commands
+## Commands
 
 Commands can be defined using `#command`. They can be used to group related 
 Options acting as a kind of namespace. But Commands are also fully featured 
@@ -151,7 +149,7 @@ the `new` command is given to `#action`, this is because the block passed to
 `#command` is used for option definition.
 
 
-### Arguments
+## Arguments
 
 As previously talked about Options and Commands can take arguments by passing a
 hash with the key `:arg` or `:args`.
@@ -179,7 +177,7 @@ There are also various options that can be passed to constrain or change the
 arguments. If one of the below is passed to an option with `:arg` or `:args`
 a generic argument called `<arg>` will be added.
 
-#### Types (`:types`, `:type`, `:kind` or `:as`)
+### Types (`:types`, `:type`, `:kind` or `:as`)
 
 An argument will be checked if it matches how the type should look, then converts
 it to that type. For more information see `lib/clive/type/definitions.rb`.
@@ -189,7 +187,7 @@ it to that type. For more information see `lib/clive/type/definitions.rb`.
 This accepts a comma delimited list of items, `--list a,b,c` and sets `:list` to
 `['a', 'b', 'c']`.
 
-#### Matches (`:matches` or `:match`)
+### Matches (`:matches` or `:match`)
 
 Allows you to say that an argument must match a regular expression (or any object
 which responds to `#match`).
@@ -198,7 +196,7 @@ which responds to `#match`).
 
 This accepts `--word hello` but not `--word 123`.
 
-#### Withins (`:withins`, `:within` or `:in`)
+### Withins (`:withins`, `:within` or `:in`)
 
 Allows you to say that an argument must be within a passed Array, Set or Range
 (any object which responds to `#include?`).
@@ -213,7 +211,7 @@ Integers.
 
 Would work in the same way as the one above but return an Integer.
 
-#### Defaults (`:defaults` or `:default`)
+### Defaults (`:defaults` or `:default`)
 
 Allows you to give a default value that should be used if an argument is not 
 given. 
@@ -230,7 +228,7 @@ body.
 
 Would always set `:type` to `'house'` even when `--type` is not used.
 
-#### Constraints (`:constraint` or `:constraint`)
+### Constraints (`:constraint` or `:constraint`)
 
 Allows you to constrain the argument using a Proc, this is to cover the very
 few events where the above options do not satisfy the requirements.
@@ -245,13 +243,13 @@ a symbol which will have `#to_proc` called on it.
 This only accepts odd Integers.
 
 
-### Runner
+## Runner
 
 All blocks passed to options or given to a command's action are run in the Runner
 class. This provides a few shortcuts to make life easier. Here is a quick run down
 with examples.
 
-#### Argument Referencing
+### Argument Referencing
 
 You can reference an options or commands arguments directly by name without having
 to use block parameters.
@@ -262,7 +260,7 @@ to use block parameters.
 
 As shown earlier the truthiness of a boolean option is set to the value `truth`.
 
-#### Working with the State
+### Working with the State
 
 Four fundamental methods are defined for working with the state, `#get`, `#set`,
 `#update` and `#has?`.
@@ -296,7 +294,7 @@ Four fundamental methods are defined for working with the state, `#get`, `#set`,
     end
 
 
-### Help Formatters
+## Help Formatters
 
 Clive comes with two help formatters, one with colour and the other without. To use
 the plain formatter (colour is default), use
