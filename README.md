@@ -36,18 +36,7 @@ as shown in the example below.
     
     result = MyApp::CLI.run(ARGV)
 
-Then run with `my_app.rb --version` to display the version for MyApp. Sometimes
-you may not want to create a class, instead you can simply create an instance of
-Clive.
-
-    result = Clive.new do
-      opt :v, :version, 'Display the current version' do
-        puts '1.0.0'
-        exit 0
-      end
-    end.run(ARGV)    
-
-Though the class style is preferred.
+Then run with `my_app.rb --version` to display the version for MyApp.
 
 
 ### `.run`
