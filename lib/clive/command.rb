@@ -33,8 +33,10 @@ class Clive
       :head      => false,
       :tail      => false,
       :runner    => Clive::Option::Runner,
-      :formatter => nil, # really takes the DEFAULT (or one set) from Base
-      :help      => true
+      
+      # these two are copied in from Base, so will be merged over
+      :formatter => nil, 
+      :help      => nil
     }
 
     # @param names [Array[Symbol]]
