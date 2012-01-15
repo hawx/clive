@@ -28,8 +28,8 @@ end
 
 gem 'minitest' # use latest version
 require 'minitest/autorun'
+require 'minitest/pride'
 
-require 'extras/red_green'
 require 'extras/expectations'
 require 'extras/focus'
 
