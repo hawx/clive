@@ -4,13 +4,9 @@ class Clive
     class Plain < Formatter
 
       DEFAULTS = {
-        # [Integer] Amount of left padding to use
         :padding   => 2,
-        # [Integer] Total width of screen to use
         :width     => Output.terminal_width,
-        # [Float] Minimum proportion of screen the left side can use
         :min_ratio => 0.2,
-        # [Float] Maximum proportion of screen the left side can use
         :max_ratio => 0.5
       }
 
@@ -36,7 +32,7 @@ class Clive
 
       # Builds the help string. Formatted like:
       #
-      #  @header
+      #  Usage: the header
       #
       #    Commands:
       #      command            # Description
@@ -44,7 +40,7 @@ class Clive
       #    Options:
       #      -a, --abc <arg>    # Description
       #
-      #  @footer
+      #  A footer
       #
       # @return [String]
       def to_s
