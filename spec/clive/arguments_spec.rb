@@ -25,11 +25,9 @@ describe Clive::Arguments do
   end
 
   describe '#zip' do
-    before {
-      def subject.simple_zip(other); zip(other).map {|i| i[1] }; end
-    }
-  
     it 'zips arguments properly' do
+      def subject.simple_zip(other); zip(other).map(&:last); end
+    
       # These behaviours are definitely what should happen
       subject.simple_zip(%w(1 4)).must_equal     [nil, '1', '4', nil]
       subject.simple_zip(%w(1 4 3)).must_equal   [nil, '1', '4', '3']

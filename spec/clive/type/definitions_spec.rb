@@ -270,8 +270,8 @@ describe Clive::Type::Time do
   subject { Clive::Type::Time }
 
   describe '#valid?' do
-    it 'is valud for times' do
-      %w(12:50 12:50:30).all? {|a| subject.valid? a }.must_be_true
+    it 'is valid for times' do
+      %w(12:50 12:50:30).all? {|a| subject.valid?(a) }.must_be_true
     end
   end
 
@@ -286,13 +286,13 @@ describe Clive::Type::Regexp do
   subject { Clive::Type::Regexp }
 
   describe '#valid?' do
-    it 'is valud for times' do
-      %w{/a/ /a[bc](1|2)/ix}.all? {|a| subject.valid? a }.must_be_true
+    it 'is valid for regular expressions' do
+      %w{/a/ /a[bc](1|2)/ix}.all? {|a| subject.valid?(a) }.must_be_true
     end
   end
 
   describe '#typecast' do
-    it 'returns a Time' do
+    it 'returns a Regexp' do
       subject.typecast('/a/i').must_be_kind_of Regexp
       subject.typecast('/a/ix').must_equal /a/ix
     end

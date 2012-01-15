@@ -1,19 +1,40 @@
+module MiniTest::Assertions
+  def assert_true obj, msg = nil
+    msg = message(msg) { "Expected #{mu_pp(obj)} to be true" }
+    assert(obj == true, msg)
+  end
+  
+  def assert_false obj, msg = nil
+    msg = message(msg) { "Expected #{mu_pp(obj)} to be false" }
+    assert(obj == false, msg)
+  end
+  
+  def assert_has o1, op, o2 = UNDEFINED, msg = nil
+    return assert_predicate o1, op, msg if UNDEFINED == o2
+    msg = message(msg) { "Expected #{mu_pp(o1)} to have #{op} #{mu_pp(o2)}" }
+    assert o1.__send__(op, o2), msg
+  end
+  
+  def refute_has o1, op, o2 = UNDEFINED, msg = nil
+    return refute_predicate o1, op, msg if UNDEFINED == o2
+    msg = message(msg) { "Expected #{mu_pp(o1)} to not have #{op} #{mu_pp(o2)}" }
+    refute o1.__send__(op, o2), msg
+  end
+end
+
+
 module MiniTest::Expectations
-  # a.must_have :key?, :yay
-  alias_method :must_have, :must_be
-  # a.wont_have :key?, :boo
-  alias_method :wont_have, :wont_be
+
+  infect_an_assertion :assert_has, :must_have, :reverse
+  infect_an_assertion :refute_has, :wont_have, :reverse
+  
   # this { ... }.must_raise ExceptionalException
   alias_method :this, :proc
 
-  # true.must_be_true
-  infect_an_assertion :assert, :must_be_true
-  # true.wont_be_false
+  infect_an_assertion :assert_true, :must_be_true, :unary
+  infect_an_assertion :assert_false, :must_be_false, :unary
+  
   alias_method :wont_be_false, :must_be_true
-
-  # false.must_be_false
-  infect_an_assertion :refute, :must_be_false
-  # false.wont_be_true
   alias_method :wont_be_true, :must_be_false
 
   # @example
@@ -26,11 +47,11 @@ module MiniTest::Expectations
   end
 
   def must_have_option(opt)
-    self.has_option?(opt).must_be_true
+    has_option?(opt).must_be_true
   end
 
   def must_have_command(opt)
-    self.has_command?(opt).must_be_true
+    has_command?(opt).must_be_true
   end
 end
 
@@ -42,7 +63,7 @@ class Hash
   #   hsh.must_contain :a => 5
   #
   def must_contain(kv)
-    kv.all? {|k,v| self[k].must_equal v }.must_be_true
+    kv.all? {|k,v| self[k].must_equal v }
   end
 
   # @example
@@ -51,6 +72,6 @@ class Hash
   #   hsh.wont_contain :b => 5
   #
   def wont_contain(kv)
-    kv.any? {|k,v| self[k].wont_equal v }.must_be_false
+    kv.any? {|k,v| self[k].wont_equal v }
   end
 end
