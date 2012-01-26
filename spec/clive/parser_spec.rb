@@ -3,6 +3,48 @@ require 'helper'
 
 describe Clive::Parser do
 
+  describe 'help command' do
+    subject { Clive.new(:name => '...') { command(:new) { opt :f, :force } } }
+
+    describe 'with no argument' do
+      it 'prints the help' do
+        this {
+          subject.run s 'help'
+        }.must_output <<EOS
+Usage: ... [command] [options]
+
+  Commands:
+    new
+    help [<command>]      \e[90m# \e[0m\e[90mDisplay help\e[0m
+
+  Options:
+    -h, --help            \e[90m# \e[0m\e[90mDisplay this help message\e[0m
+EOS
+      end
+    end
+
+    describe 'with an argument' do
+      it 'prints help for that command' do
+        this {
+          subject.run s 'help new'
+        }.must_output <<EOS
+Usage: ... new [options]
+
+  Options:
+    -f, --force
+    -h, --help        \e[90m# \e[0m\e[90mDisplay this help message\e[0m
+EOS
+      end
+
+      it 'prints an error if command does not exist' do
+        this {
+          subject.run s 'help missing'
+        }.must_output "Error: command missing could not be found. Try `help` to see the available commands.\n"
+      end
+    end
+
+  end
+
   describe 'single option' do
     subject {
       Clive.new {
