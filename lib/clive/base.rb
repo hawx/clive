@@ -4,24 +4,28 @@ class Clive
     attr_reader :commands
 
     DEFAULTS = {
+      :name         => File.basename($0),
       :formatter    => Formatter::Colour.new,
       :help_command => true,
-      :help         => true,
+      :help         => true
     }
 
     # These options should be copied into each {Command} that is created.
-    GLOBAL_OPTIONS = [:formatter, :help]
+    GLOBAL_OPTIONS = [:name, :formatter, :help]
 
     # You don't need to create an instance of this, create a class extending
     # Clive or call Clive.new instead.
-    def initialize(&block)
+    #
+    # @param opts [Hash] Options to set for this Base, see #run for details
+    #  of the keys that can be passed.
+    def initialize(opts={}, &block)
       super
 
       @commands = []
-      @header   = "Usage: #{File.basename($0)} [command] [options]"
+      @header   = proc { "Usage: #{@opts[:name]} [command] [options]" }
       @footer   = ""
       @_group   = nil
-      @opts     = DEFAULTS
+      @opts     = DEFAULTS.merge(get_subhash(opts, DEFAULTS.keys))
 
       # Need to keep a state before #run is called so #set works.
       @pre_state = {}
@@ -30,13 +34,22 @@ class Clive
 
     # Runs the Clive with the args passed which defaults to +ARGV+.
     #
-    # @param args [Array<String>] Command line arguments to run with
-    # @param opts [Hash] Options to run with
-    # @option opts [Boolean] :help Whether to create a help option
-    # @option opts [Boolean] :help_command Whether to create a help command
-    # @option opts [Formatter] :formatter Help formatter to use
+    # @param args [Array<String>]
+    #   Command line arguments to run with
+    #
+    # @param opts [Hash]
+    # @option opts [Boolean] :help
+    #   Whether to create a help option.
+    # @option opts [Boolean] :help_command
+    #   Whether to create a help command.
+    # @option opts [Formatter] :formatter
+    #   Help formatter to use.
+    # @option opts [String] :name
+    #   Name to use in headers, this is usually better than setting a header as
+    #   commands will use this to generate their own headers for use in help.
+    #
     def run(args=ARGV, opts={})
-      @opts = DEFAULTS.merge( get_subhash(opts, DEFAULTS.keys) || {} )
+      @opts = @opts.merge(get_subhash(opts, DEFAULTS.keys))
 
       add_help_option
       add_help_command

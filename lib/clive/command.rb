@@ -33,10 +33,11 @@ class Clive
       :head      => false,
       :tail      => false,
       :runner    => Clive::Option::Runner,
-      
+
       # these two are copied in from Base, so will be merged over
-      :formatter => nil, 
-      :help      => nil
+      :formatter => nil,
+      :help      => nil,
+      :name      => nil
     }
 
     # @param names [Array[Symbol]]
@@ -45,40 +46,29 @@ class Clive
     # @param desc [String]
     #   Description of the Command, this is shown in help and will be wrapped properly.
     #
-    #
     # @param opts [Hash]
     # @option opts [Boolean] :head
     #   If option should be at top of help list.
-    #
     # @option opts [Boolean] :tail
     #   If option should be at bottom of help list.
-    #
     # @option opts [String] :group
     #   Name of the group this option belongs to. This is actually set when
     #   {Command#group} is used.
-    #
     # @option opts [Runner] :runner
     #   Class to use for running the block passed to #action. This doesn't have
     #   to be Option::Runner, but you probably never need to change this.
-    #
     # @option opts [Formatter] :formatter
     #   Help formatter to use for this command, defaults to top-level formatter.
-    #
     # @option opts [Boolean] :help
     #   Whether to add a '-h, --help' option to this command which displays help.
-    #
     # @option opts [String] :args
     #   Arguments that the option takes. See {Argument}.
-    #
     # @option opts [Type, Array[Type]] :as
     #   The class the argument(s) should be cast to. See {Type}.
-    #
     # @option opts [#match, Array[#match]] :match
     #   Regular expression that the argument(s) must match.
-    #
     # @option opts [#include?, Array[#include?]] :in
     #   Collection that argument(s) must be in.
-    #
     # @option opts [Object] :default
     #   Default value that is used if argument is not given.
     #
@@ -92,7 +82,7 @@ class Clive
       @opts = DEFAULTS.merge( get_subhash(opts, DEFAULTS.keys) || {} )
 
       # Create basic header "Usage: filename commandname(s) [options]
-      @header = "Usage: #{File.basename($0)} #{to_s} [options]"
+      @header = proc { "Usage: #{@opts[:name]} #{to_s} [options]" }
       @footer = ""
       @_group = nil
 
@@ -374,8 +364,8 @@ class Clive
     def help
       f = @opts[:formatter]
 
-      f.header   = @header
-      f.footer   = @footer
+      f.header   = @header.respond_to?(:call) ? @header.call : @header
+      f.footer   = @footer.respond_to?(:call) ? @footer.call : @footer
       f.commands = @commands if @commands
       f.options  = @options
 

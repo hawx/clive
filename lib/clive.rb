@@ -97,13 +97,14 @@ class Clive
   # given. So instead of using `opt :num, as: Integer` you need to use
   # `opt :num, as: Clive::Type::Integer`, and similarly for all types.
   #
+  # @param opts [Hash] Options to create with, see {Base#initialize}
   # @example
   #
   #   c = Clive.new { opt :v, :verbose }
   #   r = c.run ARGV
   #
-  def self.new(&block)
-    Base.new(&block)
+  def self.new(opts={}, &block)
+    Base.new(opts, &block)
   end
 
 end
