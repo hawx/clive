@@ -5,7 +5,7 @@ class Clive
     class MissingArgumentError < Error
       reason 'missing argument for #0, found #1, needed #2'
     end
-    
+
     class MissingOptionError < Error
       reason 'option could not be found: #0'
     end
@@ -41,14 +41,20 @@ class Clive
     def parse(argv, pre_state)
       @argv = argv
       @i    = 0
-      
+
       @state = @opts[:state].new(pre_state)
       @state.store :args, []
-      
+
       # Pull out 'help' command immediately if found
       if @argv[0] == 'help'
         if @argv[1]
-          puts @base.find[@argv[1]].help
+          if @base.has?(@argv[1])
+            command = @base.find(@argv[1])
+            command.run_block({})
+            puts command.help
+          else
+            puts "Error: command #{@argv[1]} could not be found. Try `help` to see the available commands."
+          end
         else
           puts @base.help
         end
@@ -57,14 +63,14 @@ class Clive
       until ended?
         # does +curr+ exist? (and also check that if it is a command a command hasn't been run yet
         if @base.has?(curr) && ((@base.find(curr).kind_of?(Command) && !command_ran?) || @base.find(curr).kind_of?(Option))
-        
+
           found = @base.find(curr)
 
           # is it a command?
           if found.kind_of?(Command)
             @command_ran = true
             @state.store found.names, found.run_block(@opts[:state].new)
-            
+
             inc
             args = []
 
@@ -78,7 +84,7 @@ class Clive
               inc
             end
             dec
-            
+
             found.run @state, validate_arguments(found, args), found
 
           # otherwise it is an option
@@ -100,10 +106,10 @@ class Clive
 
             if c == currs.last
               run_option opt
-            else 
+            else
               # can't take any arguments as an option is next to it
               if opt.args.min > 0
-                raise MissingArgumentError.new(opt, [], opt.args) 
+                raise MissingArgumentError.new(opt, [], opt.args)
               else
                 opt.run @state, [true]
               end
@@ -117,18 +123,18 @@ class Clive
 
         inc
       end
-    
+
       @state
     end
-    
+
 
     private
-    
+
     def run_option(opt, within=nil)
       args = opt.args.max > 0 ? do_arguments_for(opt) : [true]
       opt.run @state, args, within
     end
-    
+
     # Increment the index
     def inc
       @i += 1
@@ -138,7 +144,7 @@ class Clive
     def dec
       @i -= 1
     end
-  
+
     # @return [String] The current token
     def curr
       @argv[@i]
@@ -148,7 +154,7 @@ class Clive
     def ended?
       @i >= @argv.size
     end
-    
+
     def command_ran?
       @command_ran || false
     end
@@ -173,8 +179,8 @@ class Clive
       dec
       arg_list
     end
-    
-    # Makes sure the found list of arguments is valid, if not raises 
+
+    # Makes sure the found list of arguments is valid, if not raises
     # MissingArgumentError. Returns the valid argument list with the arguments
     # as the correct type, in the correct positions and with default values
     # inserted if necessary.
