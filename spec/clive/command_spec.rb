@@ -21,11 +21,14 @@ describe Clive::Command do
 
   describe '#initialize' do
     subject {
-      Clive::Command.new [:c,:b,:a], 'A command', :head => true,
-                                                  :args => '<a> [<b>]',
-                                                  :as => [Integer, nil],
-                                                  :group => 'Cool commands',
-                                                  :help => true
+      Clive::Command.new([:c,:b,:a],
+                         'A command',
+                         :head => true,
+                         :args => '<a> [<b>]',
+                         :as => [Integer, nil],
+                         :group => 'Cool commands',
+                         :help => true,
+                         :name => 'file.rb')
     }
 
     it 'sets the names' do
@@ -47,8 +50,7 @@ describe Clive::Command do
     end
 
     it 'sets a default header' do
-      File.stubs(:basename).returns('file.rb')
-      subject.instance_variable_get(:@header).must_equal 'Usage: file.rb c,b,a [options]'
+      subject.instance_variable_get(:@header).call.must_equal 'Usage: file.rb c,b,a [options]'
     end
 
     it 'sets a default footer' do
@@ -109,6 +111,14 @@ describe Clive::Command do
       command = Clive::Command.new
       command.footer 'A footer'
       command.instance_variable_get(:@footer).must_equal 'A footer'
+    end
+  end
+
+  describe '#config' do
+    it 'sets options' do
+      command = Clive::Command.new
+      command.config :name => 'my cool app'
+      command.opts[:name].must_equal 'my cool app'
     end
   end
 

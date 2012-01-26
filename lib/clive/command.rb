@@ -2,26 +2,22 @@ class Clive
 
   # A command allows you to separate groups of commands under their own
   # namespace. But it can also take arguments like an Option. Instead of
-  # of executing the block passed to it executes the block passed to
-  # {#action}.
+  # executing the block passed to it executes the block passed to {#action}.
   #
   # @example
   #
-  #   class CLI
-  #     include Clive
+  #   class CLI < Clive
   #
   #     command :new, arg: '<dir>' do
-  #       # definitions
+  #       # options
   #       bool :force
   #
   #       action do |dir|
   #         # code
   #       end
   #     end
-  #   end
   #
-  #   # call with
-  #   #   ./file.rb new ~/somewhere --force
+  #   end
   #
   class Command < Option
 
@@ -78,8 +74,8 @@ class Clive
       @options     = []
       @_block      = block
 
-      @args = Arguments.create( get_subhash(opts, Arguments::Parser::KEYS) )
-      @opts = DEFAULTS.merge( get_subhash(opts, DEFAULTS.keys) || {} )
+      @args = Arguments.create(get_subhash(opts, Arguments::Parser::KEYS))
+      @opts = DEFAULTS.merge(get_subhash(opts, DEFAULTS.keys))
 
       # Create basic header "Usage: filename commandname(s) [options]
       @header = proc { "Usage: #{@opts[:name]} #{to_s} [options]" }
@@ -138,6 +134,17 @@ class Clive
     #
     def footer(val)
       @footer = val
+    end
+
+    # Set configuration values for the command, as if you passed an options hash
+    # to #initialize.
+    # @param [Hash] See #initialize
+    # @example
+    #
+    #   config arg: '<dir>'
+    #
+    def config(opts)
+      @opts = @opts.merge(get_subhash(opts, DEFAULTS.keys))
     end
 
     # @see Clive::Option::Runner.set
