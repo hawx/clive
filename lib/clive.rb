@@ -40,17 +40,20 @@ require 'clive/base'
 #     opt :working, 'Test if it is working' do
 #       puts "YEP!".green
 #     end
-#  end
+#   end
 #
 #  cli.run ARGV
 #
 # For very small tasks where you _just_ need to collect options passed and query
-# about them you can use {Kernel#Clive}.
+# about them you can use the {Kernel#Clive} method.
 #
-#   r = Clive(:working).run(ARGV)
-#   if r.working
-#     puts "YEP!".green
-#   end
+#   r = Clive(:quiet, :verbose).run(ARGV)
+#
+#   $log = Logger.new(STDOUT)
+#   $log.level = Logger::FATAL if r.quiet
+#   $log.level = Logger::DEBUG if r.verbose
+#
+#   # do some stuff
 #
 class Clive
 
@@ -94,8 +97,8 @@ class Clive
   #
   # There is one caveat though when using this style: types can not be
   # referenced with just the type name. Instead the full class path/name must be
-  # given. So instead of using `opt :num, as: Integer` you need to use
-  # `opt :num, as: Clive::Type::Integer`, and similarly for all types.
+  # given. So instead of using +opt :num, as: Integer+ you need to use +opt
+  # :num, as: Clive::Type::Integer+, and similarly for all types.
   #
   # @param opts [Hash] Options to create with, see {Base#initialize}
   # @example
