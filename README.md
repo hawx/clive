@@ -1,6 +1,7 @@
 # clive
 
-Clive is a DSL for creating command line interfaces.
+Clive lets you easily create command line interfaces, from simply checking for
+the presence of a few flags to multiple command behemoths.
 
 ## Install
 
@@ -46,9 +47,6 @@ Then run with `my_app.rb --version` to display the version for MyApp. By default
 `#run` will use `ARGV` as the input, but you can pass something else if
 necessary.
 
-
-### `.run`
-
 `.run` returns an instance of `Clive::StructHash` by default, this is a hybrid
 hash and struct allowing you to access keys by calling them or using `#[]`. It
 also stores any extra arguments that may have been passed which can be accessed
@@ -73,9 +71,10 @@ types (Integer in this case) and how extra arguments are stored in `#args`.
 
 ## Options
 
-Options are defined using `#opt` or `#option` they can have short (`-a`) or long
-names (`--abc`) and can also have arguments. The description can be given as an
-argument to `#opt` or can be defined before it using `#desc` (or `#description`).
+Options are defined using `#opt` and/or `#option` they can have short (`-a`) or
+long names (`--abc`) and can also have arguments. The description can be given
+as an argument to `#opt` or can be defined before it using `#desc` (or
+`#description`).
 
 ``` ruby
 opt :v, :version, 'Display the current version' do
@@ -101,7 +100,7 @@ would be called with `--longer-name-than-expected`.
 ### Boolean Options
 
 Boolean options are options which can be called with a `no-` prefix, which then
-passes false to the block/state. For example,
+passes `false` to the block/state. For example,
 
 ``` ruby
 bool :a, :auto
@@ -129,9 +128,9 @@ Boolean options __must__ have a long name.
 
 ## Commands
 
-Commands can be defined using `#command`. They can be used to group related
-Options acting as a kind of namespace. But Commands are also fully featured
-Options so can take arguments as well. They can be created with multiple names.
+Commands are defined using `#command`. They can be used to group related Options
+together acting like a namespace, but Commands are fully featured Options so can
+also take arguments. Commands can be created with multiple names.
 
 ``` ruby
 desc 'Create a new project'
@@ -174,16 +173,20 @@ Arguments can be made optional by enclosing one or more arguments with `[` and `
 
 ``` ruby
 # both required
-opt :size, args: '<h> <w>'
+opt :size, args: '<h> <w>
+# --size 10   #=> Error
 
 # first required
 opt :size, args: '<h> [<w>]'
+# --size 10   #=> [10, nil]
 
 # second required
 opt :size, args: '[<h>] <w>'
+# --size 10   #=> [nil, 10]
 
 # neither required
 opt :size, args: '[<h> <w>]'
+# --size 10   #=> [10, nil]
 ```
 
 There are also various options that can be passed to constrain or change the
@@ -340,10 +343,12 @@ the plain formatter (colour is default), use
 
 ``` ruby
 class CLI < Clive
+  config formatter: Clive::Formatter::Plain.new
+
   # ...
 end
 
-CLI.run ARGV, formatter: Clive::Formatter::Plain.new
+CLI.run
 ```
 
 To create your own formatter take a look at `lib/clive/formatter.rb`.
@@ -373,4 +378,4 @@ backgrounds are as expected, `l_red_bg`.
 
 ## Copyright
 
-Copyright (c) 2010-11 Joshua Hawxwell. See LICENSE for details.
+Copyright (c) 2010-12 Joshua Hawxwell. See LICENSE for details.
