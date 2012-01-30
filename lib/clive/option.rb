@@ -1,50 +1,28 @@
 class Clive
 
-  # An option is called using either a long form +--opt+ or a short form +-o+
-  # they can take arguments and these arguments can be restricted using various
-  # parameters.
+  # An option saves a value to the state or triggers a block if given when used.
+  # They can have a long, +--opt+, and/or short, +-o+ and can take arguments
+  # which can be constricted by passing various parameters.
   #
-  #   opt :name, arg: '<first> [<middle>] <second>' do |f, m, s|
-  #     # do something
+  #   class CLI < Clive
+  #     VERSION = '0.0.1'
+  #
+  #     desc 'Name of the person'
+  #     opt :name, arg: '<first> [<middle>] <last>'
+  #
+  #     opt :v, :version do
+  #       puts CLI::VERSION
+  #     end
   #   end
-  #   # call with
-  #   #  --name John Doe          to set; f='John', m=nil,      s='Doe'
-  #   #  --name John Thomas Doe   to set; f='John', m='Thomas', s='Doe'
   #
-  #   bool :F, :force     # OR  opt :F, :force, boolean: true
-  #   # call with
-  #   #   -F or --force  to set to true
-  #   #   --no-force     to set to false
+  # You can also have boolean options, created with the +bool+ or +boolean+
+  # method which are simply Options with :boolean set to true. You can pass the
+  # option name as normal to set them to true or prepend +--no-+ to the name to
+  # set them to false.
   #
-  #   opt :email, arg: '<a@b.c>', match: /\w+@\w+\.\w+/
-  #   # call with
-  #   #   --email john@doe.com
-  #   # but not
-  #   #   --email not-an-email-address
-  #   # which raises Clive::Parser::MissingArgumentError
-  #
-  #   opt :fruit, arg: '<choice>', in: %w(apple pear banana)
-  #   # here any argument not in the array passed with :in will raise an error
-  #
-  #   opt :start, arg: '<date>', as: Date
-  #   # here any argument which can't be parsed as a Date will raise an error,
-  #   # the argument is saved into the state as a Date object.
-  #
-  #   opt :five_letter_word, arg: '<word>', constraint: -> i { i.size == 5 }
-  #   # this only accepts words of five letters by calling the proc given.
-  #
-  # Since options can take multiple arguments (<a> <b> <c>) it is possible to
-  # use each of the constraints above for each argument.
-  #
-  #   opt :worked, arg: '<from> [<to>]', as: [Date, Date]
-  #   # This makes both <from> and <to> a Date
-  #
-  #   opt :fruits, arg: '<choice> <number>',
-  #                in: [%w(apple pear banana), nil],
-  #                as: [nil, Integer]
-  #   # Here we extend the :fruit example from above to allow a number of fruit
-  #   # to be picked. Note the use of nil in places where we want the default to
-  #   # be used.
+  #   class CLI
+  #     bool :auto, 'Auto regenerate person on change'
+  #   end
   #
   class Option
 
