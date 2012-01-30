@@ -36,8 +36,7 @@ class Clive
     # @param keys [#to_sym, Array<#to_sym>]
     # @param val
     def store(keys, val)
-      keys = Array(keys)
-      keys.map!(&:to_sym)
+      keys = Array(keys).map(&:to_sym)
 
       keys.each do |key|
         @aliases[key] = keys.first
@@ -49,14 +48,14 @@ class Clive
     # Gets the value from the StructHash corresponding to the key given.
     #
     # @param key [Symbol]
-    def [](key)
-      @data[@aliases[key]]
+    def fetch(key)
+      @data.fetch @aliases[key]
     end
-    alias_method :get, :[]
+    alias_method :[], :fetch
 
     # Checks whether the StructHash contains an entry for the key given.
     def key?(key)
-      @aliases.key?(key)
+      @aliases.key? key
     end
 
     # @return [Hash] The data without the +:args+ key.
@@ -88,7 +87,7 @@ class Clive
     # Otherwise calls super.
     def method_missing(sym, *args, &block)
       if key?(sym)
-        get sym
+        fetch sym
       elsif sym.to_s[-1..-1] == "?"
         key? sym.to_s[0..-2].to_sym
       else
