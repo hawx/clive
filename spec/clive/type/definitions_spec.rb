@@ -238,10 +238,22 @@ describe Clive::Type::Range do
   end
 
   describe '#typecast' do
-    it 'returns a Range' do
-      r = subject.typecast('1-5')
+    it 'returns a Range for a...z' do
+      r = subject.typecast('a...z')
       r.must_be_kind_of Range
-      r.must_equal '1'..'5'
+      r.must_equal 'a'...'z'
+    end
+
+    it 'returns a Range for a..z' do
+      r = subject.typecast('a..z')
+      r.must_be_kind_of Range
+      r.must_equal 'a'..'z'
+    end
+
+    it 'returns a Range for a-z' do
+      r = subject.typecast('a-z')
+      r.must_be_kind_of Range
+      r.must_equal 'a'..'z'
     end
   end
 end

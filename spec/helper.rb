@@ -1,7 +1,6 @@
 $: << File.dirname(__FILE__) + '/..'
 
 if RUBY_VERSION >= "1.9"
-  require 'fileutils'
   begin
     require 'duvet'
     Duvet.start :filter => 'lib/clive'
