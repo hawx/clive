@@ -88,21 +88,7 @@ class Clive
       @commands << Command.new(ns, d, o.merge({:group => @_group}), &block)
     end
 
-    # Sets a value in the state. Useful for setting default values.
-    # @see Option::Runner#set
-    # @example
-    #
-    #   class CLI
-    #     set :size, :medium
-    #
-    #     opt :size, arg: '<size>', in: %w(small medium large), as: Symbol do
-    #       set :size, size
-    #     end
-    #   end
-    #
-    def set(key, value)
-      @pre_state.store key, value
-    end
+    include Clive::StateActions
 
     # @endgroup
 

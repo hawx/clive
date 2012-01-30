@@ -143,24 +143,15 @@ class Clive
     #
     #   config arg: '<dir>'
     #
-    def config(opts)
-      @opts = @opts.merge(get_subhash(opts, DEFAULTS.keys))
+    def config(opts=nil)
+      if opts
+        @config = @config.merge(get_subhash(opts, DEFAULTS.keys))
+      else
+        @config
+      end
     end
 
-    # @see Clive::Option::Runner.set
-    # @example
-    #
-    #   command :create, 'Create a project' do
-    #     set :files, []
-    #
-    #     opt :add, arg: '<path>', 'Add a file' do
-    #       update :files, :<<, path
-    #     end
-    #   end
-    #
-    def set(key, value)
-      @state.store key, value
-    end
+    include Clive::StateActions
 
     # @overload option(short=nil, long=nil, description=current_desc, opts={}, &block)
     #   Creates a new Option in the Command. Either +short+ or +long+ must be set.

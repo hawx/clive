@@ -1,4 +1,85 @@
 class Clive
+
+  # Methods for modifying a state object. Requires that the instance variable
+  # +@state+ exists and that it responds to +#fetch+, +#store+ and +#key?+.
+  module StateActions
+
+    # @param key [Symbol]
+    #
+    # @example
+    #   set :some_key, 1
+    #   opt :get_some_key do
+    #     puts get(:some_key)   #=> 1
+    #   end
+    #
+    def get(key)
+      @state.fetch key
+    end
+
+    # @param key [Symbol]
+    # @param value [Object]
+    #
+    # @example
+    #   opt :set_some_key do
+    #     set :some_key, 1
+    #   end
+    #
+    def set(key, value)
+      @state.store key, value
+    end
+
+    # @overload update(key, method, *args)
+    #   Update the value for +key+ using the +method+ which is passed +args+
+    #   @param key [Symbol]
+    #   @param method [Symbol]
+    #   @param args [Object]
+    #
+    #   @example
+    #     set :list, []
+    #     opt :add, arg: '<item>' do
+    #       update :list, :<<, item
+    #     end
+    #
+    # @overload update(key, &block)
+    #   Update the value for +key+ with a block
+    #   @param key [Symbol]
+    #
+    #   @example
+    #     set :list, []
+    #     opt :add, arg: '<item>' do
+    #       update(:list) {|l| l << item }
+    #     end
+    #
+    def update(*args)
+      if block_given?
+        key = args.first
+        set key, yield(get(key))
+      elsif args.size > 1
+        key, method = args.shift, args.shift
+        set key, get(key).send(method, *args)
+      else
+        raise ArgumentError, "wrong number of arguments (#{args.size} for 2)"
+      end
+    end
+
+    # @param key [Symbol]
+    # @return State has +key+?
+    #
+    # @example
+    #   # test.rb
+    #   set :some_key, 1
+    #   opt(:has_some_key)  { puts has?(:some_key) }
+    #   opt(:has_other_key) { puts has?(:other_key) }
+    #
+    #   # ./test.rb --has-some-key   #=> true
+    #   # ./test.rb --has-other-key  #=> false
+    #
+    def has?(key)
+      @state.key? key
+    end
+
+  end
+
   class Option
 
     # Runner is a class which is used for executing blocks given to Options and
@@ -65,80 +146,7 @@ class Clive
           @state
         end
 
-        # @param key [Symbol]
-        #
-        # @example
-        #   set :some_key, 1
-        #   opt :get_some_key do
-        #     puts get(:some_key)   #=> 1
-        #   end
-        #
-        def get(key)
-          @state[key]
-        end
-
-        # @param key [Symbol]
-        # @param value [Object]
-        #
-        # @example
-        #   opt :set_some_key do
-        #     set :some_key, 1
-        #   end
-        #
-        def set(key, value)
-          @state.store key, value
-        end
-
-        # @overload update(key, method, *args)
-        #   Update the value for +key+ using the +method+ which is passed +args+
-        #   @param key [Symbol]
-        #   @param method [Symbol]
-        #   @param args [Object]
-        #
-        #   @example
-        #     set :list, []
-        #     opt :add, arg: '<item>' do
-        #       update :list, :<<, item
-        #     end
-        #
-        # @overload update(key, &block)
-        #   Update the value for +key+ with a block
-        #   @param key [Symbol]
-        #
-        #   @example
-        #     set :list, []
-        #     opt :add, arg: '<item>' do
-        #       update(:list) {|l| l << item }
-        #     end
-        #
-        def update(*args)
-          if block_given?
-            key = args.first
-            set(key, yield(get(key)))
-          elsif args.size > 1
-            key, method = args.shift, args.shift
-            r = get(key).send(method, *args)
-            set(key, r)
-          else
-            raise ArgumentError, "wrong number of arguments (#{args.size} for 2)"
-          end
-        end
-
-        # @param key [Symbol]
-        # @return State has +key+?
-        #
-        # @example
-        #   # test.rb
-        #   set :some_key, 1
-        #   opt(:has_some_key)  { puts has?(:some_key) }
-        #   opt(:has_other_key) { puts has?(:other_key) }
-        #
-        #   # ./test.rb --has-some-key   #=> true
-        #   # ./test.rb --has-other-key  #=> false
-        #
-        def has?(key)
-          @state.key?(key)
-        end
+        include Clive::StateActions
 
         # Allows arguments passed in to be referenced directly by name.
         def method_missing(sym, *args)
