@@ -40,8 +40,8 @@ describe Clive::Command do
     end
 
     it 'sets the options' do
-      subject.opts[:head].must_be_true
-      subject.opts[:group].must_equal 'Cool commands'
+      subject.config[:head].must_be_true
+      subject.config[:group].must_equal 'Cool commands'
     end
 
     it 'sets the arguments' do
@@ -118,7 +118,7 @@ describe Clive::Command do
     it 'sets options' do
       command = Clive::Command.new
       command.config :name => 'my cool app'
-      command.opts[:name].must_equal 'my cool app'
+      command.config[:name].must_equal 'my cool app'
     end
   end
 
@@ -139,7 +139,7 @@ describe Clive::Command do
       opt = command.find('-O')
       opt.name.must_equal :opt
       opt.description.must_equal 'An option'
-      opt.opts.must_contain :tail => true
+      opt.config.must_contain :tail => true
     end
   end
 
@@ -151,8 +151,8 @@ describe Clive::Command do
       bool = command.find('--auto')
       bool.name.must_equal :auto
       bool.description.must_equal 'Auto build'
-      bool.opts.must_contain :head => true
-      bool.opts[:boolean].must_be_true
+      bool.config.must_contain :head => true
+      bool.config[:boolean].must_be_true
     end
   end
 
@@ -268,9 +268,9 @@ describe Clive::Command do
         opt :manual, :group => 'Set'
       end
 
-      command.find_option(:test).opts[:group].must_equal   'Testing'
-      command.find_option(:change).opts[:group].must_equal 'Changed'
-      command.find_option(:manual).opts[:group].must_equal 'Set'
+      command.find_option(:test).config[:group].must_equal   'Testing'
+      command.find_option(:change).config[:group].must_equal 'Changed'
+      command.find_option(:manual).config[:group].must_equal 'Set'
     end
   end
 
@@ -283,7 +283,7 @@ describe Clive::Command do
         option :none
       end
 
-      command.find_option(:none).opts[:group].must_be_nil
+      command.find_option(:none).config[:group].must_be_nil
     end
   end
 

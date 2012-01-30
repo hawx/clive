@@ -16,19 +16,19 @@ class Clive
     # You don't need to create an instance of this, create a class extending
     # Clive or call Clive.new instead.
     #
-    # @param opts [Hash] Options to set for this Base, see #run for details
+    # @param config [Hash] Options to set for this Base, see #run for details
     #  of the keys that can be passed.
-    def initialize(opts={}, &block)
-      super
+    def initialize(config={}, &block)
+      super([], config, &block)
 
       @commands = []
-      @header   = proc { "Usage: #{@opts[:name]} [command] [options]" }
+      @header   = proc { "Usage: #{@config[:name]} [command] [options]" }
       @footer   = ""
       @_group   = nil
-      @opts     = DEFAULTS.merge(get_subhash(opts, DEFAULTS.keys))
+      @config   = DEFAULTS.merge(get_subhash(config, DEFAULTS.keys))
 
       # Need to keep a state before #run is called so #set works.
-      @pre_state = {}
+      @state = {}
       instance_exec &block if block
     end
 
@@ -37,34 +37,34 @@ class Clive
     # @param args [Array<String>]
     #   Command line arguments to run with
     #
-    # @param opts [Hash]
-    # @option opts [Boolean] :help
+    # @param config [Hash]
+    # @option config [Boolean] :help
     #   Whether to create a help option.
-    # @option opts [Boolean] :help_command
+    # @option config [Boolean] :help_command
     #   Whether to create a help command.
-    # @option opts [Formatter] :formatter
+    # @option config [Formatter] :formatter
     #   Help formatter to use.
-    # @option opts [String] :name
+    # @option config [String] :name
     #   Name to use in headers, this is usually better than setting a header as
     #   commands will use this to generate their own headers for use in help.
     #
-    def run(args=ARGV, opts={})
-      @opts = @opts.merge(get_subhash(opts, DEFAULTS.keys))
+    def run(args=ARGV, config={})
+      @config = @config.merge(get_subhash(config, DEFAULTS.keys))
 
       add_help_option
       add_help_command
 
-      Clive::Parser.new(self, opts).parse(args, @pre_state)
+      Clive::Parser.new(self, config).parse(args, @state)
     end
 
 
     # @group DSL Methods
 
     # @overload command(*names, description=current_desc, opts={}, &block)
-    #   Creates a new Command.
-    #   @param names [Array<Symbol>] Names that the command can be called with.
-    #   @param description [String] Description of the command.
-    #   @param opts [Hash] Options to be passed to the new Command, see {Command#initialize}.
+    #   Creates a new Command.  @param names [Array<Symbol>] Names that the
+    #   command can be called with.  @param description [String] Description of
+    #   the command.  @param opts [Hash] Options to be passed to the new
+    #   Command, see {Command#initialize}.
     #
     # @example
     #
@@ -172,13 +172,13 @@ class Clive
 
     # Options which should be copied into each Command created.
     def global_opts
-      @opts.find_all {|k,v| GLOBAL_OPTIONS.include?(k) }
+      @config.find_all {|k,v| GLOBAL_OPTIONS.include?(k) }
     end
 
     # Adds the help command, which accepts the name of a command to display help
     # for, to this if it is wanted.
     def add_help_command
-      if @opts[:help] && @opts[:help_command] && !has_command?(:help)
+      if @config[:help] && @config[:help_command] && !has_command?(:help)
         self.command(:help, 'Display help', :arg => '[<command>]', :tail => true)
       end
     end

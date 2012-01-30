@@ -4,8 +4,8 @@ require 'helper'
 describe Clive::Option do
   subject { Clive::Option }
 
-  def option_with(opts, &block)
-    Clive::Option.new [:o, :opt], "", opts, &block
+  def option_with(config, &block)
+    Clive::Option.new [:o, :opt], "", config, &block
   end
 
   describe '#initialize' do
@@ -17,41 +17,41 @@ describe Clive::Option do
     let(:opt) { option_with :head => true, :args => '<a> <b>', :as => [String, Integer] }
 
     it 'finds all options' do
-      opt.opts.must_include :head
-      opt.opts.wont_include :args
+      opt.config.must_include :head
+      opt.config.wont_include :args
     end
 
     it 'uses default options when not set' do
-      opt.opts.must_include :runner
+      opt.config.must_include :runner
     end
 
     describe 'setting :head' do
       it 'is true if head is set to true' do
-        option_with(:head => true).opts.must_contain :head => true
+        option_with(:head => true).config.must_contain :head => true
       end
 
       it 'is false otherwise' do
-        option_with({}).opts.must_contain :head => false
+        option_with({}).config.must_contain :head => false
       end
     end
 
     describe 'setting :tail' do
       it 'is true if tail is set to true' do
-        option_with(:tail => true).opts.must_contain :tail => true
+        option_with(:tail => true).config.must_contain :tail => true
       end
 
       it 'is false otherwise' do
-        option_with({}).opts.must_contain :tail => false
+        option_with({}).config.must_contain :tail => false
       end
     end
 
     describe 'setting :boolean' do
       it 'is true if boolean is set to true' do
-        option_with(:boolean => true).opts.must_contain :boolean => true
+        option_with(:boolean => true).config.must_contain :boolean => true
       end
 
       it 'is false otherwise' do
-        option_with({}).opts.must_contain :boolean => false
+        option_with({}).config.must_contain :boolean => false
       end
     end
 

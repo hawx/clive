@@ -34,16 +34,16 @@ class Clive
 
     # @return [Array<Symbol>] List of names this Option can be called
     attr_reader :names
-    # @return [Hash{Symbol=>Object}] Options passed to {#initialize} using
-    #   defaults when not given
-    attr_reader :opts
+    # @return [Hash{Symbol=>Object}] Config options passed to {#initialize}
+    #   using defaults when not given
+    attr_reader :config
     # @return [Arguments] List of arguments this Option can take when ran
     attr_reader :args
     # @return [String] Description of the Option
     attr_reader :description
 
-    # Default values to use for +@opts+. These are also the options that
-    # Option takes, see {#initialize} for details.
+    # Default values to use for +config+. These are also the config options that
+    # an Option takes, see {#initialize} for details.
     DEFAULTS = {
       :boolean => false,
       :group   => nil,
@@ -52,27 +52,28 @@ class Clive
       :runner  => Clive::Option::Runner
     }
 
-    # @param names [Array<Symbol>] Names for this option
+    # @param names [Array<Symbol>]
+    #   Names for this option
     #
     # @param description [String]
     #   Description of the option.
     #
-    # @param opts [Hash]
-    # @option opts [true, false] :head
+    # @param config [Hash]
+    # @option config [true, false] :head
     #   If option should be at top of help list
-    # @option opts [true, false] :tail
+    # @option config [true, false] :tail
     #   If option should be at bottom of help list
-    # @option opts [String] :args
+    # @option config [String] :args
     #   Arguments that the option takes. See {Argument}.
-    # @option opts [Type, Array[Type]] :as
+    # @option config [Type, Array[Type]] :as
     #   The class the argument(s) should be cast to. See {Type}.
-    # @option opts [#match, Array[#match]] :match
+    # @option config [#match, Array[#match]] :match
     #   Regular expression that the argument(s) must match
-    # @option opts [#include?, Array[#include?]] :in
+    # @option config [#include?, Array[#include?]] :in
     #   Collection that argument(s) must be in
-    # @option opts :default
+    # @option config :default
     #   Default value that is used if argument is not given
-    # @option opts :group
+    # @option config :group
     #   Name of the group this option belongs to
     #
     # @example
@@ -83,7 +84,7 @@ class Clive
     #     {:args => "<dir> [<size>]", :matches => [/^\//], :types => [nil, Integer]}
     #   )
     #
-    def initialize(names=[], description="", opts={}, &block)
+    def initialize(names=[], description="", config={}, &block)
       @names = names.sort_by {|i| i.to_s.size }
 
       # @return [Symbol, nil] Short name from the names (ie. +:a+)
@@ -99,8 +100,8 @@ class Clive
       @description  = description
       @block = block
 
-      @args = Arguments.create( get_subhash(opts, Arguments::Parser::KEYS.keys) )
-      @opts = DEFAULTS.merge( get_subhash(opts, DEFAULTS.keys) || {} )
+      @args = Arguments.create( get_subhash(config, Arguments::Parser::KEYS.keys) )
+      @config = DEFAULTS.merge( get_subhash(config, DEFAULTS.keys) || {} )
     end
 
     # @return [Symbol] The longest name given
@@ -115,7 +116,7 @@ class Clive
       if @names.long
         r << ", " if @names.short
         r << "--"
-        r << "[no-]" if @opts[:boolean] == true
+        r << "[no-]" if @config[:boolean] == true
         r << @names.long.to_s.gsub('_', '-')
       end
 
@@ -139,7 +140,7 @@ class Clive
     # @param scope [Command] Scope of the state to use
     # @return [Hash] the state which may have been modified!
     def run(state, args=[], scope=nil)
-      mapped_args = if @opts[:boolean] == true
+      mapped_args = if @config[:boolean] == true
         [[:truth, args.first]]
       else
         @args.zip(args).map {|k,v| [k.name, v] }
@@ -147,9 +148,9 @@ class Clive
 
       if block?
         if scope
-          state = @opts[:runner]._run(mapped_args, state[scope.name], @block)
+          state = @config[:runner]._run(mapped_args, state[scope.name], @block)
         else
-          state = @opts[:runner]._run(mapped_args, state, @block)
+          state = @config[:runner]._run(mapped_args, state, @block)
         end
       else
         state = set_state(state, args, scope)
@@ -167,9 +168,11 @@ class Clive
     # @param other [Option] Option to compare with
     # @return [Integer] Either -1, 0 or 1
     def <=>(other)
-      if (opts[:tail] && !other.opts[:tail]) || (other.opts[:head] && !opts[:head])
+      if (config[:tail] && !other.config[:tail]) ||
+          (other.config[:head] && !config[:head])
         1
-      elsif (other.opts[:tail] && !opts[:tail]) || (opts[:head] && !other.opts[:head])
+      elsif (other.config[:tail] && !config[:tail]) ||
+          (config[:head] && !other.config[:head])
         -1
       else
         self.name.to_s <=> other.name.to_s

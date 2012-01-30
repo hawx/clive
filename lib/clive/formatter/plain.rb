@@ -44,7 +44,7 @@ class Clive
       #
       # @return [String]
       def to_s
-        groups = (@options + @commands).group_by {|i| i.opts[:group] }
+        groups = (@options + @commands).group_by {|i| i.config[:group] }
 
         # So no groups were created, let's create some nice defaults
         if groups.size == 1 && groups.keys.first == nil
@@ -137,7 +137,8 @@ class Clive
         r = ""
         after = description_for(opt).dup << " " << choices_for(opt)
         unless after == " "
-          r << "# " << Output.wrap_text(after, left_width + padding(2).size, @opts[:width])
+          r << "# "
+          r << Output.wrap_text(after, left_width + padding(2).size, @opts[:width])
         end
         r
       end
@@ -151,7 +152,7 @@ class Clive
       end
 
       def args_for(opt)
-        if opt.args != [] && !opt.opts[:boolean] == true
+        if opt.args != [] && !opt.config[:boolean] == true
           opt.args.to_s
         else
           ""

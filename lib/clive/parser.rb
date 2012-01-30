@@ -16,12 +16,12 @@ class Clive
 
     # @param base [Command]
     #
-    # @param opts [Hash]
-    # @option opts [.new, #[], #[]=, #alias] :state
+    # @param config [Hash]
+    # @option config [.new, #[], #[]=, #alias] :state
     #   What class the state should be
-    def initialize(base, opts)
+    def initialize(base, config)
       @base = base
-      @opts = DEFAULTS.merge(opts)
+      @config = DEFAULTS.merge(config)
     end
 
     # The parser should work how you expect. It allows you to put global options before and after
@@ -42,7 +42,7 @@ class Clive
       @argv = argv
       @i    = 0
 
-      @state = @opts[:state].new(pre_state)
+      @state = @config[:state].new(pre_state)
       @state.store :args, []
 
       # Pull out 'help' command immediately if found
@@ -69,7 +69,7 @@ class Clive
           # is it a command?
           if found.kind_of?(Command)
             @command_ran = true
-            @state.store found.names, found.run_block(@opts[:state].new)
+            @state.store found.names, found.run_block(@config[:state].new)
 
             inc
             args = []
@@ -93,7 +93,7 @@ class Clive
           end
 
         # it's a no- option
-        elsif curr[0..4] == '--no-' && @base.find("--#{curr[5..-1]}").opts[:boolean] == true
+        elsif curr[0..4] == '--no-' && @base.find("--#{curr[5..-1]}").config[:boolean] == true
           @base.find("--#{curr[5..-1]}").run @state, [false]
 
         # it's one (or more) short options
