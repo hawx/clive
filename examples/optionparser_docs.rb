@@ -39,8 +39,8 @@ class CLI < Clive
   opt :i, :inplace, arg: '[<EXTENSION>]' do |ext|
     set :inplace, true
     set :extension, ext || ''
-    update :extension, :sub!, /\A\.?(?=.)/, '.'
-    # This ensures extensino begins with a dot. It also shows off #update taking
+    update :extension, :sub, /\A\.?(?=.)/, '.'
+    # This ensures extensin begins with a dot. It also shows off #update taking
     # more than one argument.
   end
 
