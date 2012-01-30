@@ -10,6 +10,8 @@ class CLI < Clive
   CODES = %w[iso-2022-jp shift_jis euc-jp utf8 binary]
   CODE_ALIASES = { "jis" => "iso-2022-jp", "sjis" => "shift_jis" }
 
+  config :help_command => false, :help => false
+
   # We set default values here, unlike OptionParser the options are stored
   # internally and we have a specific method, #set, for setting them.
   set :library,        []
@@ -85,6 +87,6 @@ class CLI < Clive
 
 end
 
-r = CLI.run ARGV, :help_command => false, :help => false
+r = CLI.run
 p r.to_h
 p r.args

@@ -90,6 +90,22 @@ class Clive
 
     include Clive::StateActions
 
+    # Set configuration values for the base, as if you passed an options hash
+    # to #initialize.
+    #
+    # @param [Hash] See #initialize
+    # @example
+    #
+    #   config arg: '<dir>'
+    #
+    def config(opts=nil)
+      if opts
+        @config = @config.merge(get_subhash(opts, DEFAULTS.keys))
+      else
+        @config
+      end
+    end
+
     # @endgroup
 
     # Finds the option or command represented by +arg+, this can the name of a command

@@ -4,16 +4,19 @@ TODO_FILE = File.expand_path('~/Desktop/todos.txt')
 
 class Todo < Clive
 
-  def self.write(mode, text)
-    File.open(TODO_FILE, mode) {|f| f.write(text) }
+  class << self
+    def write(mode, text)
+      File.open(TODO_FILE, mode) {|f| f.write(text) }
+    end
+
+    def read
+      r = IO.read(TODO_FILE) rescue 'No tasks'
+      r = 'No tasks' if r.empty?
+      r
+    end
   end
 
-  def self.read
-    r = IO.read(TODO_FILE) rescue 'No tasks'
-    r = 'No tasks' if r.empty?
-    r
-  end
-
+  config :name => 'todo', :help_command => false
 
   desc 'List all todo items'
   opt :l, :list do
@@ -38,4 +41,4 @@ class Todo < Clive
 
 end
 
-Todo.run ARGV, :help_command => false
+Todo.run

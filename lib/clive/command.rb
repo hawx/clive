@@ -138,6 +138,7 @@ class Clive
 
     # Set configuration values for the command, as if you passed an options hash
     # to #initialize.
+    #
     # @param [Hash] See #initialize
     # @example
     #
