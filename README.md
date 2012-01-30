@@ -30,6 +30,8 @@ module MyApp
   # some code
 
   class CLI < Clive
+    config name: 'myapp'
+
     opt :v, :version, 'Display the current version' do
       puts MyApp::Version
       exit 0
@@ -37,10 +39,12 @@ module MyApp
   end
 end
 
-result = MyApp::CLI.run(ARGV)
+result = MyApp::CLI.run
 ```
 
-Then run with `my_app.rb --version` to display the version for MyApp.
+Then run with `my_app.rb --version` to display the version for MyApp. By default
+`#run` will use `ARGV` as the input, but you can pass something else if
+necessary.
 
 
 ### `.run`
