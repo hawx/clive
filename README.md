@@ -173,7 +173,7 @@ Arguments can be made optional by enclosing one or more arguments with `[` and `
 
 ``` ruby
 # both required
-opt :size, args: '<h> <w>
+opt :size, args: '<h> <w>'
 # --size 10   #=> Error
 
 # first required
