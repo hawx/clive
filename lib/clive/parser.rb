@@ -58,6 +58,7 @@ class Clive
         else
           puts @base.help
         end
+        Kernel.exit 0
       end
 
       until ended?

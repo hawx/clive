@@ -8,6 +8,7 @@ describe Clive::Parser do
 
     describe 'with no argument' do
       it 'prints the help' do
+        Kernel.expects(:exit)
         this {
           subject.run s 'help'
         }.must_output <<EOS
@@ -25,6 +26,7 @@ EOS
 
     describe 'with an argument' do
       it 'prints help for that command' do
+        Kernel.expects(:exit)
         this {
           subject.run s 'help new'
         }.must_output <<EOS
@@ -37,6 +39,7 @@ EOS
       end
 
       it 'prints an error if command does not exist' do
+        Kernel.expects(:exit)
         this {
           subject.run s 'help missing'
         }.must_output "Error: command missing could not be found. Try `help` to see the available commands.\n"

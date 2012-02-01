@@ -28,6 +28,8 @@ describe Clive::Formatter::Plain do
 
   subject { Clive::Formatter::Plain }
 
+  before { Kernel.stubs(:exit) }
+
   describe '#to_s' do
 
     it 'builds the help string' do
