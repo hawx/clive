@@ -34,7 +34,8 @@ class Clive
       :match      => AlwaysTrue.for(:match),
       :within     => AlwaysTrue.for(:include?),
       :default    => nil,
-      :constraint => AlwaysTrue.for(:call)
+      :constraint => AlwaysTrue.for(:call),
+      :infinite   => false
     }
 
     attr_reader :name, :default, :type
@@ -91,6 +92,7 @@ class Clive
       @within     = opts[:within]
       @default    = opts[:default]
       @constraint = opts[:constraint]
+      @infinite   = opts[:infinite]
     end
 
     # @return Whether the argument is optional.
@@ -98,9 +100,14 @@ class Clive
       @optional
     end
 
+    # @return Whether the argument is infinite.
+    def infinite?
+      @infinite
+    end
+
     # @return [String] String representation for the argument.
     def to_s
-      optional? ? "[<#@name>]" : "<#@name>"
+      (optional? ? "[<#@name>]" : "<#@name>") + (infinite? ? '...' : '')
     end
 
     # @return [String]
