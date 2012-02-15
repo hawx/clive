@@ -189,6 +189,26 @@ opt :size, args: '[<h> <w>]'
 # --size 10   #=> [10, nil]
 ```
 
+You can make an argument 'infinite' by appending the name with `...`, like
+`<arg>...`. Optional-ness is respected so `<arg>...` expects at least one argument
+whereas `[<arg>...]` takes 0 or more arguments. Infinite arguments also play well
+with standard arguments, and will return arrays of items even if only one argument
+was passed.
+
+``` ruby
+opt :items, :arg => '<thing>...'
+# --items            #=> Error
+# --items iPad       #=> ['iPad']
+# --items iPad iPod  #=> ['iPad', 'iPod']
+
+opt :items, :arg => '[<thing>...]'
+# --items            #=> []
+# and same as previously in other cases
+
+opt :items, :arg => '<amount> <thing>...', :as => [Integer, nil]
+# --items 5 iPad iMac  #=> [5, 'iPad', 'iMac']
+```  
+
 There are also various options that can be passed to constrain or change the
 arguments. If one of the below is passed to an option with `:arg` or `:args`
 a generic argument called `<arg>` will be added.
