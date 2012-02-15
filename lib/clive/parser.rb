@@ -24,13 +24,19 @@ class Clive
       @config = DEFAULTS.merge(config)
     end
 
-    # The parser should work how you expect. It allows you to put global options before and after
-    # a command section (if it exists, which it doesn't), so you have something like.
+    # The parser should work how you expect. It allows you to put global options 
+    # before and after a command section (if it exists, which it doesn't), so 
+    # you have something like.
     #
-    #    my_app.rb [global options] ([command] [options] [args]) [g. options] [g. args] [g. options] etc.
-    #            |  global section  |    command section       |      global section
+    #    app [global] [command] [global]
     #
-    # Only one command can be run, if you attempt to use two the other will be caught as an argument.
+    # Where the [global] sections are made of options and arguments and 
+    # [command] is made of
+    #
+    #    [command] [options/args]
+    #
+    # Only one command can be run, if you attempt to use two the other will be 
+    # caught as an argument.
     #
     # @param argv [Array]
     #   The input to parse from the command line, usually ARGV.

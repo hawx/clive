@@ -104,7 +104,7 @@ class Clive
       # @param name [String]
       # @return [String] Argument name without sqaure or angle brackets
       def clean(name)
-        name.tr '[<>]', ''
+        name.tr '[<>].', ''
       end
 
       # @param hash [Hash<Symbol=>Object, Symbol=>Array>]
@@ -188,6 +188,8 @@ class Clive
         cancelled_optional = false
 
         arg_str.split(' ').zip(hash).map do |arg, opts|
+          opts ||= {}
+
           if cancelled_optional
             optional = false
             cancelled_optional = false
@@ -201,7 +203,9 @@ class Clive
             raise InvalidArgumentStringError.new(opts[:arg])
           end
 
-          {:name => clean(arg), :optional => optional}.merge(opts || {})
+          opts[:infinite] = true if arg =~ /\.\.\.\]?$/
+
+          {:name => clean(arg), :optional => optional}.merge(opts)
         end
       end
 

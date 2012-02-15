@@ -143,7 +143,7 @@ class Clive
       mapped_args = if @config[:boolean] == true
         [[:truth, args.first]]
       else
-        @args.zip(args).map {|k,v| [k.name, v] }
+        @args.zip(args).map {|k,v| [k.name, (k.infinite? ? v.first : v)] }
       end
 
       if block?
@@ -153,7 +153,7 @@ class Clive
           state = @config[:runner]._run(mapped_args, state, @block)
         end
       else
-        state = set_state(state, args, scope)
+        state = set_state(state, args.flatten(1), scope)
       end
 
       state
@@ -189,7 +189,7 @@ class Clive
     # @param scope [Symbol, nil]
     def set_state(state, args, scope=nil)
       args = (@args.max <= 1 ? args[0] : args)
-
+      
       if scope
         state[scope.name].store [@names.long, @names.short].compact, args
       else

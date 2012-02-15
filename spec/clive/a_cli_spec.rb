@@ -24,6 +24,8 @@ describe 'A CLI' do
         update key, sym, *args
       end
 
+      opt :items, :args => '<item>...'
+
       desc 'Print <message> <n> times'
       opt :print, :arg => '<message> <n>', :as => [String, Integer] do
         n.times { puts message }
@@ -40,11 +42,6 @@ describe 'A CLI' do
 
         # implicit arg as "<choice>", also added default
         opt :T, :type, :in => %w(post page blog), :default => :page, :as => Symbol
-        opt :force, 'Force overwrite' do
-          require 'highline/import'
-          answer = ask("Are you sure, this could delete stuff? [y/n]\n")
-          set :force, true if answer == "y"
-        end
 
         action do |dir|
           puts "Creating #{get :type} in #{dir}" if dir
@@ -129,6 +126,18 @@ describe 'A CLI' do
     end
   end
 
+  describe '--items' do
+    it 'returns the list passed to it' do
+      r = subject.run s '--items a b c'
+      r[:items].must_equal ['a', 'b', 'c']
+    end
+
+    it 'returns a single item in an array if only one item passed' do
+      r = subject.run s '--items a'
+      r[:items].must_equal ['a']
+    end
+  end
+
   describe '--print' do
     it 'prints a message n times' do
       this {
@@ -200,13 +209,6 @@ describe 'A CLI' do
         r[:new][:T].must_equal :page
         r.args.must_equal ['crazy']
       end
-    end
-
-    describe '--force' do
-      #it 'asks for conformation' do
-      #  r = subject.run s 'new --force'
-      #  r[:force].must_be_true
-      #end
     end
 
     describe 'action' do

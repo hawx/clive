@@ -36,9 +36,8 @@ class Clive
       other = other.dup.compact
       # Find the number of 'spares'
       diff = other.size - find_all {|i| !i.optional? }.size
-      r = []
 
-      map do |arg|
+      r = map do |arg|
         if arg.possible?(other.first)
           if arg.optional?
             if diff > 0
@@ -53,6 +52,19 @@ class Clive
           [arg, nil]
         end
       end
+      
+      # If last arg is infinite may still have some left over so add now
+      if other != [] && last.respond_to?(:infinite?) && last.infinite?
+        r += other.map {|i| [last, i] }
+      end
+  
+      if last.respond_to?(:infinite?) && last.infinite?
+        infinites = []
+        r = r.reject! {|i| i.first.infinite? ? infinites << i : false }
+        r << [infinites[0].first, infinites.map {|i| i.last }]
+      end
+
+      r
     end
 
     # @return [String]
@@ -67,7 +79,23 @@ class Clive
 
     # @return [Integer] The maximum number of arguments that *can* be given.
     def max
-      size
+      if last && last.infinite?
+        1.0/0.0
+      else
+        size
+      end
+    end
+
+    # If the last item is infinite returns that item for any indexes greater
+    # than the actual length of the Arguments list.
+    #
+    # @param idx [Integer] Index of item to return
+    def [](idx)
+      if size <= idx && idx < max
+        last
+      else
+        super
+      end
     end
 
     # Whether the +list+ of found arguments could possibly be the arguments for
@@ -81,7 +109,7 @@ class Clive
       optionals = []
 
       list.each do |item|
-        break if i >= size
+        break if i >= max
 
         # Either, +item+ is self[i]
         if self[i].possible?(item)
@@ -89,7 +117,7 @@ class Clive
 
         # Or, the argument is optional and there is another argument to move to
         # meaning it can be skipped
-        elsif self[i].optional? && (i < size - 1)
+        elsif self[i].optional? && (i < max - 1)
           i += 1
           optionals << item
 
@@ -118,21 +146,22 @@ class Clive
     #
     # @param list [Array<Object>]
     def valid?(list)
-      zip(list).map do |a,i|
-        if a.optional?
-          nil
-        else
-          i
-        end
-      end.compact.size >= min && possible?(list)
+      l = zip(list).map {|a,i| a.optional? ? nil : i }
+      l.flatten.compact.size >= min && possible?(list)
     end
 
     # Will fill spaces in +list+ with default values, then coerces all arguments
-    # to the corect types.
+    # to the correct types.
     #
     # @return [Array]
     def create_valid(list)
-      zip(list).map {|a,r| r ? a.coerce(r) : a.coerce(a.default) }
+      zip(list).map do |a,r| 
+        if a.infinite?
+          r.map {|i| r ? a.coerce(i) : a.coerce(i.default) }
+        else
+          r ? a.coerce(r) : a.coerce(a.default) 
+        end
+      end
     end
 
   end
