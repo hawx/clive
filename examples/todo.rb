@@ -24,14 +24,16 @@ class Todo < Clive
   end
 
   desc 'Delete the item with index given'
-  opt :d, :delete, :arg => '<index>', :as => Integer do
+  opt :d, :delete, :arg => '<index>...', :as => Integer do
     lines = Todo.read.split("\n")
-    if index >= lines.size
-      puts "You can't delete task #{index} as there are only #{lines.size} tasks in your list".red
-    else
-      lines.delete_at(index)
-      Todo.write 'w', lines.join("\n")
+
+    if index.any? {|i| i >= lines.size }
+      abort "You can't delete task #{index} as there are only #{lines.size} tasks in your list".red
     end
+    
+    lines -= index.map {|i| lines[i] }  
+
+    Todo.write 'w', lines.join("\n")
   end
 
   desc 'Add item to list'
