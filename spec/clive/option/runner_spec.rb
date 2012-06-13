@@ -14,9 +14,29 @@ describe Clive::Option::Runner do
 
   describe '#get' do
     it 'gets a value from state' do
+      r = nil
+      subject._run({}, {:a => 1}, proc { r = get(:a) })
+      r.must_equal 1
+    end
+
+    it 'returns nil if key does not exist' do
+      r = true
+      subject._run({}, {:a => 1}, proc { r = get(:b) })
+      r.must_equal nil
+    end
+  end
+
+  describe '#get!' do
+    it 'gets a value from the state' do
+      r = nil
+      subject._run({}, {:a => 1}, proc { r = get!(:a) })
+      r.must_equal 1
+    end
+
+    it 'raises an error if key does not exist' do
       this {
-        subject._run({}, {:a => 1}, proc { puts get(:a) })
-      }.must_output "1\n"
+        subject._run({}, {:a => 1}, proc { r = get!(:b) })
+      }.must_raise KeyError
     end
   end
 

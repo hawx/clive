@@ -1,9 +1,12 @@
 class Clive
 
   # Methods for modifying a state object. Requires that the instance variable
-  # +@state+ exists and that it responds to +#fetch+, +#store+ and +#key?+.
+  # +@state+ exists and that it responds to +#[]+, +#fetch+, +#store+ and
+  # +#key?+.
   module StateActions
 
+    # Gets the value for the key, returns nil if the key does not exist.
+    #
     # @param key [Symbol]
     #
     # @example
@@ -13,9 +16,18 @@ class Clive
     #   end
     #
     def get(key)
+      @state[key]
+    end
+
+    # Gets the value for the key, raises an error if the key does not exist.
+    #
+    # @param key [Symbol]
+    def get!(key)
       @state.fetch key
     end
 
+    # Sets the key to the value given.
+    #
     # @param key [Symbol]
     # @param value [Object]
     #

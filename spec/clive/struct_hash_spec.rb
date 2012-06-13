@@ -6,9 +6,28 @@ describe Clive::StructHash do
   subject { Clive::StructHash }
 
   describe '#[]' do
+    let(:s) { subject.new(:a => 1) }
+
     it 'gets the value' do
-      sh = subject.new(:a => 1)
-      sh[:a].must_equal 1
+      s[:a].must_equal 1
+    end
+
+    it 'returns nil if key does not exist' do
+      s[:b].must_equal nil
+    end
+  end
+
+  describe '#fetch' do
+    let(:s) { subject.new(:a => 1) }
+
+    it 'gets the value' do
+      s.fetch(:a).must_equal 1
+    end
+
+    it 'raises an error when key does not exist' do
+      proc {
+        s.fetch(:b)
+      }.must_raise KeyError
     end
   end
 

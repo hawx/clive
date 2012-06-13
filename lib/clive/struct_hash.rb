@@ -51,7 +51,10 @@ class Clive
     def fetch(key)
       @data.fetch @aliases[key]
     end
-    alias_method :[], :fetch
+
+    def [](key)
+      @data[@aliases[key]]
+    end
 
     # Checks whether the StructHash contains an entry for the key given.
     def key?(key)
