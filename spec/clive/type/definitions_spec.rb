@@ -305,6 +305,9 @@ describe Clive::Type::Regexp do
 
   describe '#typecast' do
     it 'returns a Regexp' do
+      subject.typecast('/a|b/').must_be_kind_of Regexp
+      subject.typecast('/a|b/').must_equal /a|b/
+
       subject.typecast('/a/i').must_be_kind_of Regexp
       subject.typecast('/a/ix').must_equal /a/ix
     end

@@ -158,8 +158,9 @@ class Clive
 
       def typecast(arg)
         parts = arg.split('/')
-        mods = parts.pop
-        arg = parts.join('')
+        parts << '' if parts.size < 3
+
+        _, arg, mods = parts
         mods = mods.split('').map {|a| OPTS[a] }.inject{|a,e| a | e }
 
         ::Regexp.new arg, mods
