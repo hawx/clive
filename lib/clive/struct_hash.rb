@@ -87,7 +87,7 @@ class Clive
     # Otherwise calls super.
     def method_missing(sym, *args, &block)
       if key?(sym)
-        fetch sym
+        self[sym]
       elsif sym.to_s[-1..-1] == "?"
         key? sym.to_s[0..-2].to_sym
       else
