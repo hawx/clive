@@ -45,13 +45,10 @@ class Clive
       @data[keys.first] = val
     end
 
-    # Gets the value from the StructHash corresponding to the key given.
+    # Gets the value from the StructHash corresponding to the key given. Returns
+    # nil if the key given does not exist.
     #
     # @param key [Symbol]
-    def fetch(key)
-      @data.fetch @aliases[key]
-    end
-
     def [](key)
       @data[@aliases[key]]
     end

@@ -17,20 +17,6 @@ describe Clive::StructHash do
     end
   end
 
-  describe '#fetch' do
-    let(:s) { subject.new(:a => 1) }
-
-    it 'gets the value' do
-      s.fetch(:a).must_equal 1
-    end
-
-    it 'raises an error when key does not exist' do
-      proc {
-        s.fetch(:b)
-      }.must_raise KeyError
-    end
-  end
-
   describe '#store' do
     it 'stores a key' do
       sh = subject.new
