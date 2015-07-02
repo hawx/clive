@@ -24,18 +24,18 @@ class Clive
       @config = DEFAULTS.merge(config)
     end
 
-    # The parser should work how you expect. It allows you to put global options 
-    # before and after a command section (if it exists, which it doesn't), so 
+    # The parser should work how you expect. It allows you to put global options
+    # before and after a command section (if it exists, which it doesn't), so
     # you have something like.
     #
     #    app [global] [command] [global]
     #
-    # Where the [global] sections are made of options and arguments and 
+    # Where the [global] sections are made of options and arguments and
     # [command] is made of
     #
     #    [command] [options/args]
     #
-    # Only one command can be run, if you attempt to use two the other will be 
+    # Only one command can be run, if you attempt to use two the other will be
     # caught as an argument.
     #
     # @param argv [Array]
@@ -82,8 +82,33 @@ class Clive
             args = []
 
             until ended?
-              if found.has?(curr)
+              # it's a no- option
+              if curr[0..4] == '--no-' && found.has?("--#{curr[5..-1]}") && found.find("--#{curr[5..-1]}").config[:boolean] == true
+                found.find("--#{curr[5..-1]}").run @state, [false], found
+
+              # it's one (or more) short options
+              elsif curr[0..0] == '-' && curr.size > 2 && found.has?("-#{curr[1..1]}")
+                currs = curr[1..-1].split('').map {|i| "-#{i}" }
+
+                currs.each do |c|
+                  opt = found.find(c)
+                  raise MissingOptionError.new(c) unless opt
+
+                  if c == currs.last
+                    run_option opt, found
+                  else
+                    # can't take any arguments as an option is next to it
+                    if opt.args.min > 0
+                      raise MissingArgumentError.new(opt, [], opt.args)
+                    else
+                      opt.run @state, [true], found
+                    end
+                  end
+                end
+
+              elsif found.has?(curr)
                 run_option found.find(curr), found
+
               else
                 break unless found.args.possible?(args + [curr])
                 args << curr
@@ -100,7 +125,7 @@ class Clive
           end
 
         # it's a no- option
-        elsif curr[0..4] == '--no-' && @base.find("--#{curr[5..-1]}").config[:boolean] == true
+        elsif curr[0..4] == '--no-' && @base.has?("--#{curr[5..-1]}") && @base.find("--#{curr[5..-1]}").config[:boolean] == true
           @base.find("--#{curr[5..-1]}").run @state, [false]
 
         # it's one (or more) short options

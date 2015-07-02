@@ -43,6 +43,8 @@ describe 'A CLI' do
         # implicit arg as "<choice>", also added default
         opt :T, :type, :in => %w(post page blog), :default => :page, :as => Symbol
 
+        bool :a, :all
+
         action do |dir|
           puts "Creating #{get :type} in #{dir}" if dir
         end
@@ -243,5 +245,17 @@ describe 'A CLI' do
     this {
       subject.run %w(-vsa 2.45)
     }.must_raise Clive::Parser::MissingArgumentError
+  end
+
+  it 'should be able to do combined short switches in a command' do
+    r = subject.run s 'new -aT blog'
+
+    r[:new].to_h.must_equal :all => true, :type => :blog, :something => []
+  end
+
+  it 'should be able to do --no switches in a command' do
+    r = subject.run s 'new --no-all'
+
+    r[:new].to_h.must_equal :all => false, :something => []
   end
 end
