@@ -16,10 +16,10 @@ Usage: ... [command] [options]
 
   Commands:
     new
-    help [<command>]      \e[90m# \e[0m\e[90mDisplay help\e[0m
+    help [<command>]            \e[90m# \e[0m\e[90mDisplay help\e[0m
 
   Options:
-    -h, --help            \e[90m# \e[0m\e[90mDisplay this help message\e[0m
+    -h, --help                  \e[90m# \e[0m\e[90mDisplay this help message\e[0m
 EOS
       end
     end
@@ -34,7 +34,7 @@ Usage: ... new [options]
 
   Options:
     -f, --force
-    -h, --help        \e[90m# \e[0m\e[90mDisplay this help message\e[0m
+    -h, --help                  \e[90m# \e[0m\e[90mDisplay this help message\e[0m
 EOS
       end
 
@@ -143,33 +143,33 @@ EOS
       r.must_have :auto
     end
   end
-  
+
   describe 'Infinite arguments' do
     subject {
       Clive.new { opt :items, :arg => '<item>...' }
     }
-    
+
     it 'requires at least one argument' do
       this {
         subject.run s '--items'
       }.must_raise Clive::Parser::MissingArgumentError
     end
-    
+
     it 'takes infinite arguments' do
       r = subject.run s '--items a b c d e f g h'
       r.items.must_equal %w(a b c d e f g h)
     end
   end
-  
+
   describe 'Optional infinite arguments' do
     subject {
       Clive.new { opt :items, :arg => '[<item>...]' }
     }
-    
+
     it 'does not require an argument' do
       subject.run s '--items'
     end
-    
+
     it 'takes infinite arguments' do
       r = subject.run s '--items a b c d e f g h'
       r.items.must_equal %w(a b c d e f g h)
